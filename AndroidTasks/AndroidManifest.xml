@@ -11,7 +11,9 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-
+		<activity android:name=".EditTask"
+			android:label="@string/edit_task_activity_name">
+		</activity>
     </application>
 
 

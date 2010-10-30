@@ -1,6 +1,55 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout
   xmlns:android="http://schemas.android.com/apk/res/android"
-  android:layout_width="wrap_content"
-  android:layout_height="wrap_content">
+  android:layout_width="fill_parent"
+  android:layout_height="fill_parent"
+  android:orientation="vertical"
+>
+    
+  <LinearLayout
+  	android:orientation="horizontal"
+  	android:layout_height="wrap_content"
+  	android:layout_width="fill_parent"
+  >
+		<TextView android:text="Description"
+			android:layout_height="wrap_content"
+			android:layout_width="wrap_content"
+			android:paddingRight="4dp"
+		/>
+	  
+	  	<EditText android:id="@+id/edit_description"
+	  		android:layout_height="wrap_content"
+	  		android:layout_width="fill_parent"
+	  	/>
+  </LinearLayout>
+
+  <CheckBox android:id="@+id/edit_completed"
+  	android:layout_width="wrap_content"
+  	android:layout_height="wrap_content"
+  	android:text="Completed"
+  />
+  
+  <CheckBox android:id="@+id/edit_has_targetDate"
+  	android:layout_width="wrap_content"
+  	android:layout_height="wrap_content"
+  	android:text="Set target date"
+  />
+    
+  <DatePicker android:id="@+id/edit_targetDate"
+  	android:layout_width="fill_parent"
+  	android:layout_height="wrap_content"
+  />
+  
+  <Button android:id="@+id/edit_complete_button"
+  	android:layout_width="fill_parent"
+  	android:layout_height="wrap_content"
+  	android:text="@string/edit_complete_button_caption"
+  />
+  
+  <Button android:id="@+id/edit_cancel_button"
+	  android:layout_width="fill_parent"
+	  android:layout_height="wrap_content"
+	  android:text="@string/edit_cancel_button_caption"
+  />
+  
 </LinearLayout>

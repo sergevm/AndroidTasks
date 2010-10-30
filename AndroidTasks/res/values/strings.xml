@@ -2,4 +2,8 @@
 <resources>
     <string name="hello">Hello World, TaskList!</string>
     <string name="app_name">AndroidTasks</string>
+<string name="add_button_caption">Add</string>
+<string name="edit_task_activity_name">Edit Task</string>
+<string name="edit_complete_button_caption">Complete</string>
+<string name="edit_cancel_button_caption">Cancel</string>
 </resources>

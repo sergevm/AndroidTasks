@@ -1,6 +1,5 @@
 package com.softwareprojects.androidtasks.db;
 
-import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -82,7 +81,9 @@ public class DBHelper {
 		ContentValues values = new ContentValues();
 		values.put("description", task.description);
 		values.put("completed", task.completed);
-		values.put("targetdate",DateFormat.getDateTimeInstance().format(task.targetDate));
+		if(task.targetDate != null) {
+			values.put("targetdate",new SimpleDateFormat("dd-MM-yyyy").format(task.targetDate));
+		}
 
 		 task.id = this.db.insert(DB_TASKS_TABLE, null, values);
 	}
@@ -90,8 +91,13 @@ public class DBHelper {
 	public void update(Task task){
 		ContentValues values = new ContentValues();
 		values.put("description", task.description);
-		values.put("completed", task.completed);
-		values.put("targetdate", DateFormat.getDateTimeInstance().format(task.targetDate));
+		values.put("completed", task.completed ? "true" : "false");
+		if(task.targetDate != null) {
+			values.put("targetdate", new SimpleDateFormat("dd-MM-yyyy").format(task.targetDate));
+		}
+		else {
+			values.put("targetdate", (String)null);
+		}
 		
 		this.db.update(DB_TASKS_TABLE, values, "id = " + task.id, null);
 	}
@@ -117,7 +123,7 @@ public class DBHelper {
 				Task task = new Task();
 				task.id = c.getLong(0);
 				task.description = c.getString(1);
-				task.completed = Boolean.parseBoolean(c.getString(2));
+				task.completed =  Boolean.parseBoolean(c.getString(2));
 				
 				if(c.isNull(3) == false) {
 					String dateAsString = c.getString(3);
