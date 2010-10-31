@@ -6,6 +6,7 @@ import android.app.ListActivity;
 import android.content.Intent;
 import android.os.Bundle;
 import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
@@ -51,14 +52,6 @@ public class TaskList extends ListActivity {
 						intent.putExtra(Constants.CURRENT_TASK, task);
 						startActivityForResult(intent, 0);
 					}
-
-					@SuppressWarnings("unused")
-					private void showDebuggingToast(AdapterView<?> parent,
-							int position) {
-						Task task = (Task)parent.getItemAtPosition(position);
-						Toast.makeText(getBaseContext(), task.description, 
-								Toast.LENGTH_SHORT).show();
-					}
 				});
 
 		setListAdapter(adapter);
@@ -84,7 +77,32 @@ public class TaskList extends ListActivity {
     		- Sync
     		- ...
 		 */
+		menu.add(Menu.NONE, 1, 1, "New");
+		menu.add(Menu.NONE, 2, 2, "Sync");
 		return super.onCreateOptionsMenu(menu);
+	}
+
+	@Override
+	public boolean onOptionsItemSelected(MenuItem item) {
+		switch(item.getItemId()) {
+		case 1:
+			addTask();
+			return true;
+		case 2:
+			sync();
+			return true;
+		default:
+			return true;
+		}
+	}
+
+	private void sync() {
+		
+	}
+
+	private void addTask() {
+		Intent intent = new Intent(this, EditTask.class);
+		startActivityForResult(intent, 0);
 	}
 
 	private List<Task> getTasks()

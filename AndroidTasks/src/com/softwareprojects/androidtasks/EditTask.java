@@ -55,8 +55,7 @@ public class EditTask extends Activity {
 		setTargetDateButton = (Button)findViewById(R.id.edit_targetDate_button);
 
 		// Get task passed in via Intent
-		Bundle extras = getIntent().getExtras();
-		final Task task = (Task)extras.getParcelable(Constants.CURRENT_TASK);
+		final Task task = getOrCreateTask();
 
 		// Use that data to fill up the widgets
 		description.setText(task.description);
@@ -120,8 +119,13 @@ public class EditTask extends Activity {
 				task.completed = completed.isChecked();
 				task.description = description.getText().toString();
 
-				dbHelper.update(task);
-
+				if(task.id == 0) {
+					dbHelper.insert(task);
+				}
+				else {
+					dbHelper.update(task);
+				}
+				
 				setResult(RESULT_OK);				
 				finish();
 			}});
@@ -133,6 +137,16 @@ public class EditTask extends Activity {
 				setResult(RESULT_CANCELED);
 				finish();
 			}});
+	}
+
+	private Task getOrCreateTask() {
+		if(getIntent().hasExtra(Constants.CURRENT_TASK)) {
+			Bundle extras = getIntent().getExtras();
+			return (Task)extras.getParcelable(Constants.CURRENT_TASK);
+		}
+		else {
+			return new Task();
+		}
 	}
 
 	protected Date getTargetDate() {

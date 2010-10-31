@@ -8,7 +8,7 @@
 		<TextView android:text="Description" android:layout_height="wrap_content"
 			android:layout_width="wrap_content" android:paddingRight="4dp" />
 
-		<EditText android:id="@+id/edit_description"
+		<EditText android:id="@+id/edit_description" android:padding="4dp"
 			android:layout_height="wrap_content" android:layout_width="fill_parent" />
 	</LinearLayout>
 
