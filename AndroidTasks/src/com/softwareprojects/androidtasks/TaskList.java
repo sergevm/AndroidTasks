@@ -43,7 +43,7 @@ public class TaskList extends ListActivity {
 		List<Task> tasks = getTasks(); 
 
 		TaskAdapter adapter = new TaskAdapter(this, R.layout.task_listitem, 0, tasks);
-		
+
 		this.getListView().setOnItemClickListener(
 				new AdapterView.OnItemClickListener(){
 
@@ -100,7 +100,7 @@ public class TaskList extends ListActivity {
 	}
 
 	private void sync() {
-		
+
 	}
 
 	private void addTask() {
@@ -112,35 +112,35 @@ public class TaskList extends ListActivity {
 	{
 		return dbHelper.getAll();
 	}
-	
+
 	private class TaskAdapter extends ArrayAdapter<Task> {
 
 		List<Task> tasks;
-		
+
 		public TaskAdapter(Context context, int resource, int textViewResourceId,
 				List<Task> objects) {
 			super(context, resource, textViewResourceId, objects);
 			this.tasks = objects;
 		}
-		
+
 		@Override
 		public View getView(int position, View convertView, ViewGroup parent) {
 			View view = convertView;
-			
+
 			if(view == null) {
 				LayoutInflater inflater = (LayoutInflater)getSystemService(Context.LAYOUT_INFLATER_SERVICE);
 				view = inflater.inflate(R.layout.task_listitem, null);
 			}
-			
+
 			Task task = tasks.get(position);
-			
+
 			if(task != null) {
-				
+
 				TextView description = (TextView)view.findViewById(R.id.item_description);
 				TextView targetdate = (TextView)view.findViewById(R.id.item_targetdate);
-				
+
 				description.setText(task.description);
-				
+
 				// Strike through if task is completed
 				if(task.completed) {
 					description.setPaintFlags(description.getPaintFlags() | Paint.STRIKE_THRU_TEXT_FLAG);
@@ -152,34 +152,36 @@ public class TaskList extends ListActivity {
 				if(task.targetDate == null) {
 					targetdate.setText("no target date");
 				} else {
-					
+
 					SimpleDateFormat dateFormat = new SimpleDateFormat(Constants.DATE_FORMAT_STRING);
 					targetdate.setText(dateFormat.format(task.targetDate));
-					
+
 					Date now = new Date();
-					
+
 					// Coloring
-					if(now.after(task.targetDate)) {
-						view.setBackgroundColor(Color.RED);
-						targetdate.setTypeface(Typeface.DEFAULT_BOLD);
-					} else if (deadlineInLessThanADay(now, task.targetDate)) {
-						targetdate.setTextColor(Color.RED);
-						view.setBackgroundColor(Color.DKGRAY);
-						targetdate.setTypeface(Typeface.DEFAULT_BOLD);						
+					if(task.completed == false) {
+						if(now.after(task.targetDate)) {
+							view.setBackgroundColor(Color.RED);
+							targetdate.setTypeface(Typeface.DEFAULT_BOLD);
+						} else if (deadlineInLessThanADay(now, task.targetDate)) {
+							targetdate.setTextColor(Color.RED);
+							view.setBackgroundColor(Color.DKGRAY);
+							targetdate.setTypeface(Typeface.DEFAULT_BOLD);						
+						}
 					}
 				}
 			}
-			
+
 			return view;
 		}
 
 		private boolean deadlineInLessThanADay(Date left, Date right) {
 			Date smallest = left.before(right) ? left : right;
 			Date biggest = left.before(right) ? right :left;
-			
+
 			long diff = biggest.getTime() - smallest.getTime();
 			long days = diff / (1000 * 60 * 60 * 24);
-			
+
 			return days == 0;
 		}
 	}

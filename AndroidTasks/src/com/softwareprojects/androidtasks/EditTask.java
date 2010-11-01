@@ -61,13 +61,8 @@ public class EditTask extends Activity {
 		description.setText(task.description);
 		completed.setChecked(task.completed);
 
-		if(task.targetDate != null) {
-			updateTargetDateFrom(task);
-			enableTargetDateControls(true);
-		}
-		else {
-			enableTargetDateControls(false);
-		}
+		updateTargetDateFrom(task);
+		updateTargetDateControlsFrom(task);
 
 		hasTargetDate.setOnCheckedChangeListener(new OnCheckedChangeListener(){
 
@@ -75,14 +70,13 @@ public class EditTask extends Activity {
 			public void onCheckedChanged(CompoundButton hasTargetDateCheckBox, boolean isChecked) {
 				if(!isChecked) {
 					task.targetDate = null;
-					targetDateText.setText(null);
-					setTargetDateButton.setEnabled(false);
 				}
 				else {
 					task.targetDate = getTargetDate();
-					targetDateText.setText(dateFormat.format(task.targetDate));
-					setTargetDateButton.setEnabled(true);
 				}
+				
+				updateTargetDateFrom(task.targetDate);
+				updateTargetDateControlsFrom(task);
 			}
 		});
 
@@ -125,9 +119,18 @@ public class EditTask extends Activity {
 				else {
 					dbHelper.update(task);
 				}
-				
+
 				setResult(RESULT_OK);				
 				finish();
+			}});
+
+		completed.setOnClickListener(new OnClickListener() {
+
+			@Override
+			public void onClick(View view) {
+				CheckBox checkbox = (CheckBox)view;
+				task.completed = checkbox.isChecked();
+				updateTargetDateControlsFrom(task);
 			}});
 
 		cancel.setOnClickListener(new OnClickListener(){
@@ -153,9 +156,15 @@ public class EditTask extends Activity {
 		return calendar.getTime();
 	}
 
-	private void enableTargetDateControls(boolean enabled) {
-		hasTargetDate.setChecked(enabled);
-		setTargetDateButton.setEnabled(enabled);
+	private void updateTargetDateControlsFrom(final Task task) {
+
+		hasTargetDate.setChecked(task.targetDate != null);
+		enableTargetDateControls(task);
+	}
+
+	private void enableTargetDateControls(final Task task) {
+		hasTargetDate.setEnabled(task.completed == false);
+		setTargetDateButton.setEnabled(task.completed == false & task.targetDate != null);
 	}
 
 	private void updateTargetDateFrom(final Task task) {
@@ -163,7 +172,13 @@ public class EditTask extends Activity {
 	}
 
 	private void updateTargetDateFrom(final Date date) {
-		targetDateText.setText(dateFormat.format(date));
-		calendar.setTime(date);		
+		if(date == null) {
+			targetDateText.setText(null);
+			Calendar today = Calendar.getInstance();
+			calendar.set(today.get(Calendar.YEAR), today.get(Calendar.MONTH), today.get(Calendar.DAY_OF_MONTH));
+		} else {
+			targetDateText.setText(dateFormat.format(date));
+			calendar.setTime(date);		
+		}
 	}
 }

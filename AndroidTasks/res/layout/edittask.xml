@@ -3,16 +3,13 @@
 	android:layout_width="fill_parent" android:layout_height="fill_parent"
 	android:orientation="vertical">
 
-	<LinearLayout android:orientation="horizontal"
-		android:layout_height="wrap_content" android:layout_width="fill_parent">
-		<TextView android:text="Description" android:layout_height="wrap_content"
-			android:layout_width="wrap_content" android:paddingRight="4dp" />
+	<TextView android:text="Description" android:layout_height="wrap_content"
+		android:layout_width="wrap_content" android:textSize="14dp" />
 
-		<EditText android:id="@+id/edit_description" android:padding="4dp"
-			android:layout_height="wrap_content" android:layout_width="fill_parent" />
-	</LinearLayout>
+	<EditText android:id="@+id/edit_description" android:padding="4dp"
+		android:layout_height="wrap_content" android:layout_width="fill_parent" />
 
-	<CheckBox android:id="@+id/edit_completed"
+	<CheckBox android:id="@+id/edit_completed" android:textSize="14dp"
 		android:layout_width="wrap_content" android:layout_height="wrap_content"
 		android:text="Completed" />
 
@@ -21,23 +18,25 @@
 		android:layout_height="wrap_content" android:orientation="horizontal">
 
 		<CheckBox android:id="@+id/edit_has_targetDate" android:text="Target Date"
-			android:layout_width="wrap_content" android:layout_height="wrap_content" />
+			android:textSize="14dp" android:layout_width="wrap_content"
+			android:layout_height="wrap_content" />
 
-		<Button android:layout_width="wrap_content" android:paddingTop="2dp" android:paddingBottom="2dp"
+		<Button android:layout_width="wrap_content" android:paddingTop="2dp"
+			android:paddingBottom="2dp" android:textSize="14dp"
 			android:layout_height="wrap_content" android:id="@+id/edit_targetDate_button"
 			android:text="Set" />
 
-		<TextView android:layout_gravity="center_vertical" android:hint="no target set"
-			android:layout_height="wrap_content" android:layout_width="wrap_content"
-			android:id="@+id/edit_targetDate_textview" />
+		<TextView android:layout_gravity="center_vertical"
+			android:hint="no target set" android:layout_height="wrap_content"
+			android:layout_width="wrap_content" android:id="@+id/edit_targetDate_textview" />
 
 	</LinearLayout>
 
-	<Button android:id="@+id/edit_commit_button"
+	<Button android:id="@+id/edit_commit_button" android:textSize="14dp" android:padding="0dp"
 		android:layout_width="fill_parent" android:layout_height="wrap_content"
 		android:text="@string/edit_commit_button_caption" />
 
-	<Button android:id="@+id/edit_cancel_button"
+	<Button android:id="@+id/edit_cancel_button" android:textSize="14dp" android:padding="0dp"
 		android:layout_width="fill_parent" android:layout_height="wrap_content"
 		android:text="@string/edit_cancel_button_caption" />
 
