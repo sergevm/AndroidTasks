@@ -36,7 +36,7 @@ public class Task implements Parcelable{
 		
 		// target date
 		if (targetDate != null) {
-			dest.writeString(new SimpleDateFormat("dd-MM-yyyy")
+			dest.writeString(new SimpleDateFormat(Constants.DATETIME_FORMAT_STRING)
 			.format(targetDate));
 		}
 		else {
@@ -70,7 +70,7 @@ public class Task implements Parcelable{
 		try {
 			String dateAsString = parcel.readString();
 			if(dateAsString != null) {				
-				targetDate = new SimpleDateFormat("dd-MM-yyyy").parse(dateAsString);
+				targetDate = new SimpleDateFormat(Constants.DATETIME_FORMAT_STRING).parse(dateAsString);
 			}
 		} catch (ParseException e) {
 			Log.e(Constants.LOGTAG, CLASSNAME, e);

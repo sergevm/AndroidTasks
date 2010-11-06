@@ -6,4 +6,7 @@
 <string name="edit_task_activity_name">Edit Task</string>
 <string name="edit_commit_button_caption">Accept</string>
 <string name="edit_cancel_button_caption">Cancel</string>
+<string name="list_filter_all">All Tasks</string>
+<string name="list_filter_active">Active Tasks</string>
+<string name="list_filter_due">Due Tasks</string>
 </resources>

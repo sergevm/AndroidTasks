@@ -30,8 +30,7 @@ import com.softwareprojects.androidtasks.domain.Task;
 public class TaskList extends ListActivity {
 
 	private static DBHelper dbHelper;
-	private TaskAdapter adapter; 
-	
+
 	private final static int Filter_All = 4;
 	private final static int Filter_Active = 5;
 	private final static int Filter_Due = 6;
@@ -53,18 +52,15 @@ public class TaskList extends ListActivity {
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 
-		// Initialize the adapter
-		adapter = new TaskAdapter(this, R.layout.task_listitem, 0, new ArrayList<Task>());
-		
 		// Initialize the database helper
 		dbHelper = new DBHelper(this);
 
 		// Set up the adapter
 		initializeTaskList();
-		
+
 		// Set the initial list filter
 		setCurrentFilter(Filter_All);
-		
+
 		// Update the filtered list
 		updateFilteredList();
 	}
@@ -148,7 +144,7 @@ public class TaskList extends ListActivity {
 
 	private void updateFilteredList() {
 		List<Task> list = null;
-		
+
 		switch(getCurrentFilter()) {
 		case Filter_All:
 			list = dbHelper.getAll();
@@ -162,9 +158,33 @@ public class TaskList extends ListActivity {
 		default:
 			break;
 		}
-		
+
 		TaskAdapter adapter = new TaskAdapter(this, R.layout.task_listitem, 0, list);
 		setListAdapter(adapter);
+
+		updateTitle();
+	}
+
+	private void updateTitle()
+	{
+		StringBuilder sb = new StringBuilder(getResources().getString(R.string.app_name));
+		sb.append(" - ");
+		
+		switch(getCurrentFilter()) {
+		case Filter_All:
+			sb.append(getResources().getString(R.string.list_filter_all));
+			break;
+		case Filter_Active:
+			sb.append(getResources().getString(R.string.list_filter_active));
+			break;
+		case Filter_Due:
+			sb.append(getResources().getString(R.string.list_filter_due));
+			break;
+		default:
+			break;
+		}
+
+		setTitle(sb.toString());
 	}
 
 	private class TaskAdapter extends ArrayAdapter<Task> {
@@ -207,8 +227,8 @@ public class TaskList extends ListActivity {
 					targetdate.setText("no target date");
 				} else {
 
-					SimpleDateFormat dateFormat = new SimpleDateFormat(Constants.DATE_FORMAT_STRING);
-					targetdate.setText(dateFormat.format(task.targetDate));
+					SimpleDateFormat dateFormat = new SimpleDateFormat(Constants.DATETIME_FORMAT_STRING);
+					targetdate.setText(formatTargetDate(task, dateFormat));
 
 					Date now = new Date();
 
@@ -227,6 +247,10 @@ public class TaskList extends ListActivity {
 			}
 
 			return view;
+		}
+
+		private String formatTargetDate(Task task, SimpleDateFormat dateFormat) {
+			return dateFormat.format(task.targetDate);
 		}
 
 		private boolean deadlineInLessThanADay(Date left, Date right) {

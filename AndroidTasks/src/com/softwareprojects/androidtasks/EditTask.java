@@ -10,13 +10,17 @@ import com.softwareprojects.androidtasks.domain.Task;
 import android.app.Activity;
 import android.app.DatePickerDialog;
 import android.app.DatePickerDialog.OnDateSetListener;
+import android.app.TimePickerDialog;
+import android.app.TimePickerDialog.OnTimeSetListener;
 import android.content.Context;
+import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.CompoundButton;
+import android.widget.TimePicker;
 import android.widget.CompoundButton.OnCheckedChangeListener;
 import android.widget.DatePicker;
 import android.widget.DatePicker.OnDateChangedListener;
@@ -29,14 +33,15 @@ public class EditTask extends Activity {
 	private EditText description;
 	private CheckBox completed;
 	private CheckBox hasTargetDate;
-	private TextView targetDateText;
-	private Button setTargetDateButton;
+	private Button targetDateButton;
+	private Button targetTimeButton;
 	private Button complete;
 	private Button cancel;
 
 	private final Context context = this;
 	private static final Calendar calendar = Calendar.getInstance();
 	private static final SimpleDateFormat dateFormat = new SimpleDateFormat(Constants.DATE_FORMAT_STRING);
+	private static final SimpleDateFormat timeFormat = new SimpleDateFormat(Constants.TIME_FORMAT_STRING);
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -54,8 +59,8 @@ public class EditTask extends Activity {
 		hasTargetDate = (CheckBox)findViewById(R.id.edit_has_targetDate);
 		complete = (Button)findViewById(R.id.edit_commit_button);
 		cancel = (Button)findViewById(R.id.edit_cancel_button);
-		targetDateText = (TextView)findViewById(R.id.edit_targetDate_textview);
-		setTargetDateButton = (Button)findViewById(R.id.edit_targetDate_button);
+		targetDateButton = (Button)findViewById(R.id.edit_targetDate_button);
+		targetTimeButton = (Button)findViewById(R.id.edit_targetTime_button);
 
 		// Get task passed in via Intent
 		final Task task = getOrCreateTask();
@@ -83,7 +88,7 @@ public class EditTask extends Activity {
 			}
 		});
 
-		setTargetDateButton.setOnClickListener(new OnClickListener(){
+		targetDateButton.setOnClickListener(new OnClickListener(){
 
 			@Override
 			public void onClick(View button) {
@@ -102,7 +107,29 @@ public class EditTask extends Activity {
 				@Override
 				public void onDateSet(DatePicker picker, int year, int monthOfYear,
 						int dayOfMonth) {
-					calendar.set(year, monthOfYear, dayOfMonth, 0, 0, 0);
+					calendar.set(year, monthOfYear, dayOfMonth);
+					task.targetDate = calendar.getTime();
+					updateTargetDateFrom(task.targetDate);
+				}
+			};
+		});
+		
+		targetTimeButton.setOnClickListener(new OnClickListener() {
+			
+			@Override
+			public void onClick(View button) {
+				TimePickerDialog dialog = new TimePickerDialog(context, listener,
+						calendar.get(Calendar.HOUR_OF_DAY), calendar.get(Calendar.MINUTE), false); 
+				
+				dialog.show();
+			}
+			
+			OnTimeSetListener listener = new OnTimeSetListener() {
+				
+				@Override
+				public void onTimeSet(TimePicker view, int hourOfDay, int minute) {
+					calendar.set(Calendar.HOUR_OF_DAY, hourOfDay);
+					calendar.set(Calendar.MINUTE, minute);
 					task.targetDate = calendar.getTime();
 					updateTargetDateFrom(task.targetDate);
 				}
@@ -168,7 +195,8 @@ public class EditTask extends Activity {
 
 	private void enableTargetDateControls(final Task task) {
 		hasTargetDate.setEnabled(task.completed == false);
-		setTargetDateButton.setEnabled(task.completed == false & task.targetDate != null);
+		targetDateButton.setVisibility(task.completed == false & task.targetDate != null ? View.VISIBLE : View.INVISIBLE);
+		targetTimeButton.setVisibility(task.completed == false & task.targetDate != null ? View.VISIBLE : View.INVISIBLE);
 	}
 
 	private void updateTargetDateFrom(final Task task) {
@@ -177,11 +205,13 @@ public class EditTask extends Activity {
 
 	private void updateTargetDateFrom(final Date date) {
 		if(date == null) {
-			targetDateText.setText(null);
+			targetDateButton.setText(null);
+			targetTimeButton.setText(null);
 			Calendar today = Calendar.getInstance();
-			calendar.set(today.get(Calendar.YEAR), today.get(Calendar.MONTH), today.get(Calendar.DAY_OF_MONTH));
+			calendar.set(today.get(Calendar.YEAR), today.get(Calendar.MONTH), today.get(Calendar.DAY_OF_MONTH), 0, 0, 0);
 		} else {
-			targetDateText.setText(dateFormat.format(date));
+			targetDateButton.setText(dateFormat.format(date));
+			targetTimeButton.setText(timeFormat.format(date));
 			calendar.setTime(date);		
 		}
 	}

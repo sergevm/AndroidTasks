@@ -82,7 +82,7 @@ public class DBHelper {
 		values.put("description", task.description);
 		values.put("completed", task.completed);
 		if(task.targetDate != null) {
-			values.put("targetdate",new SimpleDateFormat("yyyy-MM-dd").format(task.targetDate));
+			values.put("targetdate",new SimpleDateFormat("yyyy-MM-dd HH:mm").format(task.targetDate));
 		}
 
 		 task.id = this.db.insert(DB_TASKS_TABLE, null, values);
@@ -93,7 +93,7 @@ public class DBHelper {
 		values.put("description", task.description);
 		values.put("completed", task.completed);
 		if(task.targetDate != null) {
-			values.put("targetdate", new SimpleDateFormat("yyyy-MM-dd").format(task.targetDate));
+			values.put("targetdate", new SimpleDateFormat("yyyy-MM-dd HH:mm").format(task.targetDate));
 		}
 		else {
 			values.put("targetdate", (String)null);
@@ -111,7 +111,7 @@ public class DBHelper {
 	}
 	
 	public List<Task> getDue() {
-		return getTasks("completed = 0 AND date(targetdate) <= date('now')", null, null, null, "targetdate");
+		return getTasks("completed = 0 AND strftime('%Y-%m-%d %H:%M', targetdate) <= datetime('now', 'localtime')", null, null, null, "targetdate");
 	}
 	
 	public List<Task> getAll(){
@@ -140,7 +140,7 @@ public class DBHelper {
 				if(c.isNull(3) == false) {
 					String dateAsString = c.getString(3);
 					if(dateAsString != null & dateAsString.length() > 0) {
-						task.targetDate = new SimpleDateFormat("yyyy-MM-dd").parse(c.getString(3));					
+						task.targetDate = new SimpleDateFormat("yyyy-MM-dd HH:mm").parse(c.getString(3));					
 					}
 				}
 			

@@ -21,14 +21,15 @@
 			android:textSize="14dp" android:layout_width="wrap_content"
 			android:layout_height="wrap_content" />
 
-		<Button android:layout_width="wrap_content" android:paddingTop="2dp"
+		<Button android:layout_weight="1" android:layout_width="wrap_content" android:paddingTop="2dp"
 			android:paddingBottom="2dp" android:textSize="14dp"
 			android:layout_height="wrap_content" android:id="@+id/edit_targetDate_button"
-			android:text="Set" />
+		 />
 
-		<TextView android:layout_gravity="center_vertical"
-			android:hint="no target set" android:layout_height="wrap_content"
-			android:layout_width="wrap_content" android:id="@+id/edit_targetDate_textview" />
+		<Button android:layout_weight="1" android:layout_width="wrap_content" android:paddingTop="2dp"
+			android:paddingBottom="2dp" android:textSize="14dp"
+			android:layout_height="wrap_content" android:id="@+id/edit_targetTime_button"
+		/>
 
 	</LinearLayout>
 
