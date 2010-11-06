@@ -1,6 +1,7 @@
 package com.softwareprojects.androidtasks;
 
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
@@ -15,6 +16,7 @@ import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.SubMenu;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
@@ -28,21 +30,46 @@ import com.softwareprojects.androidtasks.domain.Task;
 public class TaskList extends ListActivity {
 
 	private static DBHelper dbHelper;
+	private TaskAdapter adapter; 
+	
+	private final static int Filter_All = 4;
+	private final static int Filter_Active = 5;
+	private final static int Filter_Due = 6;
+
+	private int _currentFilter;
+
+	private void setCurrentFilter(int filter) {
+		if(_currentFilter != filter) {
+			_currentFilter = filter;
+			updateFilteredList();
+		}
+	}
+
+	private int getCurrentFilter() {
+		return _currentFilter;
+	}
 
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 
+		// Initialize the adapter
+		adapter = new TaskAdapter(this, R.layout.task_listitem, 0, new ArrayList<Task>());
+		
+		// Initialize the database helper
 		dbHelper = new DBHelper(this);
 
-		bindTaskList();
+		// Set up the adapter
+		initializeTaskList();
+		
+		// Set the initial list filter
+		setCurrentFilter(Filter_All);
+		
+		// Update the filtered list
+		updateFilteredList();
 	}
 
-	private void bindTaskList() {
-
-		List<Task> tasks = getTasks(); 
-
-		TaskAdapter adapter = new TaskAdapter(this, R.layout.task_listitem, 0, tasks);
+	private void initializeTaskList() {
 
 		this.getListView().setOnItemClickListener(
 				new AdapterView.OnItemClickListener(){
@@ -62,8 +89,6 @@ public class TaskList extends ListActivity {
 						startActivityForResult(intent, 0);
 					}
 				});
-
-		setListAdapter(adapter);
 	}  
 
 	@Override
@@ -72,7 +97,7 @@ public class TaskList extends ListActivity {
 
 		switch(resultCode) {
 		case RESULT_OK:
-			bindTaskList();
+			updateFilteredList();
 		default:
 			break;
 		}
@@ -82,6 +107,10 @@ public class TaskList extends ListActivity {
 	public boolean onCreateOptionsMenu(Menu menu) {
 		menu.add(Menu.NONE, 1, 1, "New");
 		menu.add(Menu.NONE, 2, 2, "Sync");
+		SubMenu subMenu = menu.addSubMenu(Menu.NONE, 3, 3, "Filter");
+		subMenu.add(1, 4, 4, "All").setChecked(getCurrentFilter() == Filter_All);
+		subMenu.add(1, 5, 5, "Active").setChecked(getCurrentFilter() == Filter_Active);
+		subMenu.add(1, 6, 6, "Due").setChecked(getCurrentFilter() == Filter_Due);
 		return super.onCreateOptionsMenu(menu);
 	}
 
@@ -93,6 +122,15 @@ public class TaskList extends ListActivity {
 			return true;
 		case 2:
 			sync();
+			return true;
+		case 4:
+			setCurrentFilter(Filter_All);
+			return true;
+		case 5:
+			setCurrentFilter(Filter_Active);
+			return true;
+		case 6:
+			setCurrentFilter(Filter_Due);
 			return true;
 		default:
 			return true;
@@ -108,9 +146,25 @@ public class TaskList extends ListActivity {
 		startActivityForResult(intent, 0);
 	}
 
-	private List<Task> getTasks()
-	{
-		return dbHelper.getAll();
+	private void updateFilteredList() {
+		List<Task> list = null;
+		
+		switch(getCurrentFilter()) {
+		case Filter_All:
+			list = dbHelper.getAll();
+			break;
+		case Filter_Active:
+			list = dbHelper.getActive();
+			break;
+		case Filter_Due:
+			list = dbHelper.getDue();
+			break;
+		default:
+			break;
+		}
+		
+		TaskAdapter adapter = new TaskAdapter(this, R.layout.task_listitem, 0, list);
+		setListAdapter(adapter);
 	}
 
 	private class TaskAdapter extends ArrayAdapter<Task> {

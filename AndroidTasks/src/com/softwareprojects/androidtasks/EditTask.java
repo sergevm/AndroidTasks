@@ -44,6 +44,9 @@ public class EditTask extends Activity {
 		setContentView(R.layout.edittask);
 
 		dbHelper = new DBHelper(this);
+		
+		// Initialize the calendar so it doesn't specify time ...
+		calendar.set(calendar.get(Calendar.YEAR), calendar.get(Calendar.MONTH), calendar.get(Calendar.DATE),0 ,0 ,0);
 
 		// Inflate view
 		description = (EditText)findViewById(R.id.edit_description);
@@ -99,7 +102,7 @@ public class EditTask extends Activity {
 				@Override
 				public void onDateSet(DatePicker picker, int year, int monthOfYear,
 						int dayOfMonth) {
-					calendar.set(year, monthOfYear, dayOfMonth);
+					calendar.set(year, monthOfYear, dayOfMonth, 0, 0, 0);
 					task.targetDate = calendar.getTime();
 					updateTargetDateFrom(task.targetDate);
 				}
@@ -148,7 +151,8 @@ public class EditTask extends Activity {
 			return (Task)extras.getParcelable(Constants.CURRENT_TASK);
 		}
 		else {
-			return new Task();
+			Task newTask = new Task();
+			return newTask;
 		}
 	}
 

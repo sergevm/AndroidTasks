@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     
-    <string name="app_name">AndroidTasks</string>
+    <string name="app_name"> Android Tasks</string>
 <string name="add_button_caption">Add</string>
 <string name="edit_task_activity_name">Edit Task</string>
 <string name="edit_commit_button_caption">Accept</string>

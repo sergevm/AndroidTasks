@@ -5,9 +5,6 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.softwareprojects.androidtasks.Constants;
-import com.softwareprojects.androidtasks.domain.Task;
-
 import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
@@ -15,6 +12,9 @@ import android.database.SQLException;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.util.Log;
+
+import com.softwareprojects.androidtasks.Constants;
+import com.softwareprojects.androidtasks.domain.Task;
 
 public class DBHelper {
 	// DB names
@@ -58,7 +58,7 @@ public class DBHelper {
 
 		@Override
 		public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
-			db.execSQL("DELETE TABLE IF EXISTS " + DBHelper.DB_TASKS_TABLE);
+			db.execSQL("DROP TABLE IF EXISTS " + DBHelper.DB_TASKS_TABLE);
 			this.onCreate(db);
 		}
 	}
@@ -82,7 +82,7 @@ public class DBHelper {
 		values.put("description", task.description);
 		values.put("completed", task.completed);
 		if(task.targetDate != null) {
-			values.put("targetdate",new SimpleDateFormat("dd-MM-yyyy").format(task.targetDate));
+			values.put("targetdate",new SimpleDateFormat("yyyy-MM-dd").format(task.targetDate));
 		}
 
 		 task.id = this.db.insert(DB_TASKS_TABLE, null, values);
@@ -91,9 +91,9 @@ public class DBHelper {
 	public void update(Task task){
 		ContentValues values = new ContentValues();
 		values.put("description", task.description);
-		values.put("completed", task.completed ? "true" : "false");
+		values.put("completed", task.completed);
 		if(task.targetDate != null) {
-			values.put("targetdate", new SimpleDateFormat("dd-MM-yyyy").format(task.targetDate));
+			values.put("targetdate", new SimpleDateFormat("yyyy-MM-dd").format(task.targetDate));
 		}
 		else {
 			values.put("targetdate", (String)null);
@@ -106,14 +106,26 @@ public class DBHelper {
 		this.db.delete(DB_TASKS_TABLE, "id = " + id, null);
 	}
 	
+	public List<Task> getActive() {
+		return getTasks("completed = 0", null, null, null, "targetdate");
+	}
+	
+	public List<Task> getDue() {
+		return getTasks("completed = 0 AND date(targetdate) <= date('now')", null, null, null, "targetdate");
+	}
+	
 	public List<Task> getAll(){
-		ArrayList<Task> list = new ArrayList<Task>();
+		return getTasks(null, null, null, null, null);
+	}
+	
+	public List<Task> getTasks(String selection, String[] selectionArgs, String groupby, String having, String orderby){
 		
+		ArrayList<Task> list = new ArrayList<Task>();		
 		Cursor c = null;
 		
 		try {
 			c = this.db.query(DB_TASKS_TABLE, DBHelper.DB_TASKS_COLS, 
-					null, null, null, null, null);
+					selection, selectionArgs, groupby, having, orderby);
 			
 			int rowCount = c.getCount();
 			
@@ -123,19 +135,19 @@ public class DBHelper {
 				Task task = new Task();
 				task.id = c.getLong(0);
 				task.description = c.getString(1);
-				task.completed =  Boolean.parseBoolean(c.getString(2));
+				task.completed = c.getInt(2) == 0 ? false : true;
 				
 				if(c.isNull(3) == false) {
 					String dateAsString = c.getString(3);
 					if(dateAsString != null & dateAsString.length() > 0) {
-						task.targetDate = new SimpleDateFormat("dd-MM-yyyy").parse(c.getString(3));					
+						task.targetDate = new SimpleDateFormat("yyyy-MM-dd").parse(c.getString(3));					
 					}
 				}
 			
 				list.add(task);
 				
 				c.moveToNext();
-			}
+						}
 		}
 		catch(SQLException e) {
 			Log.e(Constants.LOGTAG, DBHelper.CLASSNAME, e);
@@ -145,7 +157,7 @@ public class DBHelper {
 		finally {
 			if(c != null & c.isClosed() == false) {
 				c.close();
-			}
+			}			
 		}
 		
 		return list;
