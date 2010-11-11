@@ -4,28 +4,26 @@ import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
 
-import com.softwareprojects.androidtasks.db.DBHelper;
-import com.softwareprojects.androidtasks.domain.Task;
-
 import android.app.Activity;
 import android.app.DatePickerDialog;
 import android.app.DatePickerDialog.OnDateSetListener;
 import android.app.TimePickerDialog;
 import android.app.TimePickerDialog.OnTimeSetListener;
 import android.content.Context;
-import android.graphics.drawable.Drawable;
+import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.CompoundButton;
-import android.widget.TimePicker;
 import android.widget.CompoundButton.OnCheckedChangeListener;
 import android.widget.DatePicker;
-import android.widget.DatePicker.OnDateChangedListener;
 import android.widget.EditText;
-import android.widget.TextView;
+import android.widget.TimePicker;
+
+import com.softwareprojects.androidtasks.db.DBHelper;
+import com.softwareprojects.androidtasks.domain.Task;
 
 public class EditTask extends Activity {
 
@@ -150,7 +148,9 @@ public class EditTask extends Activity {
 					dbHelper.update(task);
 				}
 
-				setResult(RESULT_OK);				
+				Intent intent = new Intent();
+				intent.putExtra(Constants.CURRENT_TASK, task);
+				setResult(RESULT_OK, intent);				
 				finish();
 			}});
 

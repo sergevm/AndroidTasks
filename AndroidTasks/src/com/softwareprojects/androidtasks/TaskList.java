@@ -1,8 +1,6 @@
 package com.softwareprojects.androidtasks;
 
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 
@@ -22,7 +20,6 @@ import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import com.softwareprojects.androidtasks.db.DBHelper;
 import com.softwareprojects.androidtasks.domain.Task;
@@ -36,6 +33,8 @@ public class TaskList extends ListActivity {
 	private final static int Filter_Due = 6;
 
 	private int _currentFilter;
+	
+	private static TaskAlarmManager alarmManager;
 
 	private void setCurrentFilter(int filter) {
 		if(_currentFilter != filter) {
@@ -54,6 +53,9 @@ public class TaskList extends ListActivity {
 
 		// Initialize the database helper
 		dbHelper = new DBHelper(this);
+		
+		// Initialize the alarm manager
+		alarmManager = new TaskAlarmManager(this);
 
 		// Set up the adapter
 		initializeTaskList();
@@ -94,6 +96,9 @@ public class TaskList extends ListActivity {
 		switch(resultCode) {
 		case RESULT_OK:
 			updateFilteredList();
+			
+			Task task = (Task)data.getParcelableExtra(Constants.CURRENT_TASK);
+			alarmManager.update(task);
 		default:
 			break;
 		}
