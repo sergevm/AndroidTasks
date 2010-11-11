@@ -27,12 +27,26 @@ public class TaskAlarmManager {
 	}
 	
 	public void update(final Task task) {
+					
+		Calendar calendar = Calendar.getInstance();
+		calendar.setTime(task.targetDate);		
 		
-		Log.i(TAG, "Updating alarm for task: alarm time is " + dateFormat.format(task.targetDate));
+		setAlarm(task, calendar);
+	}
+
+	public void snooze(final Task task, Integer snoozeTimeInMinutes) {
+		Calendar calendar = Calendar.getInstance();
+		calendar.roll(Calendar.MINUTE, snoozeTimeInMinutes);
+		
+		setAlarm(task, calendar);
+	}
+	
+	private void setAlarm(final Task task, Calendar calendar) {
+		Log.i(TAG, "Updating alarm for task: alarm time is " + dateFormat.format(calendar.getTime()));
 
 		Uri uri = Uri.parse(Constants.ANDROIDTASK_TASK_ALARM_URI + task.id);
 		
-		Log.i(TAG, "Intent creation for " + uri.toString());
+		Log.i(TAG, "Intent construction for " + uri.toString());
 
 		// Create the intent that will be handed to the broadcast receiver ...
 		Intent intent = new Intent(COM_SOFTWAREPROJECTS_ANDROIDTASKS_ALARM_ACTION, uri, context, TaskAlarmReceiver.class);
@@ -41,11 +55,7 @@ public class TaskAlarmManager {
 				
 		// Create the pending intent ...
 		PendingIntent pendingIntent = PendingIntent.getBroadcast(context, 0, intent, PendingIntent.FLAG_CANCEL_CURRENT);
-				
-		// We need the milliseconds for the target date
-		Calendar calendar = Calendar.getInstance();
-		calendar.setTime(task.targetDate);		
-		
+						
 		// Set the alarm ...
 		alarmManager.set(AlarmManager.RTC_WAKEUP, calendar.getTimeInMillis(), pendingIntent);
 	}

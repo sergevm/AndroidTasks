@@ -35,7 +35,7 @@ public class TaskAlarmReceiver extends BroadcastReceiver {
 		
 		nm.cancel((int) taskId);
 		
-		Intent notificationIntent = new Intent(context, EditTask.class);
+		Intent notificationIntent = new Intent(context, TaskNotification.class);
 		notificationIntent.putExtra(Constants.ALARM_TASK_ID, taskId);
 		
 		// We need to set this data, such that the filterEquals() implementation recognizes the different 

@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+  xmlns:android="http://schemas.android.com/apk/res/android" android:orientation="vertical"
+  android:layout_width="fill_parent" android:layout_height="fill_parent">
+  
+  <TextView android:id="@+id/notification_task_description" android:textSize="16dp" android:layout_width="fill_parent"
+  	android:layout_height="wrap_content" android:paddingBottom="10dp" android:paddingTop="10dp"/>
+  	
+  <LinearLayout android:orientation="horizontal" android:layout_width="fill_parent" android:layout_height="wrap_content">
+  	
+  	<TextView android:text="@string/notification_task_targetdate_label" android:layout_width="wrap_content" 
+  		android:layout_height="wrap_content" android:textSize="16dp"/>
+  		
+  	<TextView android:id="@+id/notification_task_targetdate" android:layout_weight="1" android:layout_width="wrap_content"
+  		android:layout_height="wrap_content" android:textSize="16dp" android:paddingBottom="10dp"/>
+  	
+  </LinearLayout>
+  
+  <CheckBox android:id="@+id/notification_complete_checkbox" android:text="@string/notification_complete"
+  	android:layout_width="fill_parent" android:layout_height="wrap_content" />
+  	
+  <LinearLayout android:orientation="horizontal" android:layout_width="fill_parent"
+  	android:layout_height="wrap_content">
+
+	  <TextView android:id="@+id/notification_snooze_textview" android:text="@string/notification_snooze"
+	  	android:layout_height="wrap_content" android:layout_width="wrap_content" android:textSize="16dp" android:paddingRight="4dp"/>
+
+	  <Spinner android:id="@+id/notification_snooze_period" android:prompt="@string/notification_snooze_period"
+	  	android:layout_weight="1" android:layout_height="wrap_content" android:layout_width="wrap_content" />
+  
+  </LinearLayout>
+  	
+  <Button android:id="@+id/notification_commit_button" android:text="@string/notification_commit"
+  	android:layout_width="fill_parent" android:layout_height="wrap_content" />
+  
+</LinearLayout>

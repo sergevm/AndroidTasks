@@ -10,4 +10,15 @@
 <string name="list_filter_all">All Tasks</string>
 <string name="list_filter_active">Active Tasks</string>
 <string name="list_filter_due">Due Tasks</string>
+<string name="notification_complete">Complete task</string>
+<string name="notification_snooze_period">&lt;select period&gt;</string>
+<string name="notification_snooze">Snooze</string>
+<string name="notification_commit">Commit</string>
+<string name="notification_activity_name">Due task notification</string>
+<string name="notification_task_targetdate_label">Target Date:  </string>
+<string-array name="snooze_periods"><item>One minute</item><item>Two minutes</item><item>Five minutes</item>
+<item>Ten minutes</item>
+
+
+</string-array>
 </resources>
