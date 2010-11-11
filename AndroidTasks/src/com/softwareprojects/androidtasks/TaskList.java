@@ -242,6 +242,8 @@ public class TaskList extends ListActivity {
 						if(now.after(task.targetDate)) {
 							view.setBackgroundColor(Color.RED);
 							targetdate.setTypeface(Typeface.DEFAULT_BOLD);
+							targetdate.setTextColor(Color.DKGRAY);
+							description.setTextColor(Color.DKGRAY);
 						} else if (deadlineInLessThanADay(now, task.targetDate)) {
 							targetdate.setTextColor(Color.RED);
 							view.setBackgroundColor(Color.DKGRAY);
