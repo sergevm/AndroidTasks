@@ -4,6 +4,7 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Queue;
 
 import android.content.ContentValues;
 import android.content.Context;
@@ -168,5 +169,10 @@ public class DBHelper {
 		if(this.db == null){
 			this.db = dbOpenHelper.getWritableDatabase();
 		}
+	}
+
+	public Task getSingle(long id) {
+		List<Task> found = getTasks("id = " + id, null, null, null, null);
+		return found.get(0);
 	}
 }

@@ -17,7 +17,7 @@ public class TaskAlarmManager {
 	final Context context;
 	final AlarmManager alarmManager;
 	private static final SimpleDateFormat dateFormat = new SimpleDateFormat(Constants.DATETIME_FORMAT_STRING);
-	private static final String COM_SOFTWAREPROJECTS_ANDROIDTASKS_ALARM = "com.softwareprojects.androidtasks.ALARM";
+	private static final String COM_SOFTWAREPROJECTS_ANDROIDTASKS_ALARM_ACTION = "com.softwareprojects.androidtasks.ALARM";
 	
 	private static final String TAG = TaskAlarmManager.class.getSimpleName();
 
@@ -30,12 +30,12 @@ public class TaskAlarmManager {
 		
 		Log.i(TAG, "Updating alarm for task: alarm time is " + dateFormat.format(task.targetDate));
 
-		Uri uri = Uri.parse("androidtask://alarm/" + task.id);
+		Uri uri = Uri.parse(Constants.ANDROIDTASK_TASK_ALARM_URI + task.id);
 		
 		Log.i(TAG, "Intent creation for " + uri.toString());
 
 		// Create the intent that will be handed to the broadcast receiver ...
-		Intent intent = new Intent(COM_SOFTWAREPROJECTS_ANDROIDTASKS_ALARM, uri, context, TaskAlarmReceiver.class);
+		Intent intent = new Intent(COM_SOFTWAREPROJECTS_ANDROIDTASKS_ALARM_ACTION, uri, context, TaskAlarmReceiver.class);
 		intent.putExtra(Constants.ALARM_TASK_DESCRIPTION, task.description);
 		intent.putExtra(Constants.ALARM_TASK_ID, task.id);
 				

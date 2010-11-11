@@ -173,11 +173,16 @@ public class EditTask extends Activity {
 	}
 
 	private Task getOrCreateTask() {
-		if(getIntent().hasExtra(Constants.CURRENT_TASK)) {
+		if(getIntent().hasExtra(Constants.CURRENT_TASK)) { // Activity was started due to selection in task list ...
 			Bundle extras = getIntent().getExtras();
 			return (Task)extras.getParcelable(Constants.CURRENT_TASK);
 		}
-		else {
+		else if(getIntent().hasExtra(Constants.ALARM_TASK_ID)) { // Activity was started due to notification click ...
+			long dueTaskId = getIntent().getLongExtra(Constants.ALARM_TASK_ID, -1);
+			Task task = dbHelper.getSingle(dueTaskId);
+			return task;
+		}
+		else { // No task passed in ... Must be the creation of a new task ...
 			Task newTask = new Task();
 			return newTask;
 		}
