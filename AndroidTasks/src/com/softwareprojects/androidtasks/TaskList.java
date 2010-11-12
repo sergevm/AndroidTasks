@@ -107,7 +107,7 @@ public class TaskList extends ListActivity {
 	@Override
 	public boolean onCreateOptionsMenu(Menu menu) {
 		menu.add(Menu.NONE, 1, 1, "New");
-		menu.add(Menu.NONE, 2, 2, "Sync");
+		menu.add(Menu.NONE, 2, 2, "Refresh");
 		SubMenu subMenu = menu.addSubMenu(Menu.NONE, 3, 3, "Filter");
 		subMenu.add(1, 4, 4, "All").setChecked(getCurrentFilter() == Filter_All);
 		subMenu.add(1, 5, 5, "Active").setChecked(getCurrentFilter() == Filter_Active);
@@ -122,7 +122,7 @@ public class TaskList extends ListActivity {
 			addTask();
 			return true;
 		case 2:
-			sync();
+			refresh();
 			return true;
 		case 4:
 			setCurrentFilter(Filter_All);
@@ -138,8 +138,8 @@ public class TaskList extends ListActivity {
 		}
 	}
 
-	private void sync() {
-
+	private void refresh() {
+		updateFilteredList();
 	}
 
 	private void addTask() {
