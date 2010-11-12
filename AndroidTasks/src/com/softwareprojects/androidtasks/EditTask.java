@@ -12,6 +12,7 @@ import android.app.TimePickerDialog.OnTimeSetListener;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.Button;
@@ -37,19 +38,24 @@ public class EditTask extends Activity {
 	private Button targetTimeButton;
 	private Button complete;
 	private Button cancel;
+	
+	private Task task;
 
 	private final Context context = this;
-	private static final Calendar calendar = Calendar.getInstance();
 	private TaskAlarmManager alarmManager;
+	private final static String TAG = EditTask.class.getSimpleName();
+
+	private static final Calendar calendar = Calendar.getInstance();
 	private static final SimpleDateFormat dateFormat = new SimpleDateFormat(Constants.DATE_FORMAT_STRING);
 	private static final SimpleDateFormat timeFormat = new SimpleDateFormat(Constants.TIME_FORMAT_STRING);
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
+		
+		Log.i(TAG, "onCreate");
+		
 		setContentView(R.layout.edittask);
-
-		dbHelper = new DBHelper(this);
 		
 		// Initialize the alarm manager
 		alarmManager = new TaskAlarmManager(this);
@@ -67,18 +73,6 @@ public class EditTask extends Activity {
 		cancel = (Button)findViewById(R.id.edit_cancel_button);
 		targetDateButton = (Button)findViewById(R.id.edit_targetDate_button);
 		targetTimeButton = (Button)findViewById(R.id.edit_targetTime_button);
-
-		// Get task passed in via Intent
-		final Task task = getOrCreateTask();
-
-		// Use that data to fill up the widgets
-		description.setText(task.description);
-		completed.setChecked(task.completed);
-		notes.setText(task.notes);
-		location.setText(task.location);
-
-		updateTargetDateFrom(task);
-		updateTargetDateControlsFrom(task);
 
 		hasTargetDate.setOnCheckedChangeListener(new OnCheckedChangeListener(){
 
@@ -183,6 +177,50 @@ public class EditTask extends Activity {
 				finish();
 			}});
 	}
+	
+	@Override
+	protected void onStart() {
+		super.onStart();
+	
+		Log.i(TAG, "onStart");
+		dbHelper = new DBHelper(this);
+	}
+	
+	@Override
+	protected void onStop() {
+		super.onStop();
+		
+		Log.i(TAG, "onStop");
+		dbHelper.Cleanup();
+	}
+	
+	@Override
+	protected void onResume() {
+		super.onResume();
+
+		Log.i(TAG, "onResume");
+		
+		// Get task passed in via Intent
+		task = getOrCreateTask();
+
+		// Use that data to fill up the widgets
+		description.setText(task.description);
+		completed.setChecked(task.completed);
+		notes.setText(task.notes);
+		location.setText(task.location);
+
+		updateTargetDateFrom(task);
+		updateTargetDateControlsFrom(task);
+	}
+	
+	@Override
+	protected void onDestroy() {
+		super.onDestroy();
+		
+		Log.i(TAG, "onDestroy");
+		
+		dbHelper = null;
+	}
 
 	private Task getOrCreateTask() {
 		if(getIntent().hasExtra(Constants.CURRENT_TASK)) { // Activity was started due to selection in task list ...
@@ -233,3 +271,4 @@ public class EditTask extends Activity {
 		}
 	}
 }
+

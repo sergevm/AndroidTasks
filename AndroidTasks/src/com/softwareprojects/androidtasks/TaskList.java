@@ -42,7 +42,6 @@ public class TaskList extends ListActivity {
 	private void setCurrentFilter(int filter) {
 		if(_currentFilter != filter) {
 			_currentFilter = filter;
-			updateFilteredList();
 		}
 	}
 
@@ -55,22 +54,13 @@ public class TaskList extends ListActivity {
 		super.onCreate(savedInstanceState);
 
 		Log.i(TAG, "onCreate");
-		
-		// Initialize the database helper
-		dbHelper = new DBHelper(this);
-		
+				
 		// Set up the adapter
 		initializeTaskList();
 		
 		// Fetch the initial filter from the shared preferences
 		SharedPreferences preferences = getSharedPreferences("AndroidTasks", MODE_PRIVATE);
-		int startupFilter = preferences.getInt("ActiveFilter", Filter_All);
-
-		// Set the initial list filter
-		setCurrentFilter(startupFilter);
-
-		// Update the filtered list
-		updateFilteredList();
+		setCurrentFilter(preferences.getInt("ActiveFilter", Filter_All));
 	}
 	
 	@Override
@@ -90,6 +80,9 @@ public class TaskList extends ListActivity {
 	protected void onResume() {
 		super.onResume();
 
+		// Update the filtered list
+		updateFilteredList();
+
 		Log.i(TAG, "onResume");
 	}
 	
@@ -97,13 +90,18 @@ public class TaskList extends ListActivity {
 	protected void onStart() {
 		super.onStart();
 
+		// Initialize the database helper
+		dbHelper = new DBHelper(this);
+
 		Log.i(TAG, "onStart");
 	}
 	
 	@Override
 	protected void onStop() {
 		super.onStop();
-
+		
+		dbHelper.Cleanup();
+		
 		Log.i(TAG, "onStop");
 	}
 	
@@ -131,22 +129,10 @@ public class TaskList extends ListActivity {
 					private void editTask(Task task) {
 						Intent intent = new Intent(getBaseContext(), EditTask.class);
 						intent.putExtra(Constants.CURRENT_TASK, task);
-						startActivityForResult(intent, 0);
+						startActivity(intent);
 					}
 				});
 	}  
-
-	@Override
-	protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-		super.onActivityResult(requestCode, resultCode, data);
-
-		switch(resultCode) {
-		case RESULT_OK:
-			updateFilteredList();
-		default:
-			break;
-		}
-	}
 
 	@Override
 	public boolean onCreateOptionsMenu(Menu menu) {
@@ -170,12 +156,15 @@ public class TaskList extends ListActivity {
 			return true;
 		case 4:
 			setCurrentFilter(Filter_All);
+			updateFilteredList();
 			return true;
 		case 5:
 			setCurrentFilter(Filter_Active);
+			updateFilteredList();
 			return true;
 		case 6:
 			setCurrentFilter(Filter_Due);
+			updateFilteredList();
 			return true;
 		default:
 			return true;
