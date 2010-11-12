@@ -28,7 +28,7 @@ public class TaskAlarmReceiver extends BroadcastReceiver {
 		NotificationManager nm = (NotificationManager)context.getSystemService(Context.NOTIFICATION_SERVICE);
 		Notification notification = new Notification();
 		notification.tickerText = taskDescription;
-		notification.icon = R.drawable.icon;
+		notification.icon = R.drawable.exclamation;
 		
 		// Make the notification disappear after the user clicked on it ...
 		notification.flags |= Notification.FLAG_AUTO_CANCEL;
