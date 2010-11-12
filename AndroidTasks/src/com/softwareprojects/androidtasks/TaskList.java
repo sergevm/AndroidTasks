@@ -34,8 +34,6 @@ public class TaskList extends ListActivity {
 
 	private int _currentFilter;
 	
-	private static TaskAlarmManager alarmManager;
-
 	private void setCurrentFilter(int filter) {
 		if(_currentFilter != filter) {
 			_currentFilter = filter;
@@ -54,9 +52,6 @@ public class TaskList extends ListActivity {
 		// Initialize the database helper
 		dbHelper = new DBHelper(this);
 		
-		// Initialize the alarm manager
-		alarmManager = new TaskAlarmManager(this);
-
 		// Set up the adapter
 		initializeTaskList();
 
@@ -96,9 +91,6 @@ public class TaskList extends ListActivity {
 		switch(resultCode) {
 		case RESULT_OK:
 			updateFilteredList();
-			
-			Task task = (Task)data.getParcelableExtra(Constants.CURRENT_TASK);
-			alarmManager.update(task);
 		default:
 			break;
 		}

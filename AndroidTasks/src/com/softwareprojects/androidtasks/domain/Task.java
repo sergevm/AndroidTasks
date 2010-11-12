@@ -15,6 +15,9 @@ public class Task implements Parcelable{
 	public Date targetDate;
 	public String description;
 	public boolean completed;
+	public int snoozeCount = 0;
+	public String notes;
+	public String location;
 
 	private static final String CLASSNAME = Task.class.getSimpleName();
 
@@ -48,6 +51,15 @@ public class Task implements Parcelable{
 		
 		// completed
 		dest.writeBooleanArray(new boolean[]{completed});
+		
+		// snoozeCount
+		dest.writeInt(snoozeCount);
+		
+		// notes
+		dest.writeString(notes);
+		
+		// location
+		dest.writeString(location);
 	}
 
 	public static final Parcelable.Creator<Task> CREATOR = 
@@ -82,6 +94,15 @@ public class Task implements Parcelable{
 		// Boolean values grouped in a single array
 		boolean[] buffer = parcel.createBooleanArray();
 		completed = buffer[0];
+		
+		// snoozeCount
+		snoozeCount = parcel.readInt();
+		
+		// notes
+		notes = parcel.readString();
+		
+		// location
+		location = parcel.readString();
 }
 
 	public Task() {

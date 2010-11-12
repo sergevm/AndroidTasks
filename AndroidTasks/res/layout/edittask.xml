@@ -33,6 +33,16 @@
 
 	</LinearLayout>
 
+	<TextView android:text="@string/edit_location" android:layout_width="fill_parent" android:layout_height="wrap_content" />
+
+	<EditText android:id="@+id/edit_location" android:layout_width="fill_parent" android:layout_height="wrap_content"
+		android:maxLines="1" />
+	
+	<TextView android:text="@string/edit_notes" android:layout_width="fill_parent" android:layout_height="wrap_content" />
+	
+	<EditText android:id="@+id/edit_notes" android:layout_width="fill_parent" android:layout_height="wrap_content"
+		android:maxLines="3" android:minLines="3" />
+
 	<Button android:id="@+id/edit_commit_button" android:textSize="14dp" android:padding="0dp"
 		android:layout_width="fill_parent" android:layout_height="wrap_content"
 		android:text="@string/edit_commit_button_caption" />

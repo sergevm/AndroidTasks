@@ -4,7 +4,7 @@
     
     <string name="app_name"> Android Tasks</string>
 <string name="add_button_caption">Add</string>
-<string name="edit_task_activity_name">Edit Task</string>
+<string name="edit_task_activity_name">View Task</string>
 <string name="edit_commit_button_caption">Accept</string>
 <string name="edit_cancel_button_caption">Cancel</string>
 <string name="list_filter_all">All Tasks</string>
@@ -13,12 +13,24 @@
 <string name="notification_complete">Complete task</string>
 <string name="notification_snooze_period">&lt;select period&gt;</string>
 <string name="notification_snooze">Snooze</string>
-<string name="notification_commit">Commit</string>
+<string name="notification_commit">Apply To Task</string>
 <string name="notification_activity_name">Due task notification</string>
 <string name="notification_task_targetdate_label">Target Date:  </string>
 <string-array name="snooze_periods"><item>One minute</item><item>Two minutes</item><item>Five minutes</item>
 <item>Ten minutes</item>
 
 
+<item>1/2 hour</item>
+<item>1 hour</item>
+<item>2 hours</item>
+<item>3 hours</item>
+<item>4 hours</item>
+<item>8 hours</item>
+<item>1 day</item>
+<item>2 days</item>
 </string-array>
+<string name="notification_snooze_count">Snooze count: </string>
+<string name="notification_edit">Open Task</string>
+<string name="edit_notes">Notes</string>
+<string name="edit_location">Location</string>
 </resources>

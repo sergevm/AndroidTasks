@@ -6,6 +6,7 @@ import com.softwareprojects.androidtasks.db.DBHelper;
 import com.softwareprojects.androidtasks.domain.Task;
 
 import android.app.Activity;
+import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
 import android.view.View.OnClickListener;
@@ -24,7 +25,9 @@ public class TaskNotification extends Activity {
 	CheckBox complete;
 	Spinner snoozePeriod;
 	TextView snooze;
+	TextView snoozeCount;
 	Button commit;
+	Button edit;
 	
 	Task task;
 	
@@ -32,7 +35,7 @@ public class TaskNotification extends Activity {
 	private TaskAlarmManager alarmManager;
 	
 	private final SimpleDateFormat dateFormat = new SimpleDateFormat(Constants.DATETIME_FORMAT_STRING);
-	private final Integer[] snoozedMinutes = new Integer[]{1, 2, 5, 10};
+	private final Integer[] snoozedMinutes = new Integer[]{1, 2, 5, 10, 30, 60, 120, 180, 240, 480, 1440, 2880};
 	
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -46,7 +49,9 @@ public class TaskNotification extends Activity {
 		complete = (CheckBox)findViewById(R.id.notification_complete_checkbox);
 		snoozePeriod = (Spinner)findViewById(R.id.notification_snooze_period);
 		snooze = (TextView)findViewById(R.id.notification_snooze_textview);
+		snoozeCount = (TextView)findViewById(R.id.notification_snooze_count);
 		commit = (Button)findViewById(R.id.notification_commit_button);
+		edit = (Button)findViewById(R.id.notification_edit_button);
 		
 		long taskId = getIntent().getLongExtra(Constants.ALARM_TASK_ID, -1);
 	
@@ -57,6 +62,7 @@ public class TaskNotification extends Activity {
 		
 		description.setText(task.description);
 		targetdate.setText(dateFormat.format(task.targetDate));
+		snoozeCount.setText(Integer.toString(task.snoozeCount));
 		
 		ArrayAdapter<CharSequence> adapter = ArrayAdapter.createFromResource(this, R.array.snooze_periods, android.R.layout.simple_spinner_item);
 		adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
@@ -98,10 +104,27 @@ public class TaskNotification extends Activity {
 			}
 
 			private void snoozeTask() {
+				// create a new alarm ...
 				Integer pos = snoozePeriod.getSelectedItemPosition();
 				Integer snoozeTime = snoozedMinutes[pos];
-				alarmManager.snooze(task, snoozeTime);
+				alarmManager.snoozeAlarm(task, snoozeTime);
+				
+				// update the snooze count ...
+				task.snoozeCount++;
+				dbHelper.update(task);
 			};
+		});
+		
+		edit.setOnClickListener(new OnClickListener() {
+
+			@Override
+			public void onClick(View v) {
+				Intent intent = new Intent(getApplicationContext(), EditTask.class);
+				intent.putExtra(Constants.CURRENT_TASK, task);
+				startActivity(intent);
+				
+				finish();
+			}			
 		});
 	}
 	

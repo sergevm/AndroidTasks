@@ -31,6 +31,8 @@ public class EditTask extends Activity {
 	private EditText description;
 	private CheckBox completed;
 	private CheckBox hasTargetDate;
+	private EditText notes;
+	private EditText location;
 	private Button targetDateButton;
 	private Button targetTimeButton;
 	private Button complete;
@@ -38,6 +40,7 @@ public class EditTask extends Activity {
 
 	private final Context context = this;
 	private static final Calendar calendar = Calendar.getInstance();
+	private TaskAlarmManager alarmManager;
 	private static final SimpleDateFormat dateFormat = new SimpleDateFormat(Constants.DATE_FORMAT_STRING);
 	private static final SimpleDateFormat timeFormat = new SimpleDateFormat(Constants.TIME_FORMAT_STRING);
 
@@ -48,6 +51,9 @@ public class EditTask extends Activity {
 
 		dbHelper = new DBHelper(this);
 		
+		// Initialize the alarm manager
+		alarmManager = new TaskAlarmManager(this);
+
 		// Initialize the calendar so it doesn't specify time ...
 		calendar.set(calendar.get(Calendar.YEAR), calendar.get(Calendar.MONTH), calendar.get(Calendar.DATE),0 ,0 ,0);
 
@@ -55,6 +61,8 @@ public class EditTask extends Activity {
 		description = (EditText)findViewById(R.id.edit_description);
 		completed = (CheckBox)findViewById(R.id.edit_completed);
 		hasTargetDate = (CheckBox)findViewById(R.id.edit_has_targetDate);
+		notes = (EditText)findViewById(R.id.edit_notes);
+		location = (EditText)findViewById(R.id.edit_location);
 		complete = (Button)findViewById(R.id.edit_commit_button);
 		cancel = (Button)findViewById(R.id.edit_cancel_button);
 		targetDateButton = (Button)findViewById(R.id.edit_targetDate_button);
@@ -66,6 +74,8 @@ public class EditTask extends Activity {
 		// Use that data to fill up the widgets
 		description.setText(task.description);
 		completed.setChecked(task.completed);
+		notes.setText(task.notes);
+		location.setText(task.location);
 
 		updateTargetDateFrom(task);
 		updateTargetDateControlsFrom(task);
@@ -140,6 +150,8 @@ public class EditTask extends Activity {
 			public void onClick(View view) {
 				task.completed = completed.isChecked();
 				task.description = description.getText().toString();
+				task.notes = notes.getText().toString();
+				task.location = location.getText().toString();
 
 				if(task.id == 0) {
 					dbHelper.insert(task);
@@ -148,9 +160,9 @@ public class EditTask extends Activity {
 					dbHelper.update(task);
 				}
 
-				Intent intent = new Intent();
-				intent.putExtra(Constants.CURRENT_TASK, task);
-				setResult(RESULT_OK, intent);				
+				alarmManager.setAlarm(task);
+				
+				setResult(RESULT_OK);				
 				finish();
 			}});
 
