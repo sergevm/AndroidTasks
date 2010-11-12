@@ -22,6 +22,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
+import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.softwareprojects.androidtasks.db.DBHelper;
@@ -250,21 +251,22 @@ public class TaskList extends ListActivity {
 
 				TextView description = (TextView)view.findViewById(R.id.item_description);
 				TextView targetdate = (TextView)view.findViewById(R.id.item_targetdate);
+				ImageView image = (ImageView)view.findViewById(R.id.item_icon);
 
 				description.setText(task.description);
 
 				// Strike through if task is completed
 				if(task.completed) {
 					description.setPaintFlags(description.getPaintFlags() | Paint.STRIKE_THRU_TEXT_FLAG);
+					image.setImageResource(R.drawable.flag_green);
 				}
 				else {
 					description.setPaintFlags(description.getPaintFlags() & ~Paint.STRIKE_THRU_TEXT_FLAG);						
 				}
 
 				if(task.targetDate == null) {
-					targetdate.setText("no target date");
+					targetdate.setText(R.string.no_target_date);
 				} else {
-
 					SimpleDateFormat dateFormat = new SimpleDateFormat(Constants.DATETIME_FORMAT_STRING);
 					targetdate.setText(formatTargetDate(task, dateFormat));
 
@@ -273,14 +275,14 @@ public class TaskList extends ListActivity {
 					// Coloring
 					if(task.completed == false) {
 						if(now.after(task.targetDate)) {
-							view.setBackgroundColor(Color.RED);
 							targetdate.setTypeface(Typeface.DEFAULT_BOLD);
-							targetdate.setTextColor(Color.DKGRAY);
-							description.setTextColor(Color.DKGRAY);
+							image.setImageResource(R.drawable.flag_red); 
 						} else if (deadlineInLessThanADay(now, task.targetDate)) {
-							targetdate.setTextColor(Color.RED);
-							view.setBackgroundColor(Color.DKGRAY);
-							targetdate.setTypeface(Typeface.DEFAULT_BOLD);						
+							targetdate.setTypeface(Typeface.DEFAULT_BOLD);	
+							image.setImageResource(R.drawable.flag_blue);
+						}
+						else {
+							image.setImageResource(R.drawable.deadline);
 						}
 					}
 				}
