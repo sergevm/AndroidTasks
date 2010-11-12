@@ -1,10 +1,5 @@
 package com.softwareprojects.androidtasks;
 
-import java.text.SimpleDateFormat;
-
-import com.softwareprojects.androidtasks.db.DBHelper;
-import com.softwareprojects.androidtasks.domain.Task;
-
 import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
@@ -18,6 +13,10 @@ import android.widget.CompoundButton;
 import android.widget.CompoundButton.OnCheckedChangeListener;
 import android.widget.Spinner;
 import android.widget.TextView;
+
+import com.softwareprojects.androidtasks.db.DBHelper;
+import com.softwareprojects.androidtasks.domain.Task;
+import com.softwareprojects.androidtasks.domain.TaskDateFormatter;
 
 public class TaskNotification extends Activity {
 
@@ -35,8 +34,7 @@ public class TaskNotification extends Activity {
 	DBHelper dbHelper;
 	private TaskAlarmManager alarmManager;
 	
-	private final SimpleDateFormat dateFormat = new SimpleDateFormat(Constants.DATETIME_FORMAT_STRING);
-	private final Integer[] snoozedMinutes = new Integer[]{1, 2, 5, 10, 30, 60, 120, 180, 240, 480, 1440, 2880};
+	private final int[] snoozedMinutes = new int[]{1, 2, 5, 10, 30, 60, 120, 180, 240, 480, 1440, 2880};
 	
 	private static final String TAG = TaskNotification.class.getSimpleName();
 	
@@ -66,7 +64,7 @@ public class TaskNotification extends Activity {
 		alarmManager = new TaskAlarmManager(this);
 		
 		description.setText(task.description);
-		targetdate.setText(dateFormat.format(task.targetDate));
+		targetdate.setText(TaskDateFormatter.Format(task.targetDate));
 		snoozeCount.setText(Integer.toString(task.snoozeCount));
 		
 		ArrayAdapter<CharSequence> adapter = ArrayAdapter.createFromResource(this, R.array.snooze_periods, android.R.layout.simple_spinner_item);
@@ -110,8 +108,8 @@ public class TaskNotification extends Activity {
 
 			private void snoozeTask() {
 				// create a new alarm ...
-				Integer pos = snoozePeriod.getSelectedItemPosition();
-				Integer snoozeTime = snoozedMinutes[pos];
+				int pos = snoozePeriod.getSelectedItemPosition();
+				int snoozeTime = snoozedMinutes[pos];
 				alarmManager.snoozeAlarm(task, snoozeTime);
 				
 				// update the snooze count ...

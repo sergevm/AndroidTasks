@@ -1,5 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <string name="list_menu_refresh">Refresh</string>
+    <string name="list_menu_new">New</string>
+    <string name="list_menu_filter_header">Taskfilter</string>
     <string name="no_target_date">no target date</string>
     <string name="task_due_notification">Task is due!</string>
     
@@ -11,13 +14,13 @@
 <string name="list_filter_all">All Tasks</string>
 <string name="list_filter_active">Active Tasks</string>
 <string name="list_filter_due">Due Tasks</string>
-<string name="notification_complete">Complete task</string>
+<string name="list_filter_nodate">No Date Specified</string><string name="notification_complete">Complete task</string>
 <string name="notification_snooze_period">&lt;select period&gt;</string>
 <string name="notification_snooze">Snooze</string>
 <string name="notification_commit">Apply To Task</string>
 <string name="notification_activity_name">Due task notification</string>
 <string name="notification_task_targetdate_label">Target Date:  </string>
-<string-array name="snooze_periods"><item>One minute</item><item>Two minutes</item><item>Five minutes</item>
+<string name="notification_snooze_count">Snooze count: </string><string name="notification_edit">Open Task</string><string-array name="snooze_periods"><item>One minute</item><item>Two minutes</item><item>Five minutes</item>
 <item>Ten minutes</item>
 
 
@@ -30,8 +33,9 @@
 <item>1 day</item>
 <item>2 days</item>
 </string-array>
-<string name="notification_snooze_count">Snooze count: </string>
-<string name="notification_edit">Open Task</string>
+
+
 <string name="edit_notes">Notes</string>
 <string name="edit_location">Location</string>
+
 </resources>

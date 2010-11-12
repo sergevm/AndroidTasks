@@ -112,15 +112,16 @@ public class DBHelper {
 	}
 
 	public List<Task> getActive() {
-		return getTasks("completed = 0", null, null, null, "targetdate");
+		return getTasks("completed = 0", null, null, null, "length(targetdate) DESC, strftime('%Y-%m-%d %H:%M', targetdate)");
 	}
 
 	public List<Task> getDue() {
-		return getTasks("completed = 0 AND strftime('%Y-%m-%d %H:%M', targetdate) <= datetime('now', 'localtime')", null, null, null, "targetdate");
+		return getTasks("completed = 0 AND strftime('%Y-%m-%d %H:%M', targetdate) <= datetime('now', 'localtime')", 
+				null, null, null, "strftime('%Y-%m-%d %H:%M', targetdate)");
 	}
 
 	public List<Task> getAll(){
-		return getTasks(null, null, null, null, null);
+		return getTasks(null, null, null, null, "length(targetdate) DESC, strftime('%Y-%m-%d %H:%M', targetdate)");
 	}
 
 	public List<Task> getTasks(String selection, String[] selectionArgs, String groupby, String having, String orderby){
@@ -182,5 +183,9 @@ public class DBHelper {
 	public Task getSingle(long id) {
 		List<Task> found = getTasks("id = " + id, null, null, null, null);
 		return found.get(0);
+	}
+
+	public List<Task> getNoDate() {
+		return getTasks("targetdate is null", null, null, null, null);
 	}
 }

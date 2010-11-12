@@ -1,6 +1,5 @@
 package com.softwareprojects.androidtasks;
 
-import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
 
@@ -9,7 +8,6 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.SharedPreferences.Editor;
-import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.Typeface;
 import android.os.Bundle;
@@ -27,6 +25,7 @@ import android.widget.TextView;
 
 import com.softwareprojects.androidtasks.db.DBHelper;
 import com.softwareprojects.androidtasks.domain.Task;
+import com.softwareprojects.androidtasks.domain.TaskDateFormatter;
 
 public class TaskList extends ListActivity {
 
@@ -35,6 +34,7 @@ public class TaskList extends ListActivity {
 	private final static int Filter_All = 4;
 	private final static int Filter_Active = 5;
 	private final static int Filter_Due = 6;
+	private final static int Filter_NoDate = 7;
 
 	private int _currentFilter;
 	
@@ -137,12 +137,13 @@ public class TaskList extends ListActivity {
 
 	@Override
 	public boolean onCreateOptionsMenu(Menu menu) {
-		menu.add(Menu.NONE, 1, 1, "New");
-		menu.add(Menu.NONE, 2, 2, "Refresh");
-		SubMenu subMenu = menu.addSubMenu(Menu.NONE, 3, 3, "Filter");
-		subMenu.add(1, 4, 4, "All").setChecked(getCurrentFilter() == Filter_All);
-		subMenu.add(1, 5, 5, "Active").setChecked(getCurrentFilter() == Filter_Active);
-		subMenu.add(1, 6, 6, "Due").setChecked(getCurrentFilter() == Filter_Due);
+		menu.add(Menu.NONE, 1, 1, R.string.list_menu_new);
+		menu.add(Menu.NONE, 2, 2, R.string.list_menu_refresh);
+		SubMenu subMenu = menu.addSubMenu(Menu.NONE, 3, 3, R.string.list_menu_filter_header);
+		subMenu.add(1, 4, 4, R.string.list_filter_all).setChecked(getCurrentFilter() == Filter_All);
+		subMenu.add(1, 5, 5, R.string.list_filter_active).setChecked(getCurrentFilter() == Filter_Active);
+		subMenu.add(1, 6, 6, R.string.list_filter_due).setChecked(getCurrentFilter() == Filter_Due);
+		subMenu.add(1, 7, 7, R.string.list_filter_nodate).setChecked(getCurrentFilter() == Filter_NoDate);
 		return super.onCreateOptionsMenu(menu);
 	}
 
@@ -167,6 +168,9 @@ public class TaskList extends ListActivity {
 			setCurrentFilter(Filter_Due);
 			updateFilteredList();
 			return true;
+		case 7:
+			setCurrentFilter(Filter_NoDate);
+			updateFilteredList();
 		default:
 			return true;
 		}
@@ -194,6 +198,8 @@ public class TaskList extends ListActivity {
 		case Filter_Due:
 			list = dbHelper.getDue();
 			break;
+		case Filter_NoDate:
+			list = dbHelper.getNoDate();
 		default:
 			break;
 		}
@@ -219,6 +225,8 @@ public class TaskList extends ListActivity {
 		case Filter_Due:
 			sb.append(getResources().getString(R.string.list_filter_due));
 			break;
+		case Filter_NoDate:
+			sb.append(getResources().getString(R.string.list_filter_nodate));
 		default:
 			break;
 		}
@@ -267,9 +275,7 @@ public class TaskList extends ListActivity {
 				if(task.targetDate == null) {
 					targetdate.setText(R.string.no_target_date);
 				} else {
-					SimpleDateFormat dateFormat = new SimpleDateFormat(Constants.DATETIME_FORMAT_STRING);
-					targetdate.setText(formatTargetDate(task, dateFormat));
-
+					targetdate.setText(TaskDateFormatter.Format(task.targetDate));
 					Date now = new Date();
 
 					// Coloring
@@ -289,10 +295,6 @@ public class TaskList extends ListActivity {
 			}
 
 			return view;
-		}
-
-		private String formatTargetDate(Task task, SimpleDateFormat dateFormat) {
-			return dateFormat.format(task.targetDate);
 		}
 
 		private boolean deadlineInLessThanADay(Date left, Date right) {

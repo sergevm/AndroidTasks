@@ -37,7 +37,7 @@ public class TaskAlarmManager {
 
 	public void snoozeAlarm(final Task task, Integer snoozeTimeInMinutes) {
 		Calendar calendar = Calendar.getInstance();
-		calendar.roll(Calendar.MINUTE, snoozeTimeInMinutes);
+		calendar.add(Calendar.MINUTE, snoozeTimeInMinutes);
 
 		setAlarm(task, calendar);
 	}

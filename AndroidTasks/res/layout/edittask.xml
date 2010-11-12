@@ -6,7 +6,7 @@
 	<TextView android:text="Description" android:layout_height="wrap_content"
 		android:layout_width="wrap_content" android:textSize="14dp" />
 
-	<EditText android:id="@+id/edit_description" android:padding="4dp"
+	<EditText android:id="@+id/edit_description" android:padding="4dp" android:maxLength="120"
 		android:layout_height="wrap_content" android:layout_width="fill_parent" />
 
 	<CheckBox android:id="@+id/edit_completed" android:textSize="14dp"
