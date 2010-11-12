@@ -8,6 +8,7 @@ import com.softwareprojects.androidtasks.domain.Task;
 import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.ArrayAdapter;
@@ -37,10 +38,14 @@ public class TaskNotification extends Activity {
 	private final SimpleDateFormat dateFormat = new SimpleDateFormat(Constants.DATETIME_FORMAT_STRING);
 	private final Integer[] snoozedMinutes = new Integer[]{1, 2, 5, 10, 30, 60, 120, 180, 240, 480, 1440, 2880};
 	
+	private static final String TAG = TaskNotification.class.getSimpleName();
+	
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 
 		super.onCreate(savedInstanceState);
+		
+		Log.i(TAG, "onCreate");
 		
 		setContentView(R.layout.task_notification);
 
@@ -131,6 +136,8 @@ public class TaskNotification extends Activity {
 	@Override
 	protected void onDestroy() {
 
+		Log.i(TAG, "onDestroy");
+		
 		if(dbHelper != null) {
 			dbHelper.Cleanup();
 			dbHelper = null;

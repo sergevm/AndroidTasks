@@ -7,10 +7,13 @@ import java.util.List;
 import android.app.ListActivity;
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
+import android.content.SharedPreferences.Editor;
 import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.Typeface;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -34,6 +37,8 @@ public class TaskList extends ListActivity {
 
 	private int _currentFilter;
 	
+	private static final String TAG = TaskList.class.getSimpleName();
+	
 	private void setCurrentFilter(int filter) {
 		if(_currentFilter != filter) {
 			_currentFilter = filter;
@@ -49,19 +54,66 @@ public class TaskList extends ListActivity {
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 
+		Log.i(TAG, "onCreate");
+		
 		// Initialize the database helper
 		dbHelper = new DBHelper(this);
 		
 		// Set up the adapter
 		initializeTaskList();
+		
+		// Fetch the initial filter from the shared preferences
+		SharedPreferences preferences = getSharedPreferences("AndroidTasks", MODE_PRIVATE);
+		int startupFilter = preferences.getInt("ActiveFilter", Filter_All);
 
 		// Set the initial list filter
-		setCurrentFilter(Filter_All);
+		setCurrentFilter(startupFilter);
 
 		// Update the filtered list
 		updateFilteredList();
 	}
+	
+	@Override
+	protected void onPause() {
+		super.onPause();
+		
+		Log.i(TAG, "onPause");
+		
+		SharedPreferences preferences = getSharedPreferences("AndroidTasks", MODE_PRIVATE);
+		Editor prefEditor = preferences.edit();
+		
+		prefEditor.putInt("ActiveFilter", getCurrentFilter());
+		prefEditor.commit();
+	}
 
+	@Override
+	protected void onResume() {
+		super.onResume();
+
+		Log.i(TAG, "onResume");
+	}
+	
+	@Override
+	protected void onStart() {
+		super.onStart();
+
+		Log.i(TAG, "onStart");
+	}
+	
+	@Override
+	protected void onStop() {
+		super.onStop();
+
+		Log.i(TAG, "onStop");
+	}
+	
+	@Override
+	protected void onDestroy() {
+		super.onDestroy();
+
+		Log.i(TAG, "onDestroy");
+	}
+	
 	private void initializeTaskList() {
 
 		this.getListView().setOnItemClickListener(
