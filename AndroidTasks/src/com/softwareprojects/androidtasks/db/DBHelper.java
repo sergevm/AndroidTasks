@@ -20,10 +20,10 @@ public class DBHelper {
 	// DB names
 	private static final String DB_NAME = "AndroidTasks";
 	private static final String DB_TASKS_TABLE = "Tasks";
-	private static int DB_VERSION = 2;
+	private static int DB_VERSION = 3;
 
 	private static final String[] DB_TASKS_COLS = 
-		new String[]{"id", "description", "completed", "targetdate", "snoozecount", "notes", "location"};
+		new String[]{"id", "description", "completed", "targetdate", "snoozecount", "notes", "location", "remindertype", "reminderdate"};
 
 	// Logging stuff
 	private static final String CLASSNAME = DBHelper.class.getSimpleName();
@@ -39,7 +39,7 @@ public class DBHelper {
 		// SQL statement that creates the TASKS table 
 		private static final String DB_CREATE_TASKS_TABLE = "CREATE TABLE " + 
 		DBHelper.DB_TASKS_TABLE + " (id INTEGER PRIMARY KEY, description TEXT, " + 
-		"completed INTEGER, targetdate TEXT, snoozecount INTEGER DEFAULT 0, notes TEXT, location TEXT);";
+		"completed INTEGER, targetdate TEXT, snoozecount INTEGER DEFAULT 0, notes TEXT, location TEXT, remindertype INTEGER DEFAULT 0, reminderdate TEXT);";
 
 		public DBOpenHelper(Context context) {
 			super(context, DBHelper.DB_NAME, null, DBHelper.DB_VERSION);
@@ -79,32 +79,44 @@ public class DBHelper {
 
 	public void insert(Task task){
 		ContentValues values = new ContentValues();
-		values.put("description", task.description);
-		values.put("completed", task.completed);
-		values.put("notes", task.notes);
-		values.put("location", task.location);
-		if(task.targetDate != null) {
-			values.put("targetdate",new SimpleDateFormat("yyyy-MM-dd HH:mm").format(task.targetDate));
+		values.put("description", task.getDescription());
+		values.put("completed", task.isCompleted());
+		values.put("notes", task.getNotes());
+		values.put("location", task.getLocation());
+		if(task.getTargetDate() != null) {
+			values.put("targetdate",new SimpleDateFormat("yyyy-MM-dd HH:mm").format(task.getTargetDate()));
+		}
+		values.put("remindertype", task.getReminder());
+		if(task.getReminderDate() != null) {
+			values.put("reminderdate", new SimpleDateFormat("yyyy-MM-dd HH:mm").format(task.getReminderDate()));
 		}
 
-		task.id = this.db.insert(DB_TASKS_TABLE, null, values);
+		task.setId(this.db.insert(DB_TASKS_TABLE, null, values));
 	}
 
 	public void update(Task task){
 		ContentValues values = new ContentValues();
-		values.put("description", task.description);
-		values.put("completed", task.completed);
-		values.put("snoozecount", task.snoozeCount);
-		values.put("notes", task.notes);
-		values.put("location", task.location);
-		if(task.targetDate != null) {
-			values.put("targetdate", new SimpleDateFormat("yyyy-MM-dd HH:mm").format(task.targetDate));
+		values.put("description", task.getDescription());
+		values.put("completed", task.isCompleted());
+		values.put("snoozecount", task.getSnoozeCount());
+		values.put("notes", task.getNotes());
+		values.put("location", task.getLocation());
+		if(task.getTargetDate() != null) {
+			values.put("targetdate", new SimpleDateFormat("yyyy-MM-dd HH:mm").format(task.getTargetDate()));
 		}
 		else {
 			values.put("targetdate", (String)null);
 		}
+		values.put("remindertype", task.getReminder());
+		if(task.getReminderDate() != null) {
+			values.put("reminderdate", new SimpleDateFormat("yyyy-MM-dd HH:mm").format(task.getReminderDate()));
+		}
+		else {
+			values.put("reminderdate", (String)null);
+		}
 
-		this.db.update(DB_TASKS_TABLE, values, "id = " + task.id, null);
+
+		this.db.update(DB_TASKS_TABLE, values, "id = " + task.getId(), null);
 	}
 
 	public void delete(int id){
@@ -139,20 +151,27 @@ public class DBHelper {
 
 			for(int counter = 0; counter < rowCount; counter++) {
 				Task task = new Task();
-				task.id = c.getLong(0);
-				task.description = c.getString(1);
-				task.completed = c.getInt(2) == 0 ? false : true;
+				task.setId(c.getLong(0));
+				task.setDescription(c.getString(1));
+				task.setCompleted(c.getInt(2) == 0 ? false : true);
 
 				if(c.isNull(3) == false) {
 					String dateAsString = c.getString(3);
 					if(dateAsString != null & dateAsString.length() > 0) {
-						task.targetDate = new SimpleDateFormat("yyyy-MM-dd HH:mm").parse(c.getString(3));					
+						task.setTargetDate(new SimpleDateFormat("yyyy-MM-dd HH:mm").parse(c.getString(3)));					
 					}
 				}
 
-				task.snoozeCount = c.getInt(4);
-				task.notes = c.getString(5);
-				task.location = c.getString(6);
+				task.setSnoozeCount(c.getInt(4));
+				task.setNotes(c.getString(5));
+				task.setLocation(c.getString(6));
+				task.setReminder(c.getInt(7));
+				if(c.isNull(8) == false) {
+					String dateAsString = c.getString(8);
+					if(dateAsString != null & dateAsString.length() > 0) {
+						task.setReminderDate(new SimpleDateFormat("yyyy-MM-dd HH:mm").parse(c.getString(8)));					
+					}
+				}				
 
 				list.add(task);
 

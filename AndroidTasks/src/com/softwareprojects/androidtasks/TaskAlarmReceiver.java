@@ -1,5 +1,7 @@
 package com.softwareprojects.androidtasks;
 
+import com.softwareprojects.androidtasks.domain.NotificationSource;
+
 import android.app.Notification;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
@@ -16,14 +18,16 @@ public class TaskAlarmReceiver extends BroadcastReceiver {
 	
 	@Override
 	public void onReceive(Context context, Intent intent) {
-		Log.i(TAG, "TaskAlarmReceiver is receiving ...");
-		Log.i(TAG, "Intent received carries data: " + intent.getData().toString());
+		Log.i(TAG, "Intent received has data: " + intent.getData().toString());
 		
 		long taskId = intent.getExtras().getLong(Constants.ALARM_TASK_ID);
-		Log.i(TAG, "Intent received was constructed for task " + taskId);
+		Log.i(TAG, "Intent received handles task id " + taskId);
 		
 		String taskDescription = intent.getExtras().getString(Constants.ALARM_TASK_DESCRIPTION);
-		Log.i(TAG, "Intent received was constructed for task " + taskDescription);		
+		Log.i(TAG, "Intent received handles task " + taskDescription);		
+		
+		NotificationSource notificationSource = NotificationSource.valueOf(intent.getExtras().getString(Constants.ALARM_SOURCE));
+		Log.i(TAG, "Intent received handles notification source " + notificationSource);
 		
 		NotificationManager nm = (NotificationManager)context.getSystemService(Context.NOTIFICATION_SERVICE);
 		Notification notification = new Notification();
@@ -37,6 +41,7 @@ public class TaskAlarmReceiver extends BroadcastReceiver {
 		
 		Intent notificationIntent = new Intent(context, TaskNotification.class);
 		notificationIntent.putExtra(Constants.ALARM_TASK_ID, taskId);
+		notificationIntent.putExtra(Constants.ALARM_SOURCE, notificationSource.toString());
 		
 		// We need to set this data, such that the filterEquals() implementation recognizes the different 
 		// intents for the different task id's ...

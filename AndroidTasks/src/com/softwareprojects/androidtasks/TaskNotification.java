@@ -15,6 +15,7 @@ import android.widget.Spinner;
 import android.widget.TextView;
 
 import com.softwareprojects.androidtasks.db.DBHelper;
+import com.softwareprojects.androidtasks.domain.NotificationSource;
 import com.softwareprojects.androidtasks.domain.Task;
 import com.softwareprojects.androidtasks.domain.TaskDateFormatter;
 
@@ -32,7 +33,8 @@ public class TaskNotification extends Activity {
 	Task task;
 	
 	DBHelper dbHelper;
-	private TaskAlarmManager alarmManager;
+	private TaskAlarmManagerImpl alarmManager;
+	private NotificationSource notificationSource;
 	
 	private final int[] snoozedMinutes = new int[]{1, 2, 5, 10, 30, 60, 120, 180, 240, 480, 1440, 2880};
 	
@@ -57,15 +59,16 @@ public class TaskNotification extends Activity {
 		edit = (Button)findViewById(R.id.notification_edit_button);
 		
 		long taskId = getIntent().getLongExtra(Constants.ALARM_TASK_ID, -1);
+		notificationSource = NotificationSource.valueOf(getIntent().getStringExtra(Constants.ALARM_SOURCE));
 	
 		dbHelper = new DBHelper(this);
 		task = dbHelper.getSingle(taskId);
 		
-		alarmManager = new TaskAlarmManager(this);
+		alarmManager = new TaskAlarmManagerImpl(this);
 		
-		description.setText(task.description);
-		targetdate.setText(TaskDateFormatter.Format(task.targetDate));
-		snoozeCount.setText(Integer.toString(task.snoozeCount));
+		description.setText(task.getDescription());
+		targetdate.setText(TaskDateFormatter.format(task.getTargetDate()));
+		snoozeCount.setText(Integer.toString(task.getSnoozeCount()));
 		
 		ArrayAdapter<CharSequence> adapter = ArrayAdapter.createFromResource(this, R.array.snooze_periods, android.R.layout.simple_spinner_item);
 		adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
@@ -102,7 +105,7 @@ public class TaskNotification extends Activity {
 			}
 
 			private void completeTask() {
-				task.completed = true;
+				task.setCompleted(true);
 				dbHelper.update(task);
 			}
 
@@ -110,10 +113,10 @@ public class TaskNotification extends Activity {
 				// create a new alarm ...
 				int pos = snoozePeriod.getSelectedItemPosition();
 				int snoozeTime = snoozedMinutes[pos];
-				alarmManager.snoozeAlarm(task, snoozeTime);
+				task.snooze(alarmManager, snoozeTime, notificationSource);
 				
-				// update the snooze count ...
-				task.snoozeCount++;
+				// update the count ...
+				task.setSnoozeCount(task.getSnoozeCount() + 1);
 				dbHelper.update(task);
 			};
 		});

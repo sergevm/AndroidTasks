@@ -261,10 +261,10 @@ public class TaskList extends ListActivity {
 				TextView targetdate = (TextView)view.findViewById(R.id.item_targetdate);
 				ImageView image = (ImageView)view.findViewById(R.id.item_icon);
 
-				description.setText(task.description);
+				description.setText(task.getDescription());
 
 				// Strike through if task is completed
-				if(task.completed) {
+				if(task.isCompleted()) {
 					description.setPaintFlags(description.getPaintFlags() | Paint.STRIKE_THRU_TEXT_FLAG);
 					image.setImageResource(R.drawable.flag_green);
 				}
@@ -272,18 +272,18 @@ public class TaskList extends ListActivity {
 					description.setPaintFlags(description.getPaintFlags() & ~Paint.STRIKE_THRU_TEXT_FLAG);						
 				}
 
-				if(task.targetDate == null) {
+				if(task.getTargetDate() == null) {
 					targetdate.setText(R.string.no_target_date);
 				} else {
-					targetdate.setText(TaskDateFormatter.Format(task.targetDate));
+					targetdate.setText(TaskDateFormatter.format(task.getTargetDate()));
 					Date now = new Date();
 
 					// Coloring
-					if(task.completed == false) {
-						if(now.after(task.targetDate)) {
+					if(task.isCompleted() == false) {
+						if(now.after(task.getTargetDate())) {
 							targetdate.setTypeface(Typeface.DEFAULT_BOLD);
 							image.setImageResource(R.drawable.flag_red); 
-						} else if (deadlineInLessThanADay(now, task.targetDate)) {
+						} else if (deadlineInLessThanADay(now, task.getTargetDate())) {
 							targetdate.setTypeface(Typeface.DEFAULT_BOLD);	
 							image.setImageResource(R.drawable.flag_blue);
 						}

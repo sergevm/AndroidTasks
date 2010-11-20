@@ -4,22 +4,101 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
-import com.softwareprojects.androidtasks.Constants;
-
 import android.os.Parcel;
 import android.os.Parcelable;
 import android.util.Log;
 
-public class Task implements Parcelable{		
-	public long id;
-	public Date targetDate;
-	public String description;
-	public boolean completed;
-	public int snoozeCount = 0;
-	public String notes;
-	public String location;
+import com.softwareprojects.androidtasks.Constants;
 
+public class Task implements Parcelable, Cloneable{		
+	private long id;
+	private Date targetDate;
+	private String description;
+	private boolean completed;
+	private int snoozeCount = 0;
+	private String notes;
+	private String location;
+	private int reminder;
+	private Date reminderDate;	
+	
 	private static final String CLASSNAME = Task.class.getSimpleName();
+
+	public static final int REMINDER_MANUAL = 0;
+	public final static int REMINDER_HOURLY = 1;
+	public final static int REMINDER_DAILY = 2;
+	public final static int REMINDER_WEEKLY = 3;
+	
+	public String getDescription() {
+		return description;
+	}
+
+	public void setDescription(String description) {
+		this.description = description;
+	}
+
+	public boolean isCompleted() {
+		return completed;
+	}
+
+	public void setCompleted(boolean completed) {
+		this.completed = completed;
+	}
+
+	public int getSnoozeCount() {
+		return snoozeCount;
+	}
+
+	public void setSnoozeCount(int snoozeCount) {
+		this.snoozeCount = snoozeCount;
+	}
+
+	public String getNotes() {
+		return notes;
+	}
+
+	public void setNotes(String notes) {
+		this.notes = notes;
+	}
+
+	public String getLocation() {
+		return location;
+	}
+
+	public void setLocation(String location) {
+		this.location = location;
+	}
+
+	public int getReminder() {
+		return reminder;
+	}
+
+	public void setReminder(int reminder) {
+		this.reminder = reminder;
+	}
+
+	public Date getReminderDate() {
+		return reminderDate;
+	}
+
+	public void setReminderDate(Date reminderDate) {
+		this.reminderDate = reminderDate;
+	}
+
+	public Date getTargetDate() {
+		return targetDate;
+	}
+
+	public void setTargetDate(Date targetDate) {
+		this.targetDate = targetDate;
+	}
+
+	public long getId() {
+		return id;
+	}
+
+	public void setId(long id) {
+		this.id = id;
+	}
 
 	@Override
 	public String toString()
@@ -36,7 +115,7 @@ public class Task implements Parcelable{
 	public void writeToParcel(Parcel dest, int flags) {
 		// id
 		dest.writeLong(id);
-		
+
 		// target date
 		if (targetDate != null) {
 			dest.writeString(new SimpleDateFormat(Constants.DATETIME_FORMAT_STRING)
@@ -45,25 +124,35 @@ public class Task implements Parcelable{
 		else {
 			dest.writeString(null);
 		}
-		
+
 		// destination
 		dest.writeString(description);
-		
+
 		// completed
 		dest.writeBooleanArray(new boolean[]{completed});
-		
+
 		// snoozeCount
 		dest.writeInt(snoozeCount);
-		
+
 		// notes
 		dest.writeString(notes);
-		
+
 		// location
 		dest.writeString(location);
+
+		// reminder
+		dest.writeInt(reminder);
+
+		// reminderDate
+		if(reminderDate != null) {
+			dest.writeString(new SimpleDateFormat(Constants.DATETIME_FORMAT_STRING)
+			.format(reminderDate));
+		}
 	}
 
 	public static final Parcelable.Creator<Task> CREATOR = 
 		new Parcelable.Creator<Task>() {
+		@Override
 		public Task createFromParcel(Parcel in) {
 			return new Task(in);
 		}
@@ -77,7 +166,7 @@ public class Task implements Parcelable{
 	private Task(Parcel parcel) {
 		//id
 		id = parcel.readLong();
-		
+
 		// date
 		try {
 			String dateAsString = parcel.readString();
@@ -94,17 +183,86 @@ public class Task implements Parcelable{
 		// Boolean values grouped in a single array
 		boolean[] buffer = parcel.createBooleanArray();
 		completed = buffer[0];
-		
+
 		// snoozeCount
 		snoozeCount = parcel.readInt();
-		
+
 		// notes
 		notes = parcel.readString();
-		
+
 		// location
 		location = parcel.readString();
-}
+
+		// reminder
+		reminder = parcel.readInt();
+
+		// reminderDate
+		try {
+			String dateAsString = parcel.readString();
+			if(dateAsString != null) {				
+				reminderDate = new SimpleDateFormat(Constants.DATETIME_FORMAT_STRING).parse(dateAsString);
+			}
+		} catch (ParseException e) {
+			Log.e(Constants.LOGTAG, CLASSNAME, e);
+		}
+
+	}
 
 	public Task() {
+	}
+
+	public boolean canHaveReminder() {
+		return completed == false;
+	}
+
+	public void set(final TaskAlarmManager alarmManager) {		
+
+		NotificationSource source = NotificationSource.ALARMSOURCE_NONE;
+		Date now = new Date();
+
+		if(targetDate == null) {
+			if(reminderDate == null) {
+				if(reminder != REMINDER_MANUAL) {
+					reminderDate = WeeklyReminder.getNextReminder(TaskDateFormatter.getToday());	
+					source = NotificationSource.ALARMSOURCE_REMINDERDATE;
+				}
+			}
+			else if(reminderDate != null) {
+				if(reminderDate.before(now)) {
+					reminderDate = WeeklyReminder.getNextReminder(reminderDate);
+					source = NotificationSource.ALARMSOURCE_REMINDERDATE;
+				}
+			}
+		}
+		else if(targetDate != null) {
+			if(reminderDate != null) {
+				if(reminderDate.before(now)) {
+					reminderDate = WeeklyReminder.getNextReminder(targetDate);
+					source = NotificationSource.ALARMSOURCE_REMINDERDATE;
+				}				
+			}
+			else {
+				reminderDate = targetDate;
+				source = NotificationSource.ALARMSOURCE_TARGETDATE;				
+			}
+		}
+
+		if(source != NotificationSource.ALARMSOURCE_NONE) {
+			alarmManager.setAlarm(this, reminderDate, source);
+		}
+	}
+
+	public void snooze(final TaskAlarmManager alarmManager, int minutes, NotificationSource notificationType) {
+
+		if(targetDate == null) {
+			// the notification was triggered based on the reminder date
+			reminderDate = WeeklyReminder.getNextReminder(reminderDate);
+		}
+		else {
+			// here we don't know based on which date that the notification was triggered?
+			reminderDate = WeeklyReminder.getNextReminder(targetDate);
+		}
+
+		alarmManager.snoozeAlarm(this, minutes);
 	}
 }
