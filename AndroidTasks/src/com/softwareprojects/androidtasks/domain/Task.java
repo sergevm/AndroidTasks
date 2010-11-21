@@ -222,6 +222,7 @@ public class Task implements Parcelable, Cloneable {
 
 		if (reminder == REMINDER_MANUAL) {
 			reminderDate = targetDate;
+			source = NotificationSource.ALARMSOURCE_TARGETDATE;
 		}
 
 		if (targetDate == null) {
