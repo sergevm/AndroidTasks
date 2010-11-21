@@ -9,7 +9,6 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.SharedPreferences.Editor;
 import android.graphics.Paint;
-import android.graphics.Typeface;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -260,6 +259,7 @@ public class TaskList extends ListActivity {
 				TextView description = (TextView)view.findViewById(R.id.item_description);
 				TextView targetdate = (TextView)view.findViewById(R.id.item_targetdate);
 				ImageView image = (ImageView)view.findViewById(R.id.item_icon);
+				TextView reminderdate = (TextView)view.findViewById(R.id.item_nextreminder);
 
 				description.setText(task.getDescription());
 
@@ -281,16 +281,21 @@ public class TaskList extends ListActivity {
 					// Coloring
 					if(task.isCompleted() == false) {
 						if(now.after(task.getTargetDate())) {
-							targetdate.setTypeface(Typeface.DEFAULT_BOLD);
 							image.setImageResource(R.drawable.flag_red); 
 						} else if (deadlineInLessThanADay(now, task.getTargetDate())) {
-							targetdate.setTypeface(Typeface.DEFAULT_BOLD);	
 							image.setImageResource(R.drawable.flag_blue);
 						}
 						else {
 							image.setImageResource(R.drawable.deadline);
 						}
 					}
+				}
+				
+				if(task.getReminderDate() != null) {
+					reminderdate.setText(TaskDateFormatter.format(task.getReminderDate()));
+				}
+				else {
+					reminderdate.setText(null);
 				}
 			}
 

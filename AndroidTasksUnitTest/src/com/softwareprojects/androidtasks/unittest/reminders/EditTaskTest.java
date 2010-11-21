@@ -8,6 +8,7 @@ import junit.framework.TestCase;
 
 import com.softwareprojects.androidtasks.domain.Task;
 import com.softwareprojects.androidtasks.domain.TaskAlarmManager;
+import com.softwareprojects.androidtasks.domain.TaskDateFormatter;
 
 public class EditTaskTest extends TestCase {
 
@@ -68,7 +69,53 @@ public class EditTaskTest extends TestCase {
 		assertEquals(calendar.getTime(), task.getReminderDate());
 	}
 	
-	public void test_WITH_future_targetdate_and_reminderdate_and_remindertype_weekly_THEN_reminderdate_equals_targetdate() {
+	
+	public void test_WITH_past_reminderdate_and_weekly_remindertype_WHEN_targetdate_is_null_THEN_reminderdate_moves_to_week_after_today() {
+		Calendar calendar = Calendar.getInstance();
+		calendar.add(Calendar.DATE, -1);
+		
+		task.setReminder(Task.REMINDER_WEEKLY);
+		task.setReminderDate(calendar.getTime());
+		
+		task.set(alarmManager);
+		
+		calendar.setTime(TaskDateFormatter.getToday());
+		calendar.add(Calendar.DATE, 7);
+				
+		assertEquals(calendar.getTime(), task.getReminderDate());
+	}
+
+	public void test_WHEN_past_reminderdate_and_past_targetdate_and_weekly_remindertype__THEN_reminderdate_moves_to_next_week() {
+		Calendar calendar = Calendar.getInstance();
+		calendar.add(Calendar.DATE, -1);
+		
+		task.setReminder(Task.REMINDER_WEEKLY);
+		task.setReminderDate(calendar.getTime());
+		task.setTargetDate(calendar.getTime());
+		
+		task.set(alarmManager);
+
+		calendar.add(Calendar.DATE, 7);
+				
+		assertEquals(calendar.getTime(), task.getReminderDate());
+	}
+	
+	public void test_WHEN_past_targetdate_and_future_reminderdate_and_weekly_remindertype_THEN_reminderdate_remains_unchanged_and_future() {
+		Calendar calendar = Calendar.getInstance();
+		
+		task.setReminder(Task.REMINDER_WEEKLY);
+		calendar.add(Calendar.DATE, -1);
+		task.setTargetDate(calendar.getTime());
+
+		calendar.add(Calendar.DATE, 7);
+		task.setReminderDate(calendar.getTime());
+		
+		task.set(alarmManager);
+			
+		assertEquals(calendar.getTime(), task.getReminderDate());
+	}
+	
+	public void test_WITH_future_targetdate_and_reminderdate_and_remindertype_weekly_WHEN_dates_are_equal_THEN_reminderdate_stays_targetdate() {
 		task.setReminder(Task.REMINDER_WEEKLY);
 		
 		Calendar calendar = Calendar.getInstance();
@@ -80,48 +127,37 @@ public class EditTaskTest extends TestCase {
 		
 		assertEquals(task.getTargetDate(), task.getReminderDate());
 	}
-	
-	public void test_WITH_past_reminderdate_and_weekly_remindertype_WHEN_targetdate_is_null_THEN_reminderdate_moves_to_next_week() {
-		Calendar calendar = Calendar.getInstance();
-		calendar.add(Calendar.DATE, -1);
-		
-		task.setReminder(Task.REMINDER_WEEKLY);
-		task.setReminderDate(calendar.getTime());
-		
-		task.set(alarmManager);
 
-		calendar.add(Calendar.DATE, 7);
-				
-		assertEquals(calendar.getTime(), task.getReminderDate());
-	}
-
-	public void test_WITH_past_reminderdate_and_weekly_remindertype_WHEN_reminderdate_equals_targetdate_THEN_reminderdate_moves_to_next_week() {
-		Calendar calendar = Calendar.getInstance();
-		calendar.add(Calendar.DATE, -1);
-		
-		task.setReminder(Task.REMINDER_WEEKLY);
-		task.setReminderDate(calendar.getTime());
-		task.setTargetDate(calendar.getTime());
-		
-		task.set(alarmManager);
-
-		calendar.add(Calendar.DATE, 7);
-				
-		assertEquals(calendar.getTime(), task.getReminderDate());
-	}
-	
-	public void test_WHEN_past_targetdate_and_future_reminderdate_and_weekly_remindertype_THEN_reminderdate_remains_unchanged() {
+	public void test_WITH_future_targetdate_and_reminderdate_and_remindertype_weekly_WHEN_reminderdate_before_targetdate_THEN_reminderdate_set_to_targetdate() {
 		Calendar calendar = Calendar.getInstance();
 		
 		task.setReminder(Task.REMINDER_WEEKLY);
-		calendar.add(Calendar.DATE, -1);
-		task.setTargetDate(calendar.getTime());
-
 		calendar.add(Calendar.DATE, 2);
+		task.setTargetDate(calendar.getTime());
+
+		calendar.add(Calendar.DATE, -1);
 		task.setReminderDate(calendar.getTime());
 		
 		task.set(alarmManager);
 			
-		assertEquals(calendar.getTime(), task.getReminderDate());
+		assertEquals(task.getTargetDate(), task.getReminderDate());
+	}
+	
+	public void test_WITH_equal_future_targetdate_and_reminderdate_WHEN_targetdate_set_to_earlier_future_date_THEN_reminderdate_set_to_targetdate() {
+		Calendar calendar = Calendar.getInstance();
+		
+		task.setReminder(Task.REMINDER_WEEKLY);
+		calendar.add(Calendar.DATE, 2);
+
+		task.setTargetDate(calendar.getTime());
+		task.setReminderDate(calendar.getTime());
+		
+		calendar.add(Calendar.DATE, -1);
+		task.setTargetDate(calendar.getTime());
+		
+		task.set(alarmManager);
+			
+		assertEquals(task.getTargetDate(), task.getReminderDate());
+		
 	}
 }

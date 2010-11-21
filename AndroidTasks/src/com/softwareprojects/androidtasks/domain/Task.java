@@ -11,7 +11,7 @@ import android.util.Log;
 
 import com.softwareprojects.androidtasks.Constants;
 
-public class Task implements Parcelable, Cloneable{		
+public class Task implements Parcelable, Cloneable {
 	private long id;
 	private Date targetDate;
 	private String description;
@@ -20,7 +20,7 @@ public class Task implements Parcelable, Cloneable{
 	private String notes;
 	private String location;
 	private int reminder;
-	private Date reminderDate;	
+	private Date reminderDate;
 
 	private static final String CLASSNAME = Task.class.getSimpleName();
 
@@ -102,8 +102,7 @@ public class Task implements Parcelable, Cloneable{
 	}
 
 	@Override
-	public String toString()
-	{
+	public String toString() {
 		return description;
 	}
 
@@ -119,10 +118,9 @@ public class Task implements Parcelable, Cloneable{
 
 		// target date
 		if (targetDate != null) {
-			dest.writeString(new SimpleDateFormat(Constants.DATETIME_FORMAT_STRING)
-			.format(targetDate));
-		}
-		else {
+			dest.writeString(new SimpleDateFormat(
+					Constants.DATETIME_FORMAT_STRING).format(targetDate));
+		} else {
 			dest.writeString(null);
 		}
 
@@ -130,7 +128,7 @@ public class Task implements Parcelable, Cloneable{
 		dest.writeString(description);
 
 		// completed
-		dest.writeBooleanArray(new boolean[]{completed});
+		dest.writeBooleanArray(new boolean[] { completed });
 
 		// snoozeCount
 		dest.writeInt(snoozeCount);
@@ -145,14 +143,13 @@ public class Task implements Parcelable, Cloneable{
 		dest.writeInt(reminder);
 
 		// reminderDate
-		if(reminderDate != null) {
-			dest.writeString(new SimpleDateFormat(Constants.DATETIME_FORMAT_STRING)
-			.format(reminderDate));
+		if (reminderDate != null) {
+			dest.writeString(new SimpleDateFormat(
+					Constants.DATETIME_FORMAT_STRING).format(reminderDate));
 		}
 	}
 
-	public static final Parcelable.Creator<Task> CREATOR = 
-		new Parcelable.Creator<Task>() {
+	public static final Parcelable.Creator<Task> CREATOR = new Parcelable.Creator<Task>() {
 		@Override
 		public Task createFromParcel(Parcel in) {
 			return new Task(in);
@@ -165,14 +162,15 @@ public class Task implements Parcelable, Cloneable{
 	};
 
 	private Task(Parcel parcel) {
-		//id
+		// id
 		id = parcel.readLong();
 
 		// date
 		try {
 			String dateAsString = parcel.readString();
-			if(dateAsString != null) {				
-				targetDate = new SimpleDateFormat(Constants.DATETIME_FORMAT_STRING).parse(dateAsString);
+			if (dateAsString != null) {
+				targetDate = new SimpleDateFormat(
+						Constants.DATETIME_FORMAT_STRING).parse(dateAsString);
 			}
 		} catch (ParseException e) {
 			Log.e(Constants.LOGTAG, CLASSNAME, e);
@@ -200,8 +198,9 @@ public class Task implements Parcelable, Cloneable{
 		// reminderDate
 		try {
 			String dateAsString = parcel.readString();
-			if(dateAsString != null) {				
-				reminderDate = new SimpleDateFormat(Constants.DATETIME_FORMAT_STRING).parse(dateAsString);
+			if (dateAsString != null) {
+				reminderDate = new SimpleDateFormat(
+						Constants.DATETIME_FORMAT_STRING).parse(dateAsString);
 			}
 		} catch (ParseException e) {
 			Log.e(Constants.LOGTAG, CLASSNAME, e);
@@ -216,62 +215,50 @@ public class Task implements Parcelable, Cloneable{
 		return completed == false;
 	}
 
-	public void set(final TaskAlarmManager alarmManager) {		
+	public void set(final TaskAlarmManager alarmManager) {
 
 		NotificationSource source = NotificationSource.ALARMSOURCE_NONE;
 		Date now = new Date();
 
-		if(reminder == REMINDER_MANUAL & targetDate != null) {
+		if (reminder == REMINDER_MANUAL) {
 			reminderDate = targetDate;
 		}
 
-		if(targetDate == null) {
-			if(reminderDate == null) {
-				if(reminder != REMINDER_MANUAL) {
-					reminderDate = WeeklyReminder.getNextReminder(TaskDateFormatter.getToday());	
-					source = NotificationSource.ALARMSOURCE_REMINDERDATE;
-				}
+		if (targetDate == null) {
+			if (reminder != REMINDER_MANUAL) {
+				reminderDate = WeeklyReminder.getNextReminder(TaskDateFormatter.getToday());
+				source = NotificationSource.ALARMSOURCE_REMINDERDATE;
 			}
-			else if(reminderDate != null) {
-				if(reminder != REMINDER_MANUAL) {
-					if(reminderDate.before(now)) {
-						reminderDate = WeeklyReminder.getNextReminder(reminderDate);
-						source = NotificationSource.ALARMSOURCE_REMINDERDATE;
-					}
-				}
-				else {
-					reminderDate = null;
-				}
-			}
-		}
-		else if(targetDate != null) {
-			if(reminderDate.equals(targetDate) == false) {
-				if(reminderDate.before(now)) {
+		} else if (targetDate != null) {
+			if (reminder != REMINDER_MANUAL) {
+				if (targetDate.before(now)) {
 					reminderDate = WeeklyReminder.getNextReminder(targetDate);
 					source = NotificationSource.ALARMSOURCE_TARGETDATE;
-				}
-			}
-			else if(reminderDate.equals(targetDate)) {
-				if(reminderDate.before(now)) {
-					reminderDate = WeeklyReminder.getNextReminder(targetDate);
-					source = NotificationSource.ALARMSOURCE_TARGETDATE;					
+				} else if (reminderDate.before(targetDate)) {
+					reminderDate = targetDate;
+				} else if (targetDate.before(reminderDate)) {
+					reminderDate = targetDate;
 				}
 			}
 		}
 
-		alarmManager.setAlarm(this, reminderDate, source);
+		if (reminderDate != null) {
+			alarmManager.setAlarm(this, reminderDate, source);
+		}
 	}
 
-	public void snooze(final TaskAlarmManager alarmManager, int minutes, NotificationSource notificationType) {
+	public void snooze(final TaskAlarmManager alarmManager, int minutes,
+			NotificationSource notificationType) {
 
-		switch(notificationType) {
+		switch (notificationType) {
 		case ALARMSOURCE_REMINDERDATE:
 		case ALARMSOURCE_SNOOZE_REMINDERDATE:
 
 			Calendar snoozeTargetTime = Calendar.getInstance();
 			snoozeTargetTime.add(Calendar.MINUTE, minutes);
 
-			alarmManager.snoozeAlarm(this, minutes, NotificationSource.ALARMSOURCE_SNOOZE_REMINDERDATE);
+			alarmManager.snoozeAlarm(this, minutes,
+					NotificationSource.ALARMSOURCE_SNOOZE_REMINDERDATE);
 
 			break;
 		case ALARMSOURCE_TARGETDATE:
@@ -280,7 +267,8 @@ public class Task implements Parcelable, Cloneable{
 			assert targetDate != null;
 			assert reminderDate != null;
 
-			alarmManager.snoozeAlarm(this, minutes, NotificationSource.ALARMSOURCE_SNOOZE_TARGETDATE);
+			alarmManager.snoozeAlarm(this, minutes,
+					NotificationSource.ALARMSOURCE_SNOOZE_TARGETDATE);
 			break;
 		}
 	}
