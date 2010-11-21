@@ -2,6 +2,7 @@ package com.softwareprojects.androidtasks.domain;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.util.Calendar;
 import java.util.Date;
 
 import android.os.Parcel;
@@ -20,14 +21,14 @@ public class Task implements Parcelable, Cloneable{
 	private String location;
 	private int reminder;
 	private Date reminderDate;	
-	
+
 	private static final String CLASSNAME = Task.class.getSimpleName();
 
 	public static final int REMINDER_MANUAL = 0;
 	public final static int REMINDER_HOURLY = 1;
 	public final static int REMINDER_DAILY = 2;
 	public final static int REMINDER_WEEKLY = 3;
-	
+
 	public String getDescription() {
 		return description;
 	}
@@ -220,6 +221,10 @@ public class Task implements Parcelable, Cloneable{
 		NotificationSource source = NotificationSource.ALARMSOURCE_NONE;
 		Date now = new Date();
 
+		if(reminder == REMINDER_MANUAL & targetDate != null) {
+			reminderDate = targetDate;
+		}
+
 		if(targetDate == null) {
 			if(reminderDate == null) {
 				if(reminder != REMINDER_MANUAL) {
@@ -228,41 +233,55 @@ public class Task implements Parcelable, Cloneable{
 				}
 			}
 			else if(reminderDate != null) {
-				if(reminderDate.before(now)) {
-					reminderDate = WeeklyReminder.getNextReminder(reminderDate);
-					source = NotificationSource.ALARMSOURCE_REMINDERDATE;
+				if(reminder != REMINDER_MANUAL) {
+					if(reminderDate.before(now)) {
+						reminderDate = WeeklyReminder.getNextReminder(reminderDate);
+						source = NotificationSource.ALARMSOURCE_REMINDERDATE;
+					}
+				}
+				else {
+					reminderDate = null;
 				}
 			}
 		}
 		else if(targetDate != null) {
-			if(reminderDate != null) {
+			if(reminderDate.equals(targetDate) == false) {
 				if(reminderDate.before(now)) {
 					reminderDate = WeeklyReminder.getNextReminder(targetDate);
-					source = NotificationSource.ALARMSOURCE_REMINDERDATE;
-				}				
+					source = NotificationSource.ALARMSOURCE_TARGETDATE;
+				}
 			}
-			else {
-				reminderDate = targetDate;
-				source = NotificationSource.ALARMSOURCE_TARGETDATE;				
+			else if(reminderDate.equals(targetDate)) {
+				if(reminderDate.before(now)) {
+					reminderDate = WeeklyReminder.getNextReminder(targetDate);
+					source = NotificationSource.ALARMSOURCE_TARGETDATE;					
+				}
 			}
 		}
 
-		if(source != NotificationSource.ALARMSOURCE_NONE) {
-			alarmManager.setAlarm(this, reminderDate, source);
-		}
+		alarmManager.setAlarm(this, reminderDate, source);
 	}
 
 	public void snooze(final TaskAlarmManager alarmManager, int minutes, NotificationSource notificationType) {
 
-		if(targetDate == null) {
-			// the notification was triggered based on the reminder date
-			reminderDate = WeeklyReminder.getNextReminder(reminderDate);
-		}
-		else {
-			// here we don't know based on which date that the notification was triggered?
-			reminderDate = WeeklyReminder.getNextReminder(targetDate);
-		}
+		switch(notificationType) {
+		case ALARMSOURCE_REMINDERDATE:
+		case ALARMSOURCE_SNOOZE_REMINDERDATE:
 
-		alarmManager.snoozeAlarm(this, minutes);
+			Calendar snoozeTargetTime = Calendar.getInstance();
+			snoozeTargetTime.add(Calendar.MINUTE, minutes);
+
+			alarmManager.snoozeAlarm(this, minutes, NotificationSource.ALARMSOURCE_SNOOZE_REMINDERDATE);
+
+			break;
+		case ALARMSOURCE_TARGETDATE:
+		case ALARMSOURCE_SNOOZE_TARGETDATE:
+
+			assert targetDate != null;
+			assert reminderDate != null;
+
+			alarmManager.snoozeAlarm(this, minutes, NotificationSource.ALARMSOURCE_SNOOZE_TARGETDATE);
+			break;
+		}
 	}
 }

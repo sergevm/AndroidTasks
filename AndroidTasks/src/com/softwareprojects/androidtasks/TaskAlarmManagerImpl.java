@@ -29,35 +29,11 @@ public class TaskAlarmManagerImpl implements TaskAlarmManager {
 		this.alarmManager = (AlarmManager)context.getSystemService(Context.ALARM_SERVICE);
 	}
 
-	public void setAlarm(final Task task) {
-
-		if(task.isCompleted() == false && task.getTargetDate() != null) {			
-			setAlarm(task, task.getTargetDate(), NotificationSource.ALARMSOURCE_TARGETDATE);
-		}
-		else if(task.isCompleted() == false && task.getReminderDate() != null) {
-			setAlarm(task, task.getReminderDate(), NotificationSource.ALARMSOURCE_REMINDERDATE);
-		}
-	}
-
-	public void snoozeAlarm(final Task task, int snoozeTimeInMinutes) {
+	@Override
+	public void snoozeAlarm(final Task task, int snoozeTimeInMinutes, NotificationSource source) {
 		Calendar calendar = Calendar.getInstance();
-		
-		NotificationSource source;
-
-		if(task.getReminderDate() == null) {
-			source = NotificationSource.ALARMSOURCE_SNOOZE_TARGETDATE;
-		}
-		else if(task.getTargetDate() == null) {
-			source = NotificationSource.ALARMSOURCE_SNOOZE_REMINDERDATE;
-		}
-		else if(task.getReminderDate().after(calendar.getTime())){
-			source = NotificationSource.ALARMSOURCE_SNOOZE_TARGETDATE;
-		}
-		else {
-			source = NotificationSource.ALARMSOURCE_SNOOZE_REMINDERDATE;
-		}
-
 		calendar.add(Calendar.MINUTE, snoozeTimeInMinutes);
+		
 		setAlarm(task, calendar.getTime(), source);
 }
 

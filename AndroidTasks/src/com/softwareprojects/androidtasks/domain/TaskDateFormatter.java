@@ -1,6 +1,7 @@
 package com.softwareprojects.androidtasks.domain;
 
 import java.text.SimpleDateFormat;
+import java.util.Calendar;
 import java.util.Date;
 
 import com.softwareprojects.androidtasks.Constants;
@@ -10,11 +11,12 @@ public class TaskDateFormatter {
 	private static final SimpleDateFormat dateFormatWithoutTime = new SimpleDateFormat(Constants.DATE_FORMAT_STRING);
 	
 	public static Date getToday() {
-		Date today = new Date();
-		today.setHours(0);
-		today.setMinutes(0);
+		Calendar calendar = Calendar.getInstance();
+		calendar.set(Calendar.HOUR, 0);
+		calendar.set(Calendar.MINUTE, 0);
+		calendar.set(Calendar.SECOND, 0);
 		
-		return today;
+		return calendar.getTime();
 	}
 	
 	public static String format(Date date) {
