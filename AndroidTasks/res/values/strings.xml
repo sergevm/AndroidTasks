@@ -38,9 +38,10 @@
 <string name="edit_notes">Notes</string>
 <string name="edit_location">Location</string>
 
-<string-array name="reminder_types"><item>Manual</item><item>Hourly</item>
+<string-array name="reminder_types"><item>Manual</item><item>Every Minute</item><item>Hourly</item>
 <item>Daily</item>
 <item>Weekly</item>
+
 
 </string-array>
 </resources>

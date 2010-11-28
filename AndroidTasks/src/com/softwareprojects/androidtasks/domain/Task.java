@@ -25,9 +25,10 @@ public class Task implements Parcelable, Cloneable {
 	private static final String CLASSNAME = Task.class.getSimpleName();
 
 	public static final int REMINDER_MANUAL = 0;
-	public final static int REMINDER_HOURLY = 1;
-	public final static int REMINDER_DAILY = 2;
-	public final static int REMINDER_WEEKLY = 3;
+	public final static int REMINDER_EVERYMINUTE = 1;
+	public final static int REMINDER_HOURLY = 2;
+	public final static int REMINDER_DAILY = 3;
+	public final static int REMINDER_WEEKLY = 4;
 
 	public String getDescription() {
 		return description;
@@ -215,7 +216,7 @@ public class Task implements Parcelable, Cloneable {
 		return completed == false;
 	}
 
-	public void set(final TaskAlarmManager alarmManager) {
+	public void initialize(final TaskAlarmManager alarmManager, ReminderFactory reminders, TaskDateProvider dateProvider) {
 
 		NotificationSource source = NotificationSource.ALARMSOURCE_NONE;
 		Date now = new Date();
@@ -227,18 +228,17 @@ public class Task implements Parcelable, Cloneable {
 
 		if (targetDate == null) {
 			if (reminder != REMINDER_MANUAL) {
-				reminderDate = WeeklyReminder.getNextReminder(TaskDateFormatter.getToday());
+				reminderDate = reminders.create(this).getNextReminder(dateProvider.getToday().getTime(), dateProvider);
 				source = NotificationSource.ALARMSOURCE_REMINDERDATE;
 			}
 		} else if (targetDate != null) {
 			if (reminder != REMINDER_MANUAL) {
 				if (targetDate.before(now)) {
-					reminderDate = WeeklyReminder.getNextReminder(targetDate);
+					reminderDate = reminders.create(this).getNextReminder(targetDate, dateProvider);
 					source = NotificationSource.ALARMSOURCE_TARGETDATE;
-				} else if (reminderDate.before(targetDate)) {
+				} else if (targetDate == now | targetDate.after(now)) {
 					reminderDate = targetDate;
-				} else if (targetDate.before(reminderDate)) {
-					reminderDate = targetDate;
+					source = NotificationSource.ALARMSOURCE_TARGETDATE;
 				}
 			}
 		}
@@ -247,16 +247,22 @@ public class Task implements Parcelable, Cloneable {
 			alarmManager.setAlarm(this, reminderDate, source);
 		}
 	}
+	
+	public void updateReminder(final TaskAlarmManager alarmManager, ReminderFactory reminders, TaskDateProvider dateProvider) {
+		if(reminder == REMINDER_MANUAL) {
+			return;
+		}
+		
+		reminderDate = reminders.create(this).getNextReminder(targetDate == null ? reminderDate : targetDate, dateProvider);
+		alarmManager.setReminder(this);
+	}
 
-	public void snooze(final TaskAlarmManager alarmManager, int minutes,
+	public void snooze(final TaskAlarmManager alarmManager, TaskDateProvider dateProvider, int minutes,
 			NotificationSource notificationType) {
 
 		switch (notificationType) {
 		case ALARMSOURCE_REMINDERDATE:
 		case ALARMSOURCE_SNOOZE_REMINDERDATE:
-
-			Calendar snoozeTargetTime = Calendar.getInstance();
-			snoozeTargetTime.add(Calendar.MINUTE, minutes);
 
 			alarmManager.snoozeAlarm(this, minutes,
 					NotificationSource.ALARMSOURCE_SNOOZE_REMINDERDATE);
@@ -272,5 +278,11 @@ public class Task implements Parcelable, Cloneable {
 					NotificationSource.ALARMSOURCE_SNOOZE_TARGETDATE);
 			break;
 		}
+	}
+	
+	public void complete(final TaskAlarmManager alarmManager) {
+		reminderDate = null;
+		setCompleted(true);
+		alarmManager.complete(this);
 	}
 }

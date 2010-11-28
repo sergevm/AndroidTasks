@@ -26,7 +26,12 @@ import android.widget.TextView;
 import android.widget.TimePicker;
 
 import com.softwareprojects.androidtasks.db.DBHelper;
+import com.softwareprojects.androidtasks.domain.ReminderFactory;
+import com.softwareprojects.androidtasks.domain.ReminderFactoryImpl;
 import com.softwareprojects.androidtasks.domain.Task;
+import com.softwareprojects.androidtasks.domain.TaskAlarmManager;
+import com.softwareprojects.androidtasks.domain.TaskDateProvider;
+import com.softwareprojects.androidtasks.domain.TaskDateProviderImpl;
 
 public class EditTask extends Activity {
 
@@ -42,70 +47,76 @@ public class EditTask extends Activity {
 	private Button cancel;
 	private Spinner reminderType;
 	private TextView reminderTypeLabel;
-	
+
 	private Task task;
 
 	private final Context context = this;
-	private TaskAlarmManagerImpl alarmManager;
-	private final static String TAG = EditTask.class.getSimpleName();
 
+	private TaskAlarmManager alarmManager;
+	private ReminderFactory reminders;
+
+	private static final TaskDateProvider dates = new TaskDateProviderImpl();
+	private static final String TAG = EditTask.class.getSimpleName();
 	private static final Calendar calendar = Calendar.getInstance();
-	private static final SimpleDateFormat dateFormat = new SimpleDateFormat(Constants.DATE_FORMAT_STRING);
-	private static final SimpleDateFormat timeFormat = new SimpleDateFormat(Constants.TIME_FORMAT_STRING);
+	private static final SimpleDateFormat dateFormat = new SimpleDateFormat(
+			Constants.DATE_FORMAT_STRING);
+	private static final SimpleDateFormat timeFormat = new SimpleDateFormat(
+			Constants.TIME_FORMAT_STRING);
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
-		
+
 		Log.i(TAG, "onCreate");
-		
+
 		setContentView(R.layout.edittask);
-		
+
 		// Initialize the alarm manager
-		alarmManager = new TaskAlarmManagerImpl(this);
+		alarmManager = new TaskAlarmManagerImpl(this, dates);
+		reminders = new ReminderFactoryImpl();
 
 		// Initialize the calendar so it doesn't specify time ...
-		calendar.set(calendar.get(Calendar.YEAR), calendar.get(Calendar.MONTH), calendar.get(Calendar.DATE),0 ,0 ,0);
+		calendar.set(calendar.get(Calendar.YEAR), calendar.get(Calendar.MONTH),
+				calendar.get(Calendar.DATE), 0, 0, 0);
 
 		// Inflate view
-		description = (EditText)findViewById(R.id.edit_description);
-		completed = (CheckBox)findViewById(R.id.edit_completed);
-		hasTargetDate = (CheckBox)findViewById(R.id.edit_has_targetDate);
-		notes = (EditText)findViewById(R.id.edit_notes);
-		location = (EditText)findViewById(R.id.edit_location);
-		complete = (Button)findViewById(R.id.edit_commit_button);
-		cancel = (Button)findViewById(R.id.edit_cancel_button);
-		targetDateButton = (Button)findViewById(R.id.edit_targetDate_button);
-		targetTimeButton = (Button)findViewById(R.id.edit_targetTime_button);
-		reminderType = (Spinner)findViewById(R.id.edit_reminder_type);
-		reminderTypeLabel = (TextView)findViewById(R.id.edit_reminder_type_label);
+		description = (EditText) findViewById(R.id.edit_description);
+		completed = (CheckBox) findViewById(R.id.edit_completed);
+		hasTargetDate = (CheckBox) findViewById(R.id.edit_has_targetDate);
+		notes = (EditText) findViewById(R.id.edit_notes);
+		location = (EditText) findViewById(R.id.edit_location);
+		complete = (Button) findViewById(R.id.edit_commit_button);
+		cancel = (Button) findViewById(R.id.edit_cancel_button);
+		targetDateButton = (Button) findViewById(R.id.edit_targetDate_button);
+		targetTimeButton = (Button) findViewById(R.id.edit_targetTime_button);
+		reminderType = (Spinner) findViewById(R.id.edit_reminder_type);
+		reminderTypeLabel = (TextView) findViewById(R.id.edit_reminder_type_label);
 
-		hasTargetDate.setOnCheckedChangeListener(new OnCheckedChangeListener(){
+		hasTargetDate.setOnCheckedChangeListener(new OnCheckedChangeListener() {
 
 			@Override
-			public void onCheckedChanged(CompoundButton hasTargetDateCheckBox, boolean isChecked) {
-				if(!isChecked) {
+			public void onCheckedChanged(CompoundButton hasTargetDateCheckBox,
+					boolean isChecked) {
+				if (!isChecked) {
 					task.setTargetDate(null);
-				}
-				else {
+				} else {
 					task.setTargetDate(getTargetDate());
 				}
-				
+
 				updateTargetDateFrom(task.getTargetDate());
 				updateTargetDateControlsFrom(task);
 			}
 		});
 
-		targetDateButton.setOnClickListener(new OnClickListener(){
+		targetDateButton.setOnClickListener(new OnClickListener() {
 
 			@Override
 			public void onClick(View button) {
 
-				DatePickerDialog dialog = new DatePickerDialog(context, 
-						listener, 
-						calendar.get(Calendar.YEAR), 
-						calendar.get(Calendar.MONTH), 
-						calendar.get(Calendar.DAY_OF_MONTH));
+				DatePickerDialog dialog = new DatePickerDialog(context,
+						listener, calendar.get(Calendar.YEAR), calendar
+								.get(Calendar.MONTH), calendar
+								.get(Calendar.DAY_OF_MONTH));
 
 				dialog.show();
 			}
@@ -113,27 +124,28 @@ public class EditTask extends Activity {
 			OnDateSetListener listener = new OnDateSetListener() {
 
 				@Override
-				public void onDateSet(DatePicker picker, int year, int monthOfYear,
-						int dayOfMonth) {
+				public void onDateSet(DatePicker picker, int year,
+						int monthOfYear, int dayOfMonth) {
 					calendar.set(year, monthOfYear, dayOfMonth);
 					task.setTargetDate(calendar.getTime());
 					updateTargetDateFrom(task.getTargetDate());
 				}
 			};
 		});
-		
+
 		targetTimeButton.setOnClickListener(new OnClickListener() {
-			
+
 			@Override
 			public void onClick(View button) {
-				TimePickerDialog dialog = new TimePickerDialog(context, listener,
-						calendar.get(Calendar.HOUR_OF_DAY), calendar.get(Calendar.MINUTE), false); 
-				
+				TimePickerDialog dialog = new TimePickerDialog(context,
+						listener, calendar.get(Calendar.HOUR_OF_DAY), calendar
+								.get(Calendar.MINUTE), false);
+
 				dialog.show();
 			}
-			
+
 			OnTimeSetListener listener = new OnTimeSetListener() {
-				
+
 				@Override
 				public void onTimeSet(TimePicker view, int hourOfDay, int minute) {
 					calendar.set(Calendar.HOUR_OF_DAY, hourOfDay);
@@ -144,7 +156,7 @@ public class EditTask extends Activity {
 			};
 		});
 
-		complete.setOnClickListener(new OnClickListener(){
+		complete.setOnClickListener(new OnClickListener() {
 
 			@Override
 			public void onClick(View view) {
@@ -154,16 +166,19 @@ public class EditTask extends Activity {
 				task.setLocation(location.getText().toString());
 				task.setReminder(reminderType.getSelectedItemPosition());
 
-				task.set(alarmManager);
-
-				if(task.getId() == 0) {
-					dbHelper.insert(task);
+				if (task.isCompleted()) {
+					task.complete(alarmManager);
+				} else {
+					task.initialize(alarmManager, reminders, dates);
 				}
-				else {
+
+				if (task.getId() == 0) {
+					dbHelper.insert(task);
+				} else {
 					dbHelper.update(task);
 				}
-				
-				setResult(RESULT_OK);				
+
+				setResult(RESULT_OK);
 				finish();
 			}
 		});
@@ -172,47 +187,51 @@ public class EditTask extends Activity {
 
 			@Override
 			public void onClick(View view) {
-				CheckBox checkbox = (CheckBox)view;
+				CheckBox checkbox = (CheckBox) view;
 				task.setCompleted(checkbox.isChecked());
 				updateTargetDateControlsFrom(task);
-			}});
+			}
+		});
 
-		cancel.setOnClickListener(new OnClickListener(){
+		cancel.setOnClickListener(new OnClickListener() {
 
 			@Override
 			public void onClick(View view) {
 				setResult(RESULT_CANCELED);
 				finish();
-			}});
-		
-		ArrayAdapter<CharSequence> adapter = ArrayAdapter.createFromResource(this, R.array.reminder_types, android.R.layout.simple_spinner_item);
+			}
+		});
+
+		ArrayAdapter<CharSequence> adapter = ArrayAdapter.createFromResource(
+				this, R.array.reminder_types,
+				android.R.layout.simple_spinner_item);
 		adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
 		reminderType.setAdapter(adapter);
 
 	}
-	
+
 	@Override
 	protected void onStart() {
 		super.onStart();
-	
+
 		Log.i(TAG, "onStart");
 		dbHelper = new DBHelper(this);
 	}
-	
+
 	@Override
 	protected void onStop() {
 		super.onStop();
-		
+
 		Log.i(TAG, "onStop");
 		dbHelper.Cleanup();
 	}
-	
+
 	@Override
 	protected void onResume() {
 		super.onResume();
 
 		Log.i(TAG, "onResume");
-		
+
 		// Get task passed in via Intent
 		task = getOrCreateTask();
 
@@ -221,32 +240,41 @@ public class EditTask extends Activity {
 		completed.setChecked(task.isCompleted());
 		notes.setText(task.getNotes());
 		location.setText(task.getLocation());
-		reminderType.setSelection(task.getReminder()); // constants are defined in the order they appear in the list!
+		reminderType.setSelection(task.getReminder()); // constants are defined
+														// in the order they
+														// appear in the list!
 
 		updateTargetDateFrom(task);
 		updateTargetDateControlsFrom(task);
 	}
-	
+
 	@Override
 	protected void onDestroy() {
 		super.onDestroy();
-		
+
 		Log.i(TAG, "onDestroy");
-		
+
 		dbHelper = null;
 	}
 
 	private Task getOrCreateTask() {
-		if(getIntent().hasExtra(Constants.CURRENT_TASK)) { // Activity was started due to selection in task list ...
+		if (getIntent().hasExtra(Constants.CURRENT_TASK)) { // Activity was
+															// started due to
+															// selection in task
+															// list ...
 			Bundle extras = getIntent().getExtras();
-			return (Task)extras.getParcelable(Constants.CURRENT_TASK);
-		}
-		else if(getIntent().hasExtra(Constants.ALARM_TASK_ID)) { // Activity was started due to notification click ...
-			long dueTaskId = getIntent().getLongExtra(Constants.ALARM_TASK_ID, -1);
+			return (Task) extras.getParcelable(Constants.CURRENT_TASK);
+		} else if (getIntent().hasExtra(Constants.ALARM_TASK_ID)) { // Activity
+																	// was
+																	// started
+																	// due to
+																	// notification
+																	// click ...
+			long dueTaskId = getIntent().getLongExtra(Constants.ALARM_TASK_ID,
+					-1);
 			Task task = dbHelper.getSingle(dueTaskId);
 			return task;
-		}
-		else { // No task passed in ... Must be the creation of a new task ...
+		} else { // No task passed in ... Must be the creation of a new task ...
 			Task newTask = new Task();
 			return newTask;
 		}
@@ -264,10 +292,14 @@ public class EditTask extends Activity {
 
 	private void enableTargetDateControls(final Task task) {
 		hasTargetDate.setEnabled(task.isCompleted() == false);
-		targetDateButton.setVisibility(task.isCompleted() == false & task.getTargetDate() != null ? View.VISIBLE : View.INVISIBLE);
-		targetTimeButton.setVisibility(task.isCompleted() == false & task.getTargetDate() != null ? View.VISIBLE : View.INVISIBLE);
-		reminderType.setVisibility(task.canHaveReminder() ? View.VISIBLE : View.GONE);
-		reminderTypeLabel.setVisibility(task.canHaveReminder() ? View.VISIBLE : View.GONE);
+		targetDateButton.setVisibility(task.isCompleted() == false
+				& task.getTargetDate() != null ? View.VISIBLE : View.INVISIBLE);
+		targetTimeButton.setVisibility(task.isCompleted() == false
+				& task.getTargetDate() != null ? View.VISIBLE : View.INVISIBLE);
+		reminderType.setVisibility(task.canHaveReminder() ? View.VISIBLE
+				: View.GONE);
+		reminderTypeLabel.setVisibility(task.canHaveReminder() ? View.VISIBLE
+				: View.GONE);
 	}
 
 	private void updateTargetDateFrom(final Task task) {
@@ -275,16 +307,16 @@ public class EditTask extends Activity {
 	}
 
 	private void updateTargetDateFrom(final Date date) {
-		if(date == null) {
+		if (date == null) {
 			targetDateButton.setText(null);
 			targetTimeButton.setText(null);
 			Calendar today = Calendar.getInstance();
-			calendar.set(today.get(Calendar.YEAR), today.get(Calendar.MONTH), today.get(Calendar.DAY_OF_MONTH), 0, 0, 0);
+			calendar.set(today.get(Calendar.YEAR), today.get(Calendar.MONTH),
+					today.get(Calendar.DAY_OF_MONTH), 0, 0, 0);
 		} else {
 			targetDateButton.setText(dateFormat.format(date));
 			targetTimeButton.setText(timeFormat.format(date));
-			calendar.setTime(date);		
+			calendar.setTime(date);
 		}
 	}
 }
-

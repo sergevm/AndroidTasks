@@ -10,18 +10,17 @@
 		android:layout_height="wrap_content"
 		android:orientation="vertical">
 
-	<TextView xmlns:android="http://schemas.android.com/apk/res/android" 
-		style="@style/ListDescription" android:id="@+id/item_description">
+	<TextView style="@style/ListDescription" android:id="@+id/item_description">
 	</TextView>
 	<LinearLayout android:orientation="horizontal" android:layout_width="fill_parent"
 		android:layout_height="wrap_content" >
 
-		<TextView xmlns:android="http://schemas.android.com/apk/res/android"
-			style="@style/ListTargetDate" android:id="@+id/item_targetdate">
-		</TextView>
+		<TextView style="@style/ListTargetDate" android:id="@+id/item_targetdate" />
+				
+		<ImageView android:id="@+id/item_reminder_icon" style="@style/ListReminderIcon" />
 		
 		<TextView android:id="@+id/item_nextreminder" style="@style/ListReminderDate"/>
-		
+				
 	</LinearLayout>
 		
 	</LinearLayout>

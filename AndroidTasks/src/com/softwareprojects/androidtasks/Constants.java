@@ -14,6 +14,6 @@ public final class Constants {
 	static final String ALARM_SOURCE = "ALARM_SOURCE";
 	
 	static final int ALARM_NOTIFICATION_ID = 1;
-	static final String ANDROIDTASK_TASK_ALARM_URI = "androidtask://task/alarm/";
-	static final String ANDROIDTASK_TASK_ALARM_REMINDER_URI = "androidtask://task/reminder/";
+	static final String ANDROIDTASK_TASK_CURRENT_ALARM_URI = "androidtask://task/alarm/";
+	static final String ANDROIDTASK_TASK_NEXT_REMINDER_URI = "androidtask://task/reminder/";
 }

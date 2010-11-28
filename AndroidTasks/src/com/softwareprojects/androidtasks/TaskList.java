@@ -260,6 +260,7 @@ public class TaskList extends ListActivity {
 				TextView targetdate = (TextView)view.findViewById(R.id.item_targetdate);
 				ImageView image = (ImageView)view.findViewById(R.id.item_icon);
 				TextView reminderdate = (TextView)view.findViewById(R.id.item_nextreminder);
+				ImageView reminderimage = (ImageView)view.findViewById(R.id.item_reminder_icon);
 
 				description.setText(task.getDescription());
 
@@ -293,9 +294,11 @@ public class TaskList extends ListActivity {
 				
 				if(task.getReminderDate() != null) {
 					reminderdate.setText(TaskDateFormatter.format(task.getReminderDate()));
+					reminderimage.setImageResource(R.drawable.timer);
 				}
 				else {
 					reminderdate.setText(null);
+					reminderimage.setImageResource(0);
 				}
 			}
 
