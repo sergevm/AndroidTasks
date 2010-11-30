@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+<style name="prefs_range_title" parent="style/TextAppearance">
+	<item name="android:layout_width">fill_parent</item>
+	<item name="android:layout_height">wrap_content</item>	
+	<item name="android:textSize">16sp</item>
+	<item name="android:paddingBottom">3sp</item>
+</style>
+<style name="prefs_label" parent="style/TextAppearance">
+	<item name="android:layout_width">wrap_content</item>
+	<item name="android:layout_height">wrap_content</item>
+	<item name="android:paddingLeft">3sp</item>
+	<item name="android:paddingRight">3sp</item>
+</style>
+<style name="prefs_spinner">
+	<item name="android:layout_width">wrap_content</item>
+	<item name="android:layout_height">wrap_content</item>
+</style>
+<style name="prefs_button">
+	<item name="android:layout_width">fill_parent</item>
+	<item name="android:layout_height">wrap_content</item>
+</style>
+</resources>

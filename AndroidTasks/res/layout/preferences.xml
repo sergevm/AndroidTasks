@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+  xmlns:android="http://schemas.android.com/apk/res/android"
+  android:orientation="vertical"
+  android:layout_width="fill_parent"
+  android:layout_height="fill_parent">
+  
+  <TextView android:text="@string/prefs_range_title"
+  	style="@style/prefs_range_title" />
+    	
+  <LinearLayout style="@style/inner_horizontal_linear_layout">
+
+	  <Spinner android:id="@+id/prefs_weeks_before" 
+	  	style="@style/prefs_spinner" />
+
+	  <TextView android:text="@string/prefs_weeks_before" 
+	  	style="@style/prefs_label" />
+
+	
+<!--	  <TextView android:text="@string/prefs_weeks"-->
+<!--	  	style="@style/prefs_label" />-->
+  
+  </LinearLayout>
+    	
+  <LinearLayout style="@style/inner_horizontal_linear_layout">
+
+	  <Spinner android:id="@+id/prefs_weeks_future" 
+	  	style="@style/prefs_spinner" />
+
+	  <TextView android:text="@string/prefs_weeks_future" 
+	  	style="@style/prefs_label" />
+	
+<!--	  <TextView android:text="@string/prefs_weeks"-->
+<!--	  	style="@style/prefs_label" />-->
+  
+  </LinearLayout>
+  	
+  <Button android:id="@+id/prefs_ok_button" 
+  	android:text="@string/prefs_ok_button"
+  	style="@style/prefs_button" />
+
+  <Button android:id="@+id/prefs_cancel_button" 
+  	android:text="@string/prefs_cancel_button"
+  	style="@style/prefs_button" />
+  
+</LinearLayout>

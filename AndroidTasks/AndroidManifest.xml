@@ -16,6 +16,8 @@
 		<activity android:name=".EditTask"
 			android:label="@string/edit_task_activity_name">
 		</activity>
+		<activity android:name=".Preferences"
+			android:label="@string/preferences_activity_name" />
 		<receiver android:name=".TaskAlarmReceiver">
 		</receiver>
     </application>

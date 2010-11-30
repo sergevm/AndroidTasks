@@ -2,7 +2,7 @@
 <resources>
     <string name="list_menu_refresh">Refresh</string>
     <string name="list_menu_new">New</string>
-    <string name="list_menu_filter_header">Taskfilter</string>
+    <string name="list_menu_filter_header">Filter</string>
     <string name="no_target_date">no target date</string>
     <string name="task_due_notification">Task is due!</string>
     
@@ -11,7 +11,7 @@
 <string name="edit_task_activity_name">View Task</string>
 <string name="edit_commit_button_caption">Accept</string>
 <string name="edit_cancel_button_caption">Cancel</string>
-<string name="list_filter_all">All Tasks</string>
+<string name="list_filter_all">All Tasks</string><string name="list_filter_all_in_range">Actual Tasks</string>
 <string name="list_filter_active">Active Tasks</string>
 <string name="list_filter_due">Due Tasks</string>
 <string name="list_filter_nodate">No Date Specified</string><string name="notification_complete">Complete task</string>
@@ -44,4 +44,13 @@
 
 
 </string-array>
+<string name="prefs_weeks_before">weeks in the past</string>
+<string name="prefs_weeks_future">weeks in the future</string>
+<string name="prefs_ok_button">Save preferences</string>
+<string name="prefs_cancel_button">Cancel preferences</string>
+<string name="list_menu_prefs">Preferences</string>
+<string name="preferences_activity_name">Preferences</string>
+<string name="prefs_range_title">In my task lists, include tasks with target dates ...</string>
+<string name="prefs_weeks">weeks</string>
+
 </resources>

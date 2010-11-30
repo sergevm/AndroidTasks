@@ -31,9 +31,10 @@ public class TaskList extends ListActivity {
 	private static DBHelper dbHelper;
 
 	private final static int Filter_All = 4;
-	private final static int Filter_Active = 5;
-	private final static int Filter_Due = 6;
-	private final static int Filter_NoDate = 7;
+	private final static int Filter_All_In_Range = 5;
+	private final static int Filter_Active = 6;
+	private final static int Filter_Due = 7;
+	private final static int Filter_NoDate = 8;
 
 	private int _currentFilter;
 	
@@ -138,11 +139,13 @@ public class TaskList extends ListActivity {
 	public boolean onCreateOptionsMenu(Menu menu) {
 		menu.add(Menu.NONE, 1, 1, R.string.list_menu_new);
 		menu.add(Menu.NONE, 2, 2, R.string.list_menu_refresh);
-		SubMenu subMenu = menu.addSubMenu(Menu.NONE, 3, 3, R.string.list_menu_filter_header);
-		subMenu.add(1, 4, 4, R.string.list_filter_all).setChecked(getCurrentFilter() == Filter_All);
-		subMenu.add(1, 5, 5, R.string.list_filter_active).setChecked(getCurrentFilter() == Filter_Active);
-		subMenu.add(1, 6, 6, R.string.list_filter_due).setChecked(getCurrentFilter() == Filter_Due);
-		subMenu.add(1, 7, 7, R.string.list_filter_nodate).setChecked(getCurrentFilter() == Filter_NoDate);
+		menu.add(Menu.NONE, 3, 3, R.string.list_menu_prefs);
+		SubMenu subMenu = menu.addSubMenu(Menu.NONE, 4, 4, R.string.list_menu_filter_header);
+		subMenu.add(1, 5, 5, R.string.list_filter_all).setChecked(getCurrentFilter() == Filter_All);
+		subMenu.add(1, 6, 6, R.string.list_filter_all_in_range).setChecked(getCurrentFilter() == Filter_All_In_Range);		
+		subMenu.add(1, 7, 7, R.string.list_filter_active).setChecked(getCurrentFilter() == Filter_Active);
+		subMenu.add(1, 8, 8, R.string.list_filter_due).setChecked(getCurrentFilter() == Filter_Due);
+		subMenu.add(1, 9, 9, R.string.list_filter_nodate).setChecked(getCurrentFilter() == Filter_NoDate);
 		return super.onCreateOptionsMenu(menu);
 	}
 
@@ -155,19 +158,26 @@ public class TaskList extends ListActivity {
 		case 2:
 			refresh();
 			return true;
-		case 4:
+		case 3:
+			showPreferences();
+			return true;
+		case 5:
 			setCurrentFilter(Filter_All);
 			updateFilteredList();
 			return true;
-		case 5:
-			setCurrentFilter(Filter_Active);
-			updateFilteredList();
-			return true;
 		case 6:
-			setCurrentFilter(Filter_Due);
+			setCurrentFilter(Filter_All_In_Range);
 			updateFilteredList();
 			return true;
 		case 7:
+			setCurrentFilter(Filter_Active);
+			updateFilteredList();
+			return true;
+		case 8:
+			setCurrentFilter(Filter_Due);
+			updateFilteredList();
+			return true;
+		case 9:
 			setCurrentFilter(Filter_NoDate);
 			updateFilteredList();
 		default:
@@ -183,16 +193,28 @@ public class TaskList extends ListActivity {
 		Intent intent = new Intent(this, EditTask.class);
 		startActivityForResult(intent, 0);
 	}
+	
+	private void showPreferences() {
+		Intent intent = new Intent(this, Preferences.class);
+		startActivity(intent);
+	}
 
 	private void updateFilteredList() {
 		List<Task> list = null;
-
+		
+		SharedPreferences prefs = getSharedPreferences("AndroidTasks", Preferences.MODE_PRIVATE);
+		int pastWeeks = prefs.getInt(Constants.PREFS_WEEKS_IN_PAST, 3);
+		int futureWeeks = prefs.getInt(Constants.PREFS_WEEKS_IN_FUTURE, 6);
+		
 		switch(getCurrentFilter()) {
 		case Filter_All:
 			list = dbHelper.getAll();
 			break;
+		case Filter_All_In_Range:
+			list = dbHelper.getAll(pastWeeks, futureWeeks);
+			break;
 		case Filter_Active:
-			list = dbHelper.getActive();
+			list = dbHelper.getActive(pastWeeks, futureWeeks);
 			break;
 		case Filter_Due:
 			list = dbHelper.getDue();
@@ -217,6 +239,9 @@ public class TaskList extends ListActivity {
 		switch(getCurrentFilter()) {
 		case Filter_All:
 			sb.append(getResources().getString(R.string.list_filter_all));
+			break;
+		case Filter_All_In_Range:
+			sb.append(getResources().getString(R.string.list_filter_all_in_range));
 			break;
 		case Filter_Active:
 			sb.append(getResources().getString(R.string.list_filter_active));

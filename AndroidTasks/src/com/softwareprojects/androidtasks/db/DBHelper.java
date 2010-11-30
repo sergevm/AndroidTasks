@@ -123,8 +123,9 @@ public class DBHelper {
 		this.db.delete(DB_TASKS_TABLE, "id = " + id, null);
 	}
 
-	public List<Task> getActive() {
-		return getTasks("completed = 0", null, null, null, "length(targetdate) DESC, strftime('%Y-%m-%d %H:%M', targetdate)");
+	public List<Task> getActive(int pastWeeks, int futureWeeks) {
+		return getTasks("completed = 0 AND (" +  formatDateRangeStatement(pastWeeks, futureWeeks) + 
+				" OR targetdate is null)", null, null, null, "length(targetdate) DESC, strftime('%Y-%m-%d %H:%M', targetdate)");
 	}
 
 	public List<Task> getDue() {
@@ -132,8 +133,13 @@ public class DBHelper {
 				null, null, null, "strftime('%Y-%m-%d %H:%M', targetdate)");
 	}
 
-	public List<Task> getAll(){
+	public List<Task> getAll() {
 		return getTasks(null, null, null, null, "length(targetdate) DESC, strftime('%Y-%m-%d %H:%M', targetdate)");
+	}
+	
+	public List<Task> getAll(int pastWeeks, int futureWeeks){
+		return getTasks(formatDateRangeStatement(pastWeeks, futureWeeks), null, null, null, 
+				"length(targetdate) DESC, strftime('%Y-%m-%d %H:%M', targetdate)");
 	}
 
 	public List<Task> getTasks(String selection, String[] selectionArgs, String groupby, String having, String orderby){
@@ -206,5 +212,9 @@ public class DBHelper {
 
 	public List<Task> getNoDate() {
 		return getTasks("targetdate is null", null, null, null, null);
+	}
+
+	private String formatDateRangeStatement(int pastWeeks, int futureWeeks) {
+		return "(targetdate between date('now', '-" + pastWeeks * 7 + " day') AND date('now', '+" + futureWeeks * 7 + " day'))";
 	}
 }
