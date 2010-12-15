@@ -1,5 +1,6 @@
 package com.softwareprojects.androidtasks;
 
+import android.app.PendingIntent;
 import android.app.Service;
 import android.content.Intent;
 import android.os.IBinder;
@@ -59,8 +60,15 @@ public class AndroidTaskService extends Service {
 			
 			Task task = dbHelper.getSingle(taskId);
 			scheduler.createNextOccurrence(task);
+			
+			broadcastTaskListChange();
 		}
 		
 		return super.onStartCommand(intent, flags, startId);
+	}
+	
+	private void broadcastTaskListChange() {
+		Intent intent = new Intent("com.softwareprojects.androidtasks.TASKLISTCHANGE");		
+		sendBroadcast(intent);
 	}
 }

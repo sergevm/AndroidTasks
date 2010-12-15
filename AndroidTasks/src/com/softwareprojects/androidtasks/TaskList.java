@@ -4,8 +4,10 @@ import java.util.Date;
 import java.util.List;
 
 import android.app.ListActivity;
+import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.content.SharedPreferences.Editor;
 import android.graphics.Paint;
@@ -38,6 +40,9 @@ public class TaskList extends ListActivity {
 
 	private int _currentFilter;
 	
+	private BroadcastReceiver listChangedReceiver;
+	private IntentFilter listChangedIntentFilter;
+	
 	private static final String TAG = TaskList.class.getSimpleName();
 	
 	private void setCurrentFilter(int filter) {
@@ -58,10 +63,14 @@ public class TaskList extends ListActivity {
 				
 		// Set up the adapter
 		initializeTaskList();
-		
+				
 		// Fetch the initial filter from the shared preferences
 		SharedPreferences preferences = getSharedPreferences("AndroidTasks", MODE_PRIVATE);
 		setCurrentFilter(preferences.getInt("ActiveFilter", Filter_All));
+
+		// Listener for external modification to the task list
+		listChangedIntentFilter = new IntentFilter("com.softwareprojects.androidtasks.TASKLISTCHANGE");
+		listChangedReceiver = new TaskListChangeReceiver();
 	}
 	
 	@Override
@@ -75,6 +84,8 @@ public class TaskList extends ListActivity {
 		
 		prefEditor.putInt("ActiveFilter", getCurrentFilter());
 		prefEditor.commit();
+		
+		unregisterReceiver(listChangedReceiver);
 	}
 
 	@Override
@@ -83,7 +94,10 @@ public class TaskList extends ListActivity {
 
 		// Update the filtered list
 		updateFilteredList();
-
+		
+		// Register broadcasts that inform us that the list of tasks has changed
+		registerReceiver(listChangedReceiver, listChangedIntentFilter);
+		
 		Log.i(TAG, "onResume");
 	}
 	
@@ -339,5 +353,14 @@ public class TaskList extends ListActivity {
 
 			return days == 0;
 		}
+	}
+
+	private class TaskListChangeReceiver extends BroadcastReceiver {
+
+		@Override
+		public void onReceive(Context context, Intent intent) {
+			updateFilteredList();
+		}
+		
 	}
 }
