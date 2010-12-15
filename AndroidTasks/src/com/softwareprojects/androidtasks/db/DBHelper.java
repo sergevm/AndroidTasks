@@ -20,10 +20,10 @@ public class DBHelper {
 	// DB names
 	private static final String DB_NAME = "AndroidTasks";
 	private static final String DB_TASKS_TABLE = "Tasks";
-	private static int DB_VERSION = 3;
+	private static int DB_VERSION = 5;
 
 	private static final String[] DB_TASKS_COLS = 
-		new String[]{"id", "description", "completed", "targetdate", "snoozecount", "notes", "location", "remindertype", "reminderdate"};
+		new String[]{"id", "description", "completed", "targetdate", "snoozecount", "notes", "location", "remindertype", "reminderdate", "recurrencetype", "recurrencevalue", "nextoccurrenceid"};
 
 	// Logging stuff
 	private static final String CLASSNAME = DBHelper.class.getSimpleName();
@@ -39,7 +39,10 @@ public class DBHelper {
 		// SQL statement that creates the TASKS table 
 		private static final String DB_CREATE_TASKS_TABLE = "CREATE TABLE " + 
 		DBHelper.DB_TASKS_TABLE + " (id INTEGER PRIMARY KEY, description TEXT, " + 
-		"completed INTEGER, targetdate TEXT, snoozecount INTEGER DEFAULT 0, notes TEXT, location TEXT, remindertype INTEGER DEFAULT 0, reminderdate TEXT);";
+		"completed INTEGER, targetdate TEXT, snoozecount INTEGER DEFAULT 0, notes TEXT, " + 
+		"location TEXT, remindertype INTEGER DEFAULT 0, reminderdate TEXT, " + 
+		"recurrencetype INTEGER DEFAULT 0, recurrencevalue INTEGER DEFAULT 0, " + 
+		"nextoccurrenceid INTEGER DEFAULT 0);";
 
 		public DBOpenHelper(Context context) {
 			super(context, DBHelper.DB_NAME, null, DBHelper.DB_VERSION);
@@ -86,10 +89,13 @@ public class DBHelper {
 		if(task.getTargetDate() != null) {
 			values.put("targetdate",new SimpleDateFormat("yyyy-MM-dd HH:mm").format(task.getTargetDate()));
 		}
-		values.put("remindertype", task.getReminder());
+		values.put("remindertype", task.getReminderType());
 		if(task.getReminderDate() != null) {
 			values.put("reminderdate", new SimpleDateFormat("yyyy-MM-dd HH:mm").format(task.getReminderDate()));
 		}
+		values.put("recurrencetype", task.getRecurrenceType());
+		values.put("recurrencevalue", task.getRecurrenceValue());
+		values.put("nextoccurrenceid", task.getNextOccurrenceId());
 
 		task.setId(this.db.insert(DB_TASKS_TABLE, null, values));
 	}
@@ -107,13 +113,16 @@ public class DBHelper {
 		else {
 			values.put("targetdate", (String)null);
 		}
-		values.put("remindertype", task.getReminder());
+		values.put("remindertype", task.getReminderType());
 		if(task.getReminderDate() != null) {
 			values.put("reminderdate", new SimpleDateFormat("yyyy-MM-dd HH:mm").format(task.getReminderDate()));
 		}
 		else {
 			values.put("reminderdate", (String)null);
 		}
+		values.put("recurrencetype", task.getRecurrenceType());
+		values.put("recurrencevalue", task.getRecurrenceValue());
+		values.put("nextoccurrenceid", task.getNextOccurrenceId());
 
 
 		this.db.update(DB_TASKS_TABLE, values, "id = " + task.getId(), null);
@@ -171,13 +180,16 @@ public class DBHelper {
 				task.setSnoozeCount(c.getInt(4));
 				task.setNotes(c.getString(5));
 				task.setLocation(c.getString(6));
-				task.setReminder(c.getInt(7));
+				task.setReminderType(c.getInt(7));
 				if(c.isNull(8) == false) {
 					String dateAsString = c.getString(8);
 					if(dateAsString != null & dateAsString.length() > 0) {
 						task.setReminderDate(new SimpleDateFormat("yyyy-MM-dd HH:mm").parse(c.getString(8)));					
 					}
-				}				
+				}
+				task.setRecurrenceType(c.getInt(9));
+				task.setRecurrenceValue(c.getInt(10));
+				task.setNextOccurrenceId(c.getLong(11));
 
 				list.add(task);
 

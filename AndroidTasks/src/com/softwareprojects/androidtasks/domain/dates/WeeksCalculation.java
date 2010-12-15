@@ -1,16 +1,16 @@
-package com.softwareprojects.androidtasks.domain.reminders;
+package com.softwareprojects.androidtasks.domain.dates;
 
 import java.util.Calendar;
 import java.util.Date;
 
-import com.softwareprojects.androidtasks.domain.Reminder;
+import com.softwareprojects.androidtasks.domain.TaskDateCalculation;
 import com.softwareprojects.androidtasks.domain.TaskDateProvider;
 
-public class WeeklyReminder implements Reminder {
+public class WeeksCalculation implements TaskDateCalculation {
 
 	public static final long ONEWEEKINMILLIS = (1000 * 60 * 60 * 24) * 7;
 
-	public Date getNextReminder(Date offset, TaskDateProvider dateProvider) {
+	public Date getNext(Date offset, TaskDateProvider dateProvider, int shift) {
 
 		Calendar offsetCalendar = Calendar.getInstance();
 		offsetCalendar.setTime(offset);
@@ -20,7 +20,7 @@ public class WeeklyReminder implements Reminder {
 		long diffInMillis = Math.abs(today.getTimeInMillis() - offsetCalendar.getTimeInMillis());			
 		long numberOfFullWeeks = diffInMillis / ONEWEEKINMILLIS;
 		
-		offsetCalendar.add(Calendar.WEEK_OF_YEAR, (int)++numberOfFullWeeks);			
+		offsetCalendar.add(Calendar.WEEK_OF_YEAR, (int)numberOfFullWeeks + shift);			
 		return offsetCalendar.getTime();
 	}
 }

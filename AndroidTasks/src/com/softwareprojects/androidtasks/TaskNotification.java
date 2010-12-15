@@ -15,14 +15,14 @@ import android.widget.Spinner;
 import android.widget.TextView;
 
 import com.softwareprojects.androidtasks.db.DBHelper;
+import com.softwareprojects.androidtasks.db.SqliteTaskRepository;
 import com.softwareprojects.androidtasks.domain.NotificationSource;
-import com.softwareprojects.androidtasks.domain.ReminderFactory;
-import com.softwareprojects.androidtasks.domain.ReminderFactoryImpl;
+import com.softwareprojects.androidtasks.domain.RecurrenceCalculationFactory;
+import com.softwareprojects.androidtasks.domain.ReminderCalculationFactory;
 import com.softwareprojects.androidtasks.domain.Task;
-import com.softwareprojects.androidtasks.domain.TaskAlarmManager;
 import com.softwareprojects.androidtasks.domain.TaskDateFormatter;
-import com.softwareprojects.androidtasks.domain.TaskDateProvider;
 import com.softwareprojects.androidtasks.domain.TaskDateProviderImpl;
+import com.softwareprojects.androidtasks.domain.TaskScheduler;
 
 public class TaskNotification extends Activity {
 
@@ -36,15 +36,12 @@ public class TaskNotification extends Activity {
 	Button edit;
 
 	Task task;
-
+	TaskScheduler taskScheduler;
+	
 	DBHelper dbHelper;
-	private TaskAlarmManager alarmManager;
-	private ReminderFactory reminders;
-	private static final TaskDateProvider dates = new TaskDateProviderImpl();
 	private NotificationSource notificationSource;
 
-	private final int[] snoozedMinutes = new int[] { 1, 2, 5, 10, 30, 60, 120,
-			180, 240, 480, 1440, 2880 };
+	private final int[] snoozedMinutes = new int[] { 1, 2, 5, 10, 30, 60, 120, 180, 240, 480, 1440, 2880 };
 
 	private static final String TAG = TaskNotification.class.getSimpleName();
 
@@ -67,40 +64,35 @@ public class TaskNotification extends Activity {
 		edit = (Button) findViewById(R.id.notification_edit_button);
 
 		long taskId = getIntent().getLongExtra(Constants.ALARM_TASK_ID, -1);
-		notificationSource = NotificationSource.valueOf(getIntent()
-				.getStringExtra(Constants.ALARM_SOURCE));
-
-		alarmManager = new TaskAlarmManagerImpl(this, dates);
-		reminders = new ReminderFactoryImpl();
+		notificationSource = NotificationSource.valueOf(getIntent().getStringExtra(Constants.ALARM_SOURCE));
 
 		dbHelper = new DBHelper(this);
+		
+		taskScheduler = new TaskScheduler(
+				new ReminderCalculationFactory(), 
+				new RecurrenceCalculationFactory(), 
+				new AndroidTaskAlarmManager(this), 
+				new TaskDateProviderImpl(), 
+				new SqliteTaskRepository(dbHelper));
+		
 		task = dbHelper.getSingle(taskId);
 
 		switch (notificationSource) {
 		case ALARMSOURCE_TARGETDATE:
 		case ALARMSOURCE_REMINDERDATE:
 
-
-			task.updateReminder(alarmManager, reminders, dates);
-			dbHelper.update(task);
-
-			Log.i(TAG,
-					"Updated alarms for the next reminder on task with id "
-					+ task.getId() + " on "
-					+ TaskDateFormatter.format(task.getReminderDate()));
-
+			taskScheduler.updateReminder(task);
 			break;
 		}
 
 		description.setText(task.getDescription());
 		snoozeCount.setText(Integer.toString(task.getSnoozeCount()));
 
-		if(task.getTargetDate() != null) {
+		if (task.getTargetDate() != null) {
 			targetdate.setText(TaskDateFormatter.format(task.getTargetDate()));
 		}
 
-		ArrayAdapter<CharSequence> adapter = ArrayAdapter.createFromResource(
-				this, R.array.snooze_periods,
+		ArrayAdapter<CharSequence> adapter = ArrayAdapter.createFromResource(this, R.array.snooze_periods,
 				android.R.layout.simple_spinner_item);
 		adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
 		snoozePeriod.setAdapter(adapter);
@@ -108,8 +100,7 @@ public class TaskNotification extends Activity {
 		complete.setOnCheckedChangeListener(new OnCheckedChangeListener() {
 
 			@Override
-			public void onCheckedChanged(CompoundButton buttonView,
-					boolean isChecked) {
+			public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
 				if (isChecked) {
 					snoozePeriod.setVisibility(View.GONE);
 					snooze.setVisibility(View.GONE);
@@ -135,19 +126,14 @@ public class TaskNotification extends Activity {
 			}
 
 			private void completeTask() {
-				task.complete(alarmManager);
-				dbHelper.update(task);
+				taskScheduler.complete(task);
 			}
 
 			private void snoozeTask() {
-				// create a new alarm ...
 				int pos = snoozePeriod.getSelectedItemPosition();
 				int snoozeTime = snoozedMinutes[pos];
-				task.snooze(alarmManager, dates, snoozeTime, notificationSource);
-
-				// update the count ...
-				task.setSnoozeCount(task.getSnoozeCount() + 1);
-				dbHelper.update(task);
+				
+				taskScheduler.snooze(task, snoozeTime, notificationSource);
 			};
 		});
 
@@ -155,8 +141,7 @@ public class TaskNotification extends Activity {
 
 			@Override
 			public void onClick(View v) {
-				Intent intent = new Intent(getApplicationContext(),
-						EditTask.class);
+				Intent intent = new Intent(getApplicationContext(), EditTask.class);
 				intent.putExtra(Constants.CURRENT_TASK, task);
 				startActivity(intent);
 
@@ -168,7 +153,11 @@ public class TaskNotification extends Activity {
 	@Override
 	protected void onDestroy() {
 
-		Log.i(TAG, "onDestroy");
+		Log.v(TAG, "onDestroy");
+		
+		if(taskScheduler != null) {
+			taskScheduler = null;
+		}
 
 		if (dbHelper != null) {
 			dbHelper.Cleanup();

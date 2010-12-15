@@ -2,7 +2,6 @@ package com.softwareprojects.androidtasks.domain;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.util.Calendar;
 import java.util.Date;
 
 import android.os.Parcel;
@@ -19,8 +18,12 @@ public class Task implements Parcelable, Cloneable {
 	private int snoozeCount = 0;
 	private String notes;
 	private String location;
-	private int reminder;
+	private int reminderType;
 	private Date reminderDate;
+	private int recurrenceType;
+	private int recurrenceValue;
+	private long nextOccurrenceId;
+	
 
 	private static final String CLASSNAME = Task.class.getSimpleName();
 
@@ -29,6 +32,13 @@ public class Task implements Parcelable, Cloneable {
 	public final static int REMINDER_HOURLY = 2;
 	public final static int REMINDER_DAILY = 3;
 	public final static int REMINDER_WEEKLY = 4;
+
+	public static final int REPEAT_NONE = 0;
+	public static final int REPEAT_INTERVAL_MINUTES = 1;
+	public static final int REPEAT_INTERVAL_HOURS = 2;
+	public static final int REPEAT_INTERVAL_DAYS = 3;
+	public static final int REPEAT_INTERVAL_WEEKS = 4;
+	public static final int REPEAT_INTERVAL_MONTHS = 5;
 
 	public String getDescription() {
 		return description;
@@ -70,12 +80,12 @@ public class Task implements Parcelable, Cloneable {
 		this.location = location;
 	}
 
-	public int getReminder() {
-		return reminder;
+	public int getReminderType() {
+		return reminderType;
 	}
 
-	public void setReminder(int reminder) {
-		this.reminder = reminder;
+	public void setReminderType(int reminder) {
+		this.reminderType = reminder;
 	}
 
 	public Date getReminderDate() {
@@ -84,6 +94,22 @@ public class Task implements Parcelable, Cloneable {
 
 	public void setReminderDate(Date reminderDate) {
 		this.reminderDate = reminderDate;
+	}
+
+	public void setRecurrenceType(int recurrenceType) {
+		this.recurrenceType = recurrenceType;
+	}
+
+	public int getRecurrenceType() {
+		return recurrenceType;
+	}
+
+	public void setRecurrenceValue(int recurrenceValue) {
+		this.recurrenceValue = recurrenceValue;
+	}
+
+	public int getRecurrenceValue() {
+		return recurrenceValue;
 	}
 
 	public Date getTargetDate() {
@@ -100,6 +126,14 @@ public class Task implements Parcelable, Cloneable {
 
 	public void setId(long id) {
 		this.id = id;
+	}
+
+	public void setNextOccurrenceId(long nextOccurrenceId) {
+		this.nextOccurrenceId = nextOccurrenceId;
+	}
+
+	public long getNextOccurrenceId() {
+		return nextOccurrenceId;
 	}
 
 	@Override
@@ -141,13 +175,25 @@ public class Task implements Parcelable, Cloneable {
 		dest.writeString(location);
 
 		// reminder
-		dest.writeInt(reminder);
+		dest.writeInt(reminderType);
 
 		// reminderDate
 		if (reminderDate != null) {
 			dest.writeString(new SimpleDateFormat(
 					Constants.DATETIME_FORMAT_STRING).format(reminderDate));
 		}
+		else {
+			dest.writeString(null);
+		}
+
+		// recurrencyType
+		dest.writeInt(recurrenceType);
+
+		// recurrencyValue
+		dest.writeInt(recurrenceValue);
+		
+		// nextOccurrencId
+		dest.writeLong(nextOccurrenceId);
 	}
 
 	public static final Parcelable.Creator<Task> CREATOR = new Parcelable.Creator<Task>() {
@@ -194,7 +240,7 @@ public class Task implements Parcelable, Cloneable {
 		location = parcel.readString();
 
 		// reminder
-		reminder = parcel.readInt();
+		reminderType = parcel.readInt();
 
 		// reminderDate
 		try {
@@ -207,6 +253,19 @@ public class Task implements Parcelable, Cloneable {
 			Log.e(Constants.LOGTAG, CLASSNAME, e);
 		}
 
+		// Recurrence
+		recurrenceType = parcel.readInt();
+		recurrenceValue = parcel.readInt();
+		nextOccurrenceId = parcel.readLong();
+
+	}
+
+	public Task clone() throws CloneNotSupportedException{
+		Task task = (Task)super.clone();
+		task.setId(0);
+		task.setNextOccurrenceId(0);
+
+		return task;
 	}
 
 	public Task() {
@@ -216,25 +275,52 @@ public class Task implements Parcelable, Cloneable {
 		return completed == false;
 	}
 
-	public void initialize(final TaskAlarmManager alarmManager, ReminderFactory reminders, TaskDateProvider dateProvider) {
+	public Task createNextOccurrence(RecurrenceCalculations recurrences, TaskDateProvider dateProvider) {
 
+		if(getTargetDate() == null) return null;
+		if(getRecurrenceValue() == 0) return null;
+		if(getTargetDate().after(dateProvider.getNow().getTime())) return null;
+
+		Date nextOccurrenceTargetDate =  recurrences.create(this).getNext(getTargetDate(), dateProvider, getRecurrenceValue());
+
+		if(nextOccurrenceTargetDate == null) return null;
+		
+		try {
+			Task nextOccurrence = clone();
+			nextOccurrence.setCompleted(false);
+			nextOccurrence.setTargetDate(nextOccurrenceTargetDate);
+			
+			return nextOccurrence;
+			
+		} catch (CloneNotSupportedException e) {
+			e.printStackTrace();
+		}
+		
+		return null;
+	}
+
+	public NotificationSource initializeReminders(ReminderCalculations reminders, TaskDateProvider dateProvider) {
+		
+		
 		NotificationSource source = NotificationSource.ALARMSOURCE_NONE;
+		if(isCompleted()) return source;
+
 		Date now = new Date();
 
-		if (reminder == REMINDER_MANUAL) {
+		if (reminderType == REMINDER_MANUAL) {
 			reminderDate = targetDate;
 			source = NotificationSource.ALARMSOURCE_TARGETDATE;
 		}
 
 		if (targetDate == null) {
-			if (reminder != REMINDER_MANUAL) {
-				reminderDate = reminders.create(this).getNextReminder(dateProvider.getToday().getTime(), dateProvider);
+			if (reminderType != REMINDER_MANUAL) {
+				reminderDate = reminders.create(this).getNext(dateProvider.getToday().getTime(), dateProvider, 1);
 				source = NotificationSource.ALARMSOURCE_REMINDERDATE;
 			}
 		} else if (targetDate != null) {
-			if (reminder != REMINDER_MANUAL) {
+			if (reminderType != REMINDER_MANUAL) {
 				if (targetDate.before(now)) {
-					reminderDate = reminders.create(this).getNextReminder(targetDate, dateProvider);
+					reminderDate = reminders.create(this).getNext(targetDate, dateProvider, 1);
 					source = NotificationSource.ALARMSOURCE_TARGETDATE;
 				} else if (targetDate == now | targetDate.after(now)) {
 					reminderDate = targetDate;
@@ -242,47 +328,22 @@ public class Task implements Parcelable, Cloneable {
 				}
 			}
 		}
-
-		if (reminderDate != null) {
-			alarmManager.setAlarm(this, reminderDate, source);
-		}
-	}
-	
-	public void updateReminder(final TaskAlarmManager alarmManager, ReminderFactory reminders, TaskDateProvider dateProvider) {
-		if(reminder == REMINDER_MANUAL) {
-			return;
-		}
 		
-		reminderDate = reminders.create(this).getNextReminder(targetDate == null ? reminderDate : targetDate, dateProvider);
-		alarmManager.setReminder(this);
+		return source;
 	}
 
-	public void snooze(final TaskAlarmManager alarmManager, TaskDateProvider dateProvider, int minutes,
-			NotificationSource notificationType) {
-
-		switch (notificationType) {
-		case ALARMSOURCE_REMINDERDATE:
-		case ALARMSOURCE_SNOOZE_REMINDERDATE:
-
-			alarmManager.snoozeAlarm(this, minutes,
-					NotificationSource.ALARMSOURCE_SNOOZE_REMINDERDATE);
-
-			break;
-		case ALARMSOURCE_TARGETDATE:
-		case ALARMSOURCE_SNOOZE_TARGETDATE:
-
-			assert targetDate != null;
-			assert reminderDate != null;
-
-			alarmManager.snoozeAlarm(this, minutes,
-					NotificationSource.ALARMSOURCE_SNOOZE_TARGETDATE);
-			break;
-		}
+	public void updateReminder(ReminderCalculations reminders, TaskDateProvider dateProvider) {
+		reminderDate = reminders.create(this).getNext(targetDate == null ? 
+				reminderDate : targetDate, dateProvider, 1);
 	}
-	
-	public void complete(final TaskAlarmManager alarmManager) {
+
+	public void repeats(int recurrenceType, int recurrenceValue) {
+		this.setRecurrenceType(recurrenceType);
+		this.setRecurrenceValue(recurrenceValue);
+	}
+
+	public void complete() {
 		reminderDate = null;
 		setCompleted(true);
-		alarmManager.complete(this);
 	}
 }

@@ -13,6 +13,8 @@
         </activity>
         <activity android:name=".TaskNotification" 
         	android:label="@string/notification_activity_name" />
+        <activity android:name=".TaskRecurrence" 
+        	android:label="@string/recurrence_activity_name" />
 		<activity android:name=".EditTask"
 			android:label="@string/edit_task_activity_name">
 		</activity>
@@ -20,5 +22,11 @@
 			android:label="@string/preferences_activity_name" />
 		<receiver android:name=".TaskAlarmReceiver">
 		</receiver>
+		<service android:name=".AndroidTaskService" android:enabled="true">
+			<intent-filter>
+				<data android:scheme="androidtask" android:path="task/recurrent/" />
+				<action android:name="com.softwareprojects.androidtasks.TASKRECURRENCE"/>
+			</intent-filter>
+		</service>
     </application>
 </manifest> 

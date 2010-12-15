@@ -287,7 +287,7 @@ public class TaskList extends ListActivity {
 				TextView reminderdate = (TextView)view.findViewById(R.id.item_nextreminder);
 				ImageView reminderimage = (ImageView)view.findViewById(R.id.item_reminder_icon);
 
-				description.setText(task.getDescription());
+				description.setText(task.getDescription() + " (" + task.getId() + ")");
 
 				// Strike through if task is completed
 				if(task.isCompleted()) {

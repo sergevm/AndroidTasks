@@ -1,17 +1,17 @@
-package com.softwareprojects.androidtasks.domain.reminders;
+package com.softwareprojects.androidtasks.domain.dates;
 
 import java.util.Calendar;
 import java.util.Date;
 
-import com.softwareprojects.androidtasks.domain.Reminder;
+import com.softwareprojects.androidtasks.domain.TaskDateCalculation;
 import com.softwareprojects.androidtasks.domain.TaskDateProvider;
 
-public class DailyReminder implements Reminder {
+public class DaysCalculation implements TaskDateCalculation {
 
 	public static final long ONEDAYINMILLIS = 1000 * 60 * 60 * 24;
 
 	@Override
-	public Date getNextReminder(Date offset, TaskDateProvider dateProvider) {
+	public Date getNext(Date offset, TaskDateProvider dateProvider, int shift) {
 		Calendar offsetCalendar = Calendar.getInstance();
 		offsetCalendar.setTime(offset);
 
@@ -20,7 +20,7 @@ public class DailyReminder implements Reminder {
 		long diffInMillis = Math.abs(now.getTimeInMillis() - offsetCalendar.getTimeInMillis());			
 		long numberOfFullDays = diffInMillis / ONEDAYINMILLIS;
 		
-		offsetCalendar.add(Calendar.DATE, (int)++numberOfFullDays);			
+		offsetCalendar.add(Calendar.DATE, (int)numberOfFullDays + shift);			
 		return offsetCalendar.getTime();	
 	}
 }

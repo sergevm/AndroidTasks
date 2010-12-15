@@ -6,7 +6,7 @@
     <string name="no_target_date">no target date</string>
     <string name="task_due_notification">Task is due!</string>
     
-    <string name="app_name"> Android Tasks</string>
+    <string name="app_name">Android Tasks</string>
 <string name="add_button_caption">Add</string>
 <string name="edit_task_activity_name">View Task</string>
 <string name="edit_commit_button_caption">Accept</string>
@@ -53,4 +53,17 @@
 <string name="prefs_range_title">In my task lists, include tasks with target dates ...</string>
 <string name="prefs_weeks">weeks</string>
 
+<string name="edit_options_menu_recurrence">Recurrence</string>
+
+<string name="recurrence_activity_name">Task Recurrence</string>
+<string name="recurrence_occurs">Task repeats every</string>
+<string-array name="recurrence_types"><item>No recurrence</item><item>minute(s)</item>
+<item>hour(s)</item>
+<item>day(s)</item>
+<item>week(s)</item>
+<item>month(s)</item>
+
+</string-array>
+<string name="recurrence_confirm_button">Confirm</string>
+<string name="recurrence_cancel_button">Cancel</string>
 </resources>

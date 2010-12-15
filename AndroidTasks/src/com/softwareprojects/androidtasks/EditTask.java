@@ -10,8 +10,11 @@ import android.app.DatePickerDialog.OnDateSetListener;
 import android.app.TimePickerDialog;
 import android.app.TimePickerDialog.OnTimeSetListener;
 import android.content.Context;
+import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.ArrayAdapter;
@@ -26,12 +29,13 @@ import android.widget.TextView;
 import android.widget.TimePicker;
 
 import com.softwareprojects.androidtasks.db.DBHelper;
-import com.softwareprojects.androidtasks.domain.ReminderFactory;
-import com.softwareprojects.androidtasks.domain.ReminderFactoryImpl;
+import com.softwareprojects.androidtasks.db.SqliteTaskRepository;
+import com.softwareprojects.androidtasks.domain.RecurrenceCalculationFactory;
+import com.softwareprojects.androidtasks.domain.ReminderCalculationFactory;
 import com.softwareprojects.androidtasks.domain.Task;
-import com.softwareprojects.androidtasks.domain.TaskAlarmManager;
 import com.softwareprojects.androidtasks.domain.TaskDateProvider;
 import com.softwareprojects.androidtasks.domain.TaskDateProviderImpl;
+import com.softwareprojects.androidtasks.domain.TaskScheduler;
 
 public class EditTask extends Activity {
 
@@ -52,16 +56,13 @@ public class EditTask extends Activity {
 
 	private final Context context = this;
 
-	private TaskAlarmManager alarmManager;
-	private ReminderFactory reminders;
+	private TaskScheduler taskScheduler;
 
 	private static final TaskDateProvider dates = new TaskDateProviderImpl();
 	private static final String TAG = EditTask.class.getSimpleName();
 	private static final Calendar calendar = Calendar.getInstance();
-	private static final SimpleDateFormat dateFormat = new SimpleDateFormat(
-			Constants.DATE_FORMAT_STRING);
-	private static final SimpleDateFormat timeFormat = new SimpleDateFormat(
-			Constants.TIME_FORMAT_STRING);
+	private static final SimpleDateFormat dateFormat = new SimpleDateFormat(Constants.DATE_FORMAT_STRING);
+	private static final SimpleDateFormat timeFormat = new SimpleDateFormat(Constants.TIME_FORMAT_STRING);
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -69,15 +70,11 @@ public class EditTask extends Activity {
 
 		Log.i(TAG, "onCreate");
 
+		// Associate a layout with this activity ...
 		setContentView(R.layout.edittask);
 
-		// Initialize the alarm manager
-		alarmManager = new TaskAlarmManagerImpl(this, dates);
-		reminders = new ReminderFactoryImpl();
-
 		// Initialize the calendar so it doesn't specify time ...
-		calendar.set(calendar.get(Calendar.YEAR), calendar.get(Calendar.MONTH),
-				calendar.get(Calendar.DATE), 0, 0, 0);
+		calendar.setTime(dates.getNow().getTime());
 
 		// Inflate view
 		description = (EditText) findViewById(R.id.edit_description);
@@ -95,8 +92,7 @@ public class EditTask extends Activity {
 		hasTargetDate.setOnCheckedChangeListener(new OnCheckedChangeListener() {
 
 			@Override
-			public void onCheckedChanged(CompoundButton hasTargetDateCheckBox,
-					boolean isChecked) {
+			public void onCheckedChanged(CompoundButton hasTargetDateCheckBox, boolean isChecked) {
 				if (!isChecked) {
 					task.setTargetDate(null);
 				} else {
@@ -113,10 +109,8 @@ public class EditTask extends Activity {
 			@Override
 			public void onClick(View button) {
 
-				DatePickerDialog dialog = new DatePickerDialog(context,
-						listener, calendar.get(Calendar.YEAR), calendar
-								.get(Calendar.MONTH), calendar
-								.get(Calendar.DAY_OF_MONTH));
+				DatePickerDialog dialog = new DatePickerDialog(context, listener, calendar.get(Calendar.YEAR), calendar
+						.get(Calendar.MONTH), calendar.get(Calendar.DAY_OF_MONTH));
 
 				dialog.show();
 			}
@@ -124,8 +118,7 @@ public class EditTask extends Activity {
 			OnDateSetListener listener = new OnDateSetListener() {
 
 				@Override
-				public void onDateSet(DatePicker picker, int year,
-						int monthOfYear, int dayOfMonth) {
+				public void onDateSet(DatePicker picker, int year, int monthOfYear, int dayOfMonth) {
 					calendar.set(year, monthOfYear, dayOfMonth);
 					task.setTargetDate(calendar.getTime());
 					updateTargetDateFrom(task.getTargetDate());
@@ -137,9 +130,8 @@ public class EditTask extends Activity {
 
 			@Override
 			public void onClick(View button) {
-				TimePickerDialog dialog = new TimePickerDialog(context,
-						listener, calendar.get(Calendar.HOUR_OF_DAY), calendar
-								.get(Calendar.MINUTE), false);
+				TimePickerDialog dialog = new TimePickerDialog(context, listener, calendar.get(Calendar.HOUR_OF_DAY),
+						calendar.get(Calendar.MINUTE), false);
 
 				dialog.show();
 			}
@@ -164,19 +156,13 @@ public class EditTask extends Activity {
 				task.setDescription(description.getText().toString());
 				task.setNotes(notes.getText().toString());
 				task.setLocation(location.getText().toString());
-				task.setReminder(reminderType.getSelectedItemPosition());
+				task.setReminderType(reminderType.getSelectedItemPosition());
 
-				if (task.isCompleted()) {
-					task.complete(alarmManager);
-				} else {
-					task.initialize(alarmManager, reminders, dates);
+				if (completed.isChecked()) {
+					taskScheduler.complete(task);
 				}
 
-				if (task.getId() == 0) {
-					dbHelper.insert(task);
-				} else {
-					dbHelper.update(task);
-				}
+				taskScheduler.schedule(task);
 
 				setResult(RESULT_OK);
 				finish();
@@ -202,8 +188,7 @@ public class EditTask extends Activity {
 			}
 		});
 
-		ArrayAdapter<CharSequence> adapter = ArrayAdapter.createFromResource(
-				this, R.array.reminder_types,
+		ArrayAdapter<CharSequence> adapter = ArrayAdapter.createFromResource(this, R.array.reminder_types,
 				android.R.layout.simple_spinner_item);
 		adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
 		reminderType.setAdapter(adapter);
@@ -216,6 +201,10 @@ public class EditTask extends Activity {
 
 		Log.i(TAG, "onStart");
 		dbHelper = new DBHelper(this);
+
+		taskScheduler = new TaskScheduler(new ReminderCalculationFactory(), 
+				new RecurrenceCalculationFactory(),	new AndroidTaskAlarmManager(this), 
+				dates, new SqliteTaskRepository(dbHelper));
 	}
 
 	@Override
@@ -223,6 +212,7 @@ public class EditTask extends Activity {
 		super.onStop();
 
 		Log.i(TAG, "onStop");
+		taskScheduler = null;
 		dbHelper.Cleanup();
 	}
 
@@ -240,9 +230,7 @@ public class EditTask extends Activity {
 		completed.setChecked(task.isCompleted());
 		notes.setText(task.getNotes());
 		location.setText(task.getLocation());
-		reminderType.setSelection(task.getReminder()); // constants are defined
-														// in the order they
-														// appear in the list!
+		reminderType.setSelection(task.getReminderType());
 
 		updateTargetDateFrom(task);
 		updateTargetDateControlsFrom(task);
@@ -258,26 +246,49 @@ public class EditTask extends Activity {
 	}
 
 	private Task getOrCreateTask() {
-		if (getIntent().hasExtra(Constants.CURRENT_TASK)) { // Activity was
-															// started due to
-															// selection in task
-															// list ...
+		if (getIntent().hasExtra(Constants.CURRENT_TASK)) {
+
 			Bundle extras = getIntent().getExtras();
 			return (Task) extras.getParcelable(Constants.CURRENT_TASK);
-		} else if (getIntent().hasExtra(Constants.ALARM_TASK_ID)) { // Activity
-																	// was
-																	// started
-																	// due to
-																	// notification
-																	// click ...
-			long dueTaskId = getIntent().getLongExtra(Constants.ALARM_TASK_ID,
-					-1);
+		} else if (getIntent().hasExtra(Constants.ALARM_TASK_ID)) {
+			long dueTaskId = getIntent().getLongExtra(Constants.ALARM_TASK_ID, -1);
 			Task task = dbHelper.getSingle(dueTaskId);
 			return task;
-		} else { // No task passed in ... Must be the creation of a new task ...
+		} else {
 			Task newTask = new Task();
 			return newTask;
 		}
+	}
+
+	@Override
+	public boolean onCreateOptionsMenu(Menu menu) {
+
+		menu.add(Menu.NONE, 0, 0, R.string.edit_options_menu_recurrence);
+		return super.onCreateOptionsMenu(menu);
+	}
+
+	@Override
+	public boolean onOptionsItemSelected(MenuItem item) {
+
+		Intent intent = new Intent(this, TaskRecurrence.class);
+		intent.putExtra(Constants.CURRENT_TASK, task);
+
+		startActivityForResult(intent, 0);
+
+		return super.onOptionsItemSelected(item);
+	}
+
+	@Override
+	protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+
+		if (requestCode == 0 && resultCode == RESULT_OK) {
+			int recurrenceType = data.getIntExtra("RecurrenceType", Task.REPEAT_NONE);
+			int recurrenceValue = data.getIntExtra("RecurrenceValue", 0);
+
+			task.repeats(recurrenceType, recurrenceValue);
+		}
+
+		super.onActivityResult(requestCode, resultCode, data);
 	}
 
 	protected Date getTargetDate() {
@@ -292,14 +303,12 @@ public class EditTask extends Activity {
 
 	private void enableTargetDateControls(final Task task) {
 		hasTargetDate.setEnabled(task.isCompleted() == false);
-		targetDateButton.setVisibility(task.isCompleted() == false
-				& task.getTargetDate() != null ? View.VISIBLE : View.INVISIBLE);
-		targetTimeButton.setVisibility(task.isCompleted() == false
-				& task.getTargetDate() != null ? View.VISIBLE : View.INVISIBLE);
-		reminderType.setVisibility(task.canHaveReminder() ? View.VISIBLE
-				: View.GONE);
-		reminderTypeLabel.setVisibility(task.canHaveReminder() ? View.VISIBLE
-				: View.GONE);
+		targetDateButton.setVisibility(task.isCompleted() == false & task.getTargetDate() != null ? View.VISIBLE
+				: View.INVISIBLE);
+		targetTimeButton.setVisibility(task.isCompleted() == false & task.getTargetDate() != null ? View.VISIBLE
+				: View.INVISIBLE);
+		reminderType.setVisibility(task.canHaveReminder() ? View.VISIBLE : View.GONE);
+		reminderTypeLabel.setVisibility(task.canHaveReminder() ? View.VISIBLE : View.GONE);
 	}
 
 	private void updateTargetDateFrom(final Task task) {
@@ -311,8 +320,7 @@ public class EditTask extends Activity {
 			targetDateButton.setText(null);
 			targetTimeButton.setText(null);
 			Calendar today = Calendar.getInstance();
-			calendar.set(today.get(Calendar.YEAR), today.get(Calendar.MONTH),
-					today.get(Calendar.DAY_OF_MONTH), 0, 0, 0);
+			calendar.set(today.get(Calendar.YEAR), today.get(Calendar.MONTH), today.get(Calendar.DAY_OF_MONTH), 0, 0, 0);
 		} else {
 			targetDateButton.setText(dateFormat.format(date));
 			targetTimeButton.setText(timeFormat.format(date));

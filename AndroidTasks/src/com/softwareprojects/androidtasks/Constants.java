@@ -11,10 +11,12 @@ public final class Constants {
 	static final String ALARM_TASK_DESCRIPTION = "ALARM_TASK_DESCRIPTION";
 	static final String ALARM_TASK_ID = "ALARM_TASK_ID";
 	static final String ALARM_SOURCE = "ALARM_SOURCE";
+	static final String ALARM_DATE = "ALARM_DATE";
 	
 	static final int ALARM_NOTIFICATION_ID = 1;
 	static final String ANDROIDTASK_TASK_CURRENT_ALARM_URI = "androidtask://task/alarm/";
 	static final String ANDROIDTASK_TASK_NEXT_REMINDER_URI = "androidtask://task/reminder/";
+	static final String ANDROIDTASK_TASK_NEXT_RECURRENCE_URI = "androidtask://task/recurrent/";
 	
 	static final String PREFS_WEEKS_IN_PAST = "Prefs_list_weeks_in_past";
 	static final String PREFS_WEEKS_IN_FUTURE = "Prefs_list_weeks_in_future";
