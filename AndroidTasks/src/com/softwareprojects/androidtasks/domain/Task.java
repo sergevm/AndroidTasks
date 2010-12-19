@@ -299,37 +299,29 @@ public class Task implements Parcelable, Cloneable {
 		return null;
 	}
 
-	public NotificationSource initializeReminders(ReminderCalculations reminders, TaskDateProvider dateProvider) {
+	public void initializeReminders(ReminderCalculations reminders, TaskDateProvider dateProvider) {
 		
-		
-		NotificationSource source = NotificationSource.ALARMSOURCE_NONE;
-		if(isCompleted()) return source;
+		if(isCompleted()) return;
 
 		Date now = new Date();
 
 		if (reminderType == REMINDER_MANUAL) {
 			reminderDate = targetDate;
-			source = NotificationSource.ALARMSOURCE_TARGETDATE;
 		}
 
 		if (targetDate == null) {
 			if (reminderType != REMINDER_MANUAL) {
 				reminderDate = reminders.create(this).getNext(dateProvider.getToday().getTime(), dateProvider, 1);
-				source = NotificationSource.ALARMSOURCE_REMINDERDATE;
 			}
 		} else if (targetDate != null) {
 			if (reminderType != REMINDER_MANUAL) {
 				if (targetDate.before(now)) {
 					reminderDate = reminders.create(this).getNext(targetDate, dateProvider, 1);
-					source = NotificationSource.ALARMSOURCE_TARGETDATE;
 				} else if (targetDate == now | targetDate.after(now)) {
 					reminderDate = targetDate;
-					source = NotificationSource.ALARMSOURCE_TARGETDATE;
 				}
 			}
 		}
-		
-		return source;
 	}
 
 	public void updateReminder(ReminderCalculations reminders, TaskDateProvider dateProvider) {

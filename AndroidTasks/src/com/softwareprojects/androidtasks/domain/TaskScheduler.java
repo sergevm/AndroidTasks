@@ -1,7 +1,5 @@
 package com.softwareprojects.androidtasks.domain;
 
-import android.util.Log;
-
 public class TaskScheduler {
 
 	private final static String TAG = TaskScheduler.class.getSimpleName();
@@ -11,10 +9,12 @@ public class TaskScheduler {
 	private TaskRepository repository;
 	private RecurrenceCalculations recurrences;
 	private ReminderCalculations reminders;
+	private ILog log;
 
 	public TaskScheduler(ReminderCalculations reminders, RecurrenceCalculations recurrences, TaskAlarmManager alarms,
-			TaskDateProvider dates, TaskRepository repository) {
+			TaskDateProvider dates, TaskRepository repository, ILog log) {
 
+		this.log = log;
 		this.dates = dates;
 		this.alarms = alarms;
 		this.reminders = reminders;
@@ -25,55 +25,49 @@ public class TaskScheduler {
 
 	public void complete(Task task) {
 
-		Log.v(TAG, "Completing task with id " + task.getId());
+		log.v(TAG, "Completing task with id " + task.getId());
 
 		task.complete();
 		alarms.complete(task);
 		repository.update(task);
 
-		Log.v(TAG, "Task with id " + task.getId() + " is completed.");
+		log.v(TAG, "Task with id " + task.getId() + " is completed.");
 	}
 
-	public void createNextOccurrence(final Task task) {
+	public void initializeNextOccurrence(final Task task) {
 
 		Task next = repository.getNextOccurrenceOf(task);
-		
+
 		if(next != null) {
-			Log.v(TAG, "Task with id " + task.getId() + 
+			log.v(TAG, "Task with id " + task.getId() + 
 					" has next occurrence with id " + next.getId()); 
 		}
 		else {
-			Log.v(TAG, "Task with id " + task.getId() + 
-					" does not have previously created next occurence");
-		}
-		
-		if(next == null) {
-			next = task.createNextOccurrence(recurrences, dates);
-			if(next == null) {
-				return;
-			} 
-			else {
-				repository.insert(next);
-				task.setNextOccurrenceId(next.getId());
-				repository.update(task);
-				
-				Log.v(TAG, "A new occurrence with id " + next.getId() + 
-						" was created for task with id " + task.getId());
-			}
+			log.v(TAG, "Task with id " + task.getId() + 
+			" does not have previously created next occurence");
 		}
 
-		// Reminders
-		NotificationSource source = next.initializeReminders(reminders, dates);
-		if(next.getReminderDate() != null)
-		{
-			alarms.setAlarm(next, next.getReminderDate(), source);
+		if(next == null) {
+			next = createNextOccurrence(task);
 		}
-		
-		// Recurrence
+
+		if(next == null) {
+			return;
+		}
+
+		next.initializeReminders(reminders, dates);
+
 		if(next.getReminderDate() != null) {
-			alarms.setRecurrentTask(next, next.getReminderDate());
+			if(next.getTargetDate() == null) {
+				alarms.setReminder(next);
+			}
+			else {
+				alarms.setTarget(next, next.getReminderDate());				
+			}
+
+			alarms.setRecurrent(next, next.getReminderDate());
 		}
-		
+
 		repository.update(next);
 	}
 
@@ -112,13 +106,13 @@ public class TaskScheduler {
 		}
 
 		if (task.isCompleted() == false) {
-			NotificationSource source = task.initializeReminders(reminders, dates);
+			task.initializeReminders(reminders, dates);
 
 			if (task.getReminderDate() != null) {
-				alarms.setAlarm(task, task.getReminderDate(), source);
+				alarms.setTarget(task, task.getReminderDate());
 			}
 
-			createNextOccurrence(task);
+			initializeNextOccurrence(task);
 		}
 	}
 
@@ -131,5 +125,21 @@ public class TaskScheduler {
 		}
 
 		repository.update(task);
+	}
+
+	private Task createNextOccurrence(final Task task) {
+		
+		Task next = task.createNextOccurrence(recurrences, dates);
+		
+		if(next != null) {
+			repository.insert(next);
+			task.setNextOccurrenceId(next.getId());
+			repository.update(task);
+	
+			log.v(TAG, "A new occurrence with id " + next.getId() + 
+					" was created for task with id " + task.getId());
+		}
+	
+		return next;
 	}
 }

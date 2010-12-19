@@ -9,9 +9,10 @@ import static org.mockito.Mockito.when;
 
 import java.util.Calendar;
 
-import junit.framework.TestCase;
+import junit.framework.Assert;
 
 import org.junit.Before;
+import org.junit.Test;
 
 import com.softwareprojects.androidtasks.domain.RecurrenceCalculations;
 import com.softwareprojects.androidtasks.domain.Task;
@@ -19,7 +20,7 @@ import com.softwareprojects.androidtasks.domain.TaskAlarmManager;
 import com.softwareprojects.androidtasks.domain.TaskDateProvider;
 import com.softwareprojects.androidtasks.domain.dates.DaysCalculation;
 
-public class RecurrentTaskTest extends TestCase{
+public class RecurrentTaskTest {
 
 	Task task;
 	Calendar now;
@@ -52,7 +53,8 @@ public class RecurrentTaskTest extends TestCase{
 		alarmManager = mock(TaskAlarmManager.class);
 	}
 
-	public void test_WITH_a_targetdate_set_in_future_WHEN_daily_recurrence_THEN_alarmmanager_is_not_set() {
+	@Test
+	public void WITH_a_targetdate_set_in_future_WHEN_daily_recurrence_THEN_alarmmanager_is_not_set() {
 
 		Calendar targetDate = Calendar.getInstance();
 		targetDate.setTime(now.getTime());
@@ -63,15 +65,16 @@ public class RecurrentTaskTest extends TestCase{
 		
 		task.createNextOccurrence(recurrences, dateProvider);
 		
-		assertEquals(task.getRecurrenceType(), Task.REPEAT_INTERVAL_DAYS);
-		assertEquals(task.getRecurrenceValue(), 1);
+		Assert.assertEquals(task.getRecurrenceType(), Task.REPEAT_INTERVAL_DAYS);
+		Assert.assertEquals(task.getRecurrenceValue(), 1);
 		
 		targetDate.add(Calendar.DATE, 1);
 				
-		verify(alarmManager, never()).setRecurrentTask(task, targetDate.getTime());
+		verify(alarmManager, never()).setRecurrent(task, targetDate.getTime());
 	}
 	
-	public void test_WITH_a_targetdate_set_in_past_WHEN_daily_recurrence_THEN_alarm_set_for_next_day() {
+	@Test
+	public void WITH_a_targetdate_set_in_past_WHEN_daily_recurrence_THEN_alarm_set_for_next_day() {
 
 		Calendar targetDate = Calendar.getInstance();
 		targetDate.setTime(now.getTime());
@@ -91,6 +94,6 @@ public class RecurrentTaskTest extends TestCase{
 		expected.add(Calendar.DATE, 1);
 
 		verify(recurrences, times(1)).create(task);
-		assertEquals(expected.getTime(), nextOccurrence.getTargetDate());
+		Assert.assertEquals(expected.getTime(), nextOccurrence.getTargetDate());
 	}
 }

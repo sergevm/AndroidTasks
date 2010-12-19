@@ -30,6 +30,7 @@ import android.widget.TimePicker;
 
 import com.softwareprojects.androidtasks.db.DBHelper;
 import com.softwareprojects.androidtasks.db.SqliteTaskRepository;
+import com.softwareprojects.androidtasks.domain.Logger;
 import com.softwareprojects.androidtasks.domain.RecurrenceCalculationFactory;
 import com.softwareprojects.androidtasks.domain.ReminderCalculationFactory;
 import com.softwareprojects.androidtasks.domain.Task;
@@ -204,7 +205,7 @@ public class EditTask extends Activity {
 
 		taskScheduler = new TaskScheduler(new ReminderCalculationFactory(), 
 				new RecurrenceCalculationFactory(),	new AndroidTaskAlarmManager(this), 
-				dates, new SqliteTaskRepository(dbHelper));
+				dates, new SqliteTaskRepository(dbHelper), new Logger());
 	}
 
 	@Override

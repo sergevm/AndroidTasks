@@ -16,6 +16,7 @@ import android.widget.TextView;
 
 import com.softwareprojects.androidtasks.db.DBHelper;
 import com.softwareprojects.androidtasks.db.SqliteTaskRepository;
+import com.softwareprojects.androidtasks.domain.Logger;
 import com.softwareprojects.androidtasks.domain.NotificationSource;
 import com.softwareprojects.androidtasks.domain.RecurrenceCalculationFactory;
 import com.softwareprojects.androidtasks.domain.ReminderCalculationFactory;
@@ -73,7 +74,8 @@ public class TaskNotification extends Activity {
 				new RecurrenceCalculationFactory(), 
 				new AndroidTaskAlarmManager(this), 
 				new TaskDateProviderImpl(), 
-				new SqliteTaskRepository(dbHelper));
+				new SqliteTaskRepository(dbHelper), 
+				new Logger());
 		
 		task = dbHelper.getSingle(taskId);
 

@@ -49,7 +49,7 @@ public class AndroidTaskAlarmManager implements TaskAlarmManager {
 	}
 
 	@Override
-	public void setAlarm(final Task task, Date date, NotificationSource source) {
+	public void setTarget(final Task task, Date date) {
 
 		// Remove any existing reminder type alarm ...
 		removeAlarm(task, Uri.parse(Constants.ANDROIDTASK_TASK_NEXT_REMINDER_URI + task.getId()));
@@ -58,7 +58,7 @@ public class AndroidTaskAlarmManager implements TaskAlarmManager {
 		Log.i(TAG, "Setting alarm for task with id " + task.getId() + "on " + dateFormat.format(date));
 
 		Uri uri = Uri.parse(Constants.ANDROIDTASK_TASK_CURRENT_ALARM_URI + task.getId());
-		setAlarm(task, uri, date, source);
+		setAlarm(task, uri, date, NotificationSource.ALARMSOURCE_TARGETDATE);
 	}
 
 	@Override
@@ -83,7 +83,7 @@ public class AndroidTaskAlarmManager implements TaskAlarmManager {
 	}
 
 	@Override
-	public void setRecurrentTask(Task task, Date initializationDate) {
+	public void setRecurrent(Task task, Date initializationDate) {
 		Uri uri = Uri.parse(Constants.ANDROIDTASK_TASK_NEXT_RECURRENCE_URI + task.getId());
 
 		// Remove any pending intent used to create the next instance of a recurrent task

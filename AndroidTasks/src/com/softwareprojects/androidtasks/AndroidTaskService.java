@@ -1,6 +1,5 @@
 package com.softwareprojects.androidtasks;
 
-import android.app.PendingIntent;
 import android.app.Service;
 import android.content.Intent;
 import android.os.IBinder;
@@ -8,6 +7,7 @@ import android.util.Log;
 
 import com.softwareprojects.androidtasks.db.DBHelper;
 import com.softwareprojects.androidtasks.db.SqliteTaskRepository;
+import com.softwareprojects.androidtasks.domain.Logger;
 import com.softwareprojects.androidtasks.domain.RecurrenceCalculationFactory;
 import com.softwareprojects.androidtasks.domain.RecurrenceCalculations;
 import com.softwareprojects.androidtasks.domain.ReminderCalculationFactory;
@@ -47,7 +47,7 @@ public class AndroidTaskService extends Service {
 		alarmManager = new AndroidTaskAlarmManager(this);
 		
 		
-		scheduler = new TaskScheduler(reminders, recurrences, alarmManager, dates, repository);
+		scheduler = new TaskScheduler(reminders, recurrences, alarmManager, dates, repository, new Logger());
 	}
 
 	@Override
@@ -59,7 +59,7 @@ public class AndroidTaskService extends Service {
 			Log.v(TAG, "New recurrent task instance is requested for task with id " + taskId);
 			
 			Task task = dbHelper.getSingle(taskId);
-			scheduler.createNextOccurrence(task);
+			scheduler.initializeNextOccurrence(task);
 			
 			broadcastTaskListChange();
 		}

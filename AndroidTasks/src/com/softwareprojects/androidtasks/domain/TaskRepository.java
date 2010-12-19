@@ -4,7 +4,7 @@ import java.util.List;
 
 public interface TaskRepository {
 	
-	// Crud
+	// CRUD
 	void insert(final Task task);
 	void update(final Task task);
 	
