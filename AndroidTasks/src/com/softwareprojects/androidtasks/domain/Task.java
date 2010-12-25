@@ -2,6 +2,7 @@ package com.softwareprojects.androidtasks.domain;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.util.Calendar;
 import java.util.Date;
 
 import android.os.Parcel;
@@ -327,6 +328,22 @@ public class Task implements Parcelable, Cloneable {
 	public void updateReminder(ReminderCalculations reminders, TaskDateProvider dateProvider) {
 		reminderDate = reminders.create(this).getNext(targetDate == null ? 
 				reminderDate : targetDate, dateProvider, 1);
+	}
+	
+	public Date snooze(final TaskDateProvider dateProvider, int snoozeTimeInMinutes) {
+		
+		Calendar snoozedTimeCalendar = dateProvider.getNow();
+		snoozedTimeCalendar.add(Calendar.MINUTE, snoozeTimeInMinutes);
+
+		if (getReminderDate() != null) {
+			if (snoozedTimeCalendar.getTime().before(getReminderDate()) == false) {
+				return null;
+			}
+		}
+		
+		setSnoozeCount(getSnoozeCount() + 1);
+		
+		return snoozedTimeCalendar.getTime();
 	}
 
 	public void repeats(int recurrenceType, int recurrenceValue) {

@@ -11,6 +11,7 @@ import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.content.SharedPreferences.Editor;
 import android.graphics.Paint;
+import android.opengl.Visibility;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -300,6 +301,7 @@ public class TaskList extends ListActivity {
 				ImageView image = (ImageView)view.findViewById(R.id.item_icon);
 				TextView reminderdate = (TextView)view.findViewById(R.id.item_nextreminder);
 				ImageView reminderimage = (ImageView)view.findViewById(R.id.item_reminder_icon);
+				ImageView repeatingimage = (ImageView)view.findViewById(R.id.item_repeating_icon);
 
 				description.setText(task.getDescription() + " (" + task.getId() + ")");
 
@@ -332,12 +334,25 @@ public class TaskList extends ListActivity {
 				}
 				
 				if(task.getReminderDate() != null) {
+					reminderdate.setVisibility(View.VISIBLE);
 					reminderdate.setText(TaskDateFormatter.format(task.getReminderDate()));
 					reminderimage.setImageResource(R.drawable.timer);
+					reminderimage.setVisibility(View.VISIBLE);
 				}
 				else {
 					reminderdate.setText(null);
+					reminderdate.setVisibility(View.GONE);
 					reminderimage.setImageResource(0);
+					reminderimage.setVisibility(View.GONE);
+				}
+				
+				if(task.getRecurrenceType() == Task.REPEAT_NONE) {
+					repeatingimage.setImageResource(0);
+					repeatingimage.setVisibility(View.GONE);
+				}
+				else {
+					repeatingimage.setVisibility(View.VISIBLE);
+					repeatingimage.setImageResource(R.drawable.repeating);
 				}
 			}
 

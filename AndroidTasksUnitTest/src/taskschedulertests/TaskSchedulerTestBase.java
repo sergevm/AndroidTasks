@@ -7,8 +7,6 @@ import java.util.Date;
 
 import org.junit.Before;
 
-import junit.framework.TestCase;
-
 import com.softwareprojects.androidtasks.domain.ILog;
 import com.softwareprojects.androidtasks.domain.RecurrenceCalculations;
 import com.softwareprojects.androidtasks.domain.ReminderCalculations;

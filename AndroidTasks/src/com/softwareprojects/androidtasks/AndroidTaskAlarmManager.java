@@ -30,22 +30,11 @@ public class AndroidTaskAlarmManager implements TaskAlarmManager {
 	}
 
 	@Override
-	public void snoozeAlarm(final Task task, final Date offset, int snoozeTimeInMinutes, NotificationSource source) {
-		Log.i(TAG, "Snoozing task with id " + task.getId() + " for " + snoozeTimeInMinutes + " minutes");
-
-		Calendar offsetCalendar = Calendar.getInstance();
-		offsetCalendar.setTime(offset);
-		offsetCalendar.add(Calendar.MINUTE, snoozeTimeInMinutes);
-
-		if (task.getReminderDate() != null) {
-			if (offset.before(task.getReminderDate()) == false) {
-				Log.i(TAG, "Snoozing task is cancelled because alarm would be later than reminder date");
-				return;
-			}
-		}
+	public void snoozeAlarm(final Task task, final Date snoozedDate, NotificationSource source) {
+		Log.i(TAG, "Snoozing task with id " + task.getId() + " until "  + dateFormat.format(snoozedDate));
 
 		Uri uri = Uri.parse(Constants.ANDROIDTASK_TASK_CURRENT_ALARM_URI + task.getId());
-		setAlarm(task, uri, offsetCalendar.getTime(), source);
+		setAlarm(task, uri, snoozedDate, source);
 	}
 
 	@Override

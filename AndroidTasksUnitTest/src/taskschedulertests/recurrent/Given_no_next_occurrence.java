@@ -15,12 +15,18 @@ import taskschedulertests.TaskSchedulerTestBase;
 
 import com.softwareprojects.androidtasks.domain.Task;
 
-public class When_no_next_occurrence extends TaskSchedulerTestBase {
+public class Given_no_next_occurrence extends TaskSchedulerTestBase {
 
 	@Before
 	public void setUp() throws Exception {
 		super.setUp();
 		when(task.createNextOccurrence(recurrences, dates)).thenReturn(null);
+	}
+
+	@Test public void then_the_task_should_be_requested_for_a_next_occurrence() {
+		taskScheduler.initializeNextOccurrence(task);
+		
+		verify(task, times(1)).createNextOccurrence(recurrences, dates);
 	}
 
 	@Test public void then_no_alarms_should_be_set() {
@@ -29,13 +35,7 @@ public class When_no_next_occurrence extends TaskSchedulerTestBase {
 		verify(alarms, never()).setReminder(any(Task.class));
 		verify(alarms, never()).setReminder(any(Task.class));
 	}
-	
-	@Test public void then_the_task_should_be_requested_for_a_next_occurrence() {
-		taskScheduler.initializeNextOccurrence(task);
 		
-		verify(task, times(1)).createNextOccurrence(recurrences, dates);
-	}
-	
 	@Test public void then_no_task_should_be_persisted() {
 		taskScheduler.initializeNextOccurrence(task);
 		

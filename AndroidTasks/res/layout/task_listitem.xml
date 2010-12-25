@@ -17,6 +17,8 @@
 
 		<TextView style="@style/ListTargetDate" android:id="@+id/item_targetdate" />
 				
+		<ImageView android:id="@+id/item_repeating_icon" style="@style/ListReminderIcon" />
+
 		<ImageView android:id="@+id/item_reminder_icon" style="@style/ListReminderIcon" />
 		
 		<TextView android:id="@+id/item_nextreminder" style="@style/ListReminderDate"/>

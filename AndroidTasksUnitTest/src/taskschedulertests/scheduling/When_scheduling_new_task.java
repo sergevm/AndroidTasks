@@ -5,14 +5,22 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import java.util.Calendar;
+import java.util.Date;
 
+import org.junit.Before;
 import org.junit.Test;
 
 import taskschedulertests.TaskSchedulerTestBase;
 
 
 public class When_scheduling_new_task extends TaskSchedulerTestBase {
+	
+	Date reminderDate;
+	
+	@Before public void setUp() throws Exception {
+		super.setUp();
+		reminderDate = createFutureDate();
+	}
 	
 	@Test public void Then_the_task_should_be_persisted() {
 		
@@ -22,7 +30,7 @@ public class When_scheduling_new_task extends TaskSchedulerTestBase {
 		verify(taskRepository, times(1)).insert(task);
 	}
 	
-	@Test public void then_the_task_should_initialize_reminders() {
+	@Test public void Then_the_task_should_initialize_reminders() {
 		taskScheduler.schedule(task);
 		
 		verify(task, times(1)).initializeReminders(reminders, dates);
@@ -36,13 +44,8 @@ public class When_scheduling_new_task extends TaskSchedulerTestBase {
 	
 	@Test public void Then_an_alarm_should_be_set_for_a_non_null_reminderdate() {
 
-		Calendar calendar = Calendar.getInstance();
-		calendar.set(2099, 1, 1);
-		
-		when(task.getReminderDate()).thenReturn(calendar.getTime());
-		
+		when(task.getReminderDate()).thenReturn(reminderDate);
 		taskScheduler.schedule(task);
-		
-		verify(alarms, atLeastOnce()).setTarget(task, calendar.getTime());
+		verify(alarms, atLeastOnce()).setTarget(task, reminderDate);
 	}
 }

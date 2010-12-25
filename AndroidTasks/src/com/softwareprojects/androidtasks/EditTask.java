@@ -89,6 +89,24 @@ public class EditTask extends Activity {
 		targetTimeButton = (Button) findViewById(R.id.edit_targetTime_button);
 		reminderType = (Spinner) findViewById(R.id.edit_reminder_type);
 		reminderTypeLabel = (TextView) findViewById(R.id.edit_reminder_type_label);
+		
+		ArrayAdapter<CharSequence> adapter = ArrayAdapter.createFromResource(this, R.array.reminder_types,
+				android.R.layout.simple_spinner_item);
+		adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+		reminderType.setAdapter(adapter);
+
+		// Get task passed in via Intent
+		task = getOrCreateTask();
+
+		// Use that data to fill up the widgets
+		description.setText(task.getDescription());
+		completed.setChecked(task.isCompleted());
+		notes.setText(task.getNotes());
+		location.setText(task.getLocation());
+		reminderType.setSelection(task.getReminderType());
+
+		updateTargetDateFrom(task);
+		updateTargetDateControlsFrom(task);
 
 		hasTargetDate.setOnCheckedChangeListener(new OnCheckedChangeListener() {
 
@@ -188,12 +206,6 @@ public class EditTask extends Activity {
 				finish();
 			}
 		});
-
-		ArrayAdapter<CharSequence> adapter = ArrayAdapter.createFromResource(this, R.array.reminder_types,
-				android.R.layout.simple_spinner_item);
-		adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-		reminderType.setAdapter(adapter);
-
 	}
 
 	@Override
@@ -219,22 +231,8 @@ public class EditTask extends Activity {
 
 	@Override
 	protected void onResume() {
-		super.onResume();
-
 		Log.i(TAG, "onResume");
-
-		// Get task passed in via Intent
-		task = getOrCreateTask();
-
-		// Use that data to fill up the widgets
-		description.setText(task.getDescription());
-		completed.setChecked(task.isCompleted());
-		notes.setText(task.getNotes());
-		location.setText(task.getLocation());
-		reminderType.setSelection(task.getReminderType());
-
-		updateTargetDateFrom(task);
-		updateTargetDateControlsFrom(task);
+		super.onResume();
 	}
 
 	@Override

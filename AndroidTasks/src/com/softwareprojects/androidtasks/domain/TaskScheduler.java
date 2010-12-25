@@ -1,5 +1,7 @@
 package com.softwareprojects.androidtasks.domain;
 
+import java.util.Date;
+
 public class TaskScheduler {
 
 	private final static String TAG = TaskScheduler.class.getSimpleName();
@@ -73,12 +75,17 @@ public class TaskScheduler {
 
 	public void snooze(final Task task, int minutes, NotificationSource notificationType) {
 
+		Date snoozedTime = task.snooze(dates, minutes);
+		if(snoozedTime == null) {
+			log.v(TAG, "Task returned snoozed time null, so that time falls after an upcoming reminder time.");
+			return;
+		}
+			
 		switch (notificationType) {
 		case ALARMSOURCE_REMINDERDATE:
 		case ALARMSOURCE_SNOOZE_REMINDERDATE:
 
-			alarms.snoozeAlarm(task, dates.getNow().getTime(), minutes,
-					NotificationSource.ALARMSOURCE_SNOOZE_REMINDERDATE);
+			alarms.snoozeAlarm(task, snoozedTime, NotificationSource.ALARMSOURCE_SNOOZE_REMINDERDATE);
 
 			break;
 		case ALARMSOURCE_TARGETDATE:
@@ -87,12 +94,9 @@ public class TaskScheduler {
 			assert task.getTargetDate() != null;
 			assert task.getReminderDate() != null;
 
-			alarms.snoozeAlarm(task, dates.getNow().getTime(), minutes,
-					NotificationSource.ALARMSOURCE_SNOOZE_TARGETDATE);
+			alarms.snoozeAlarm(task, snoozedTime, NotificationSource.ALARMSOURCE_SNOOZE_TARGETDATE);
 			break;
 		}
-
-		task.setSnoozeCount(task.getSnoozeCount() + 1);
 
 		repository.update(task);
 	}
