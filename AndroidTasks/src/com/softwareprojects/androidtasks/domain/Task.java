@@ -304,7 +304,7 @@ public class Task implements Parcelable, Cloneable {
 		
 		if(isCompleted()) return;
 
-		Date now = new Date();
+		Date now = dateProvider.getNow().getTime();
 
 		if (reminderType == REMINDER_MANUAL) {
 			reminderDate = targetDate;

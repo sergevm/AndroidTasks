@@ -12,9 +12,16 @@ public class WeeksCalculation implements TaskDateCalculation {
 
 	public Date getNext(Date offset, TaskDateProvider dateProvider, int shift) {
 
+		if(offset == null) return null;
+		
 		Calendar offsetCalendar = Calendar.getInstance();
 		offsetCalendar.setTime(offset);
 
+		if(dateProvider.getNow().before(offsetCalendar))
+		{
+			return offset;
+		}
+		
 		Calendar today = dateProvider.getToday();
 
 		long diffInMillis = Math.abs(today.getTimeInMillis() - offsetCalendar.getTimeInMillis());			

@@ -48,6 +48,7 @@ public class EditTaskTest {
 		
 		when(reminders.create(task)).thenReturn(reminder);
 		when(dates.getToday()).thenReturn(today);
+		when(dates.getNow()).thenReturn(today);
 	}
 	
 	@Test

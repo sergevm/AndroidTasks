@@ -12,10 +12,17 @@ public class HoursCalculation implements TaskDateCalculation {
 
 	@Override
 	public Date getNext(Date offset, TaskDateProvider dateProvider, int shift) {
+		
+		if(offset == null) return null;
+		
 		Calendar offsetCalendar = Calendar.getInstance();
 		offsetCalendar.setTime(offset);
 
 		Calendar now = dateProvider.getNow();
+		
+		if(offset.after(now.getTime())) {
+			return offset;
+		}
 
 		long diffInMillis = Math.abs(now.getTimeInMillis() - offsetCalendar.getTimeInMillis());			
 		long numberOfFullHours = diffInMillis / ONEHOURINMILLIS;
