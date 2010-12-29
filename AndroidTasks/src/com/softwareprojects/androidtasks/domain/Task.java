@@ -87,6 +87,9 @@ public class Task implements Parcelable, Cloneable {
 
 	public void setReminderType(int reminder) {
 		this.reminderType = reminder;
+		if(this.getReminderType() == REMINDER_MANUAL) {
+			setReminderDate(null);
+		}
 	}
 
 	public Date getReminderDate() {
@@ -280,7 +283,7 @@ public class Task implements Parcelable, Cloneable {
 
 		if(getTargetDate() == null) return null;
 		if(getRecurrenceValue() == 0) return null;
-		if(getTargetDate().after(dateProvider.getNow().getTime())) return null;
+		if(hasFutureTargetDate(dateProvider)) return null;
 
 		Date nextOccurrenceTargetDate =  recurrences.create(this).getNext(getTargetDate(), dateProvider, getRecurrenceValue());
 
@@ -298,6 +301,11 @@ public class Task implements Parcelable, Cloneable {
 		}
 		
 		return null;
+	}
+
+	public boolean hasFutureTargetDate(TaskDateProvider dateProvider) {
+		if(getTargetDate() == null) return false;
+		return getTargetDate().after(dateProvider.getNow().getTime());
 	}
 
 	public void initializeReminders(ReminderCalculations reminders, TaskDateProvider dateProvider) {
@@ -326,6 +334,12 @@ public class Task implements Parcelable, Cloneable {
 	}
 
 	public void updateReminder(ReminderCalculations reminders, TaskDateProvider dateProvider) {
+		
+		if(isCompleted()) {
+			setReminderDate(null);
+			return;
+		}
+		
 		reminderDate = reminders.create(this).getNext(targetDate == null ? 
 				reminderDate : targetDate, dateProvider, 1);
 	}

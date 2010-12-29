@@ -15,5 +15,5 @@ public interface TaskRepository {
 	List<Task> getDue();
 	
 	// Custom fetch
-	Task getNextOccurrenceOf(final Task task);
+	Task findNextOccurrenceOf(final Task task);
 }

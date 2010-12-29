@@ -6,8 +6,8 @@
 	<item name="android:paddingRight">5dp</item>
 </style>
 <style name="ListReminderIcon">
-	<item name="android:layout_width">20sp</item>
-	<item name="android:layout_height">20sp</item>
+	<item name="android:layout_width">25sp</item>
+	<item name="android:layout_height">25sp</item>
 	<item name="android:paddingRight">5sp</item>
 </style>
 <style name="ListDescription" parent="style/TextAppearance">

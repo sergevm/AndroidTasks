@@ -38,7 +38,7 @@ public class TaskScheduler {
 
 	public void initializeNextOccurrence(final Task task) {
 
-		Task next = repository.getNextOccurrenceOf(task);
+		Task next = repository.findNextOccurrenceOf(task);
 
 		if(next != null) {
 			log.v(TAG, "Task with id " + task.getId() + 
@@ -49,8 +49,8 @@ public class TaskScheduler {
 			" does not have previously created next occurence");
 		}
 
-		if(next == null) {
-			next = createNextOccurrence(task);
+		if(next == null) { 
+			next = createOrScheduleNextOccurrence(task);
 		}
 
 		if(next == null) {
@@ -80,7 +80,7 @@ public class TaskScheduler {
 			log.v(TAG, "Task returned snoozed time null, so that time falls after an upcoming reminder time.");
 			return;
 		}
-			
+
 		switch (notificationType) {
 		case ALARMSOURCE_REMINDERDATE:
 		case ALARMSOURCE_SNOOZE_REMINDERDATE:
@@ -105,19 +105,23 @@ public class TaskScheduler {
 
 		if (task.getId() == 0) {
 			repository.insert(task);
-		} else {
-			repository.update(task);
 		}
 
-		if (task.isCompleted() == false) {
+		if(task.isCompleted() == false) {
+
 			task.initializeReminders(reminders, dates);
 
 			if (task.getReminderDate() != null) {
 				alarms.setTarget(task, task.getReminderDate());
 			}
+			else {
+				alarms.clearReminder(task);
+			}
 
 			initializeNextOccurrence(task);
 		}
+
+		repository.update(task);
 	}
 
 	public void updateReminder(final Task task) {
@@ -131,19 +135,28 @@ public class TaskScheduler {
 		repository.update(task);
 	}
 
-	private Task createNextOccurrence(final Task task) {
-		
+	private void scheduleNextOccurrenceCreation(final Task task) {
+		if(task.hasFutureTargetDate(dates)) {
+			alarms.setRecurrent(task, task.getTargetDate());
+		}
+	}
+
+	private Task createOrScheduleNextOccurrence(final Task task) {
+
 		Task next = task.createNextOccurrence(recurrences, dates);
-		
+
 		if(next != null) {
 			repository.insert(next);
 			task.setNextOccurrenceId(next.getId());
 			repository.update(task);
-	
+
 			log.v(TAG, "A new occurrence with id " + next.getId() + 
 					" was created for task with id " + task.getId());
 		}
-	
+		else {
+			scheduleNextOccurrenceCreation(task);
+		}
+
 		return next;
 	}
 }

@@ -20,10 +20,12 @@ public class DBHelper {
 	// DB names
 	private static final String DB_NAME = "AndroidTasks";
 	private static final String DB_TASKS_TABLE = "Tasks";
-	private static int DB_VERSION = 5;
+	private static int DB_VERSION = 6;
 
 	private static final String[] DB_TASKS_COLS = 
-		new String[]{"id", "description", "completed", "targetdate", "snoozecount", "notes", "location", "remindertype", "reminderdate", "recurrencetype", "recurrencevalue", "nextoccurrenceid"};
+		new String[]{"id", "description", "completed", "targetdate", "snoozecount", "notes", 
+		"location", "remindertype", "reminderdate", "recurrencetype", "recurrencevalue", 
+		"nextoccurrenceid"};
 
 	// Logging stuff
 	private static final String CLASSNAME = DBHelper.class.getSimpleName();
@@ -161,6 +163,7 @@ public class DBHelper {
 					selection, selectionArgs, groupby, having, orderby);
 
 			int rowCount = c.getCount();
+			if(rowCount == 0) return list;
 
 			c.moveToFirst();
 
@@ -219,6 +222,7 @@ public class DBHelper {
 
 	public Task getSingle(long id) {
 		List<Task> found = getTasks("id = " + id, null, null, null, null);
+		if(found.size() == 0) return null;
 		return found.get(0);
 	}
 

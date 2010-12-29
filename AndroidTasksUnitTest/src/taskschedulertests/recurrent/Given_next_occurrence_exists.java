@@ -27,7 +27,7 @@ public class Given_next_occurrence_exists extends TaskSchedulerTestBase{
 	@Test public void Then_the_repository_is_first_checked_for_a_next_occurrence() {
 		
 		taskScheduler.initializeNextOccurrence(task);
-		verify(taskRepository, atLeastOnce()).getNextOccurrenceOf(task);
+		verify(taskRepository, atLeastOnce()).findNextOccurrenceOf(task);
 	}
 	
 	@Test public void Then_reminders_should_be_initialized_on_next_occurrence() {

@@ -13,6 +13,7 @@ import android.widget.CompoundButton;
 import android.widget.CompoundButton.OnCheckedChangeListener;
 import android.widget.Spinner;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.softwareprojects.androidtasks.db.DBHelper;
 import com.softwareprojects.androidtasks.db.SqliteTaskRepository;
@@ -78,6 +79,21 @@ public class TaskNotification extends Activity {
 				new Logger());
 		
 		task = dbHelper.getSingle(taskId);
+		if(task == null)
+		{
+			Toast toast = Toast.makeText(getApplicationContext(), "Task is no longer available", Toast.LENGTH_LONG);
+			toast.show();
+			finish();
+			return;
+		}
+		
+		if(task.isCompleted()) {
+			snoozePeriod.setVisibility(View.GONE);
+			snooze.setVisibility(View.GONE);
+			complete.setEnabled(false);
+			complete.setChecked(true);
+			commit.setEnabled(false);
+		}
 
 		switch (notificationSource) {
 		case ALARMSOURCE_TARGETDATE:

@@ -45,7 +45,7 @@ public class SqliteTaskRepository implements TaskRepository {
 	}
 
 	@Override
-	public Task getNextOccurrenceOf(Task task) {
+	public Task findNextOccurrenceOf(Task task) {
 		if(task.getNextOccurrenceId() == 0) return null;
 		return dbHelper.getSingle(task.getNextOccurrenceId());
 	}

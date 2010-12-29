@@ -120,4 +120,9 @@ public class AndroidTaskAlarmManager implements TaskAlarmManager {
 	private String createLogMessage(final Task task, final Uri uri, final String action) {
 		return action + task.getId() + " (" + uri.toString() + ")";
 	}
+
+	@Override
+	public void clearReminder(Task task) {
+		removeAlarm(task, Uri.parse(Constants.ANDROIDTASK_TASK_NEXT_REMINDER_URI + task.getId()));
+	}
 }

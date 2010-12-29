@@ -7,6 +7,8 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
 import android.view.View.OnClickListener;
+import android.widget.AdapterView;
+import android.widget.AdapterView.OnItemSelectedListener;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
@@ -51,7 +53,7 @@ public class TaskRecurrence extends Activity {
 
 				Intent intent = new Intent();
 				intent.putExtra("RecurrenceType", spinner.getSelectedItemPosition());
-				intent.putExtra("RecurrenceValue", Integer.parseInt(recurrenceValue.getText().toString()));
+				intent.putExtra("RecurrenceValue", parseRecurrenceValue());
 
 				setResult(RESULT_OK, intent);
 				finish();
@@ -65,7 +67,25 @@ public class TaskRecurrence extends Activity {
 				setResult(RESULT_CANCELED);
 				finish();
 			}
-
 		});
+		
+		spinner.setOnItemSelectedListener(new OnItemSelectedListener() {
+
+			@Override
+			public void onItemSelected(AdapterView<?> arg0, View arg1, int arg2, long arg3) {
+				if(spinner.getSelectedItemPosition() == 0) {
+					recurrenceValue.setText("0");
+				}
+			}
+
+			@Override
+			public void onNothingSelected(AdapterView<?> arg0) {				
+			}
+			
+		});
+	}
+	
+	private int parseRecurrenceValue() {
+		return Integer.parseInt(recurrenceValue.getText().toString());
 	}
 }
