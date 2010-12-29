@@ -8,12 +8,14 @@ import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
+import android.widget.CheckBox;
 import android.widget.Spinner;
 
 public class Preferences extends Activity {
 
 	Spinner weeks_before;
 	Spinner weeks_future;
+	CheckBox vibrate_on_notification;
 	
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -23,6 +25,7 @@ public class Preferences extends Activity {
 
 		weeks_before = (Spinner)findViewById(R.id.prefs_weeks_before);
 		weeks_future = (Spinner)findViewById(R.id.prefs_weeks_future);
+		vibrate_on_notification = (CheckBox)findViewById(R.id.prefs_vibrate);
 		Button ok_button = (Button)findViewById(R.id.prefs_ok_button);
 		Button cancel_button = (Button)findViewById(R.id.prefs_cancel_button);
 
@@ -39,9 +42,11 @@ public class Preferences extends Activity {
 		
 		String before_item = String.valueOf(prefs.getInt(Constants.PREFS_WEEKS_IN_PAST, 3));
 		String after_item = String.valueOf(prefs.getInt(Constants.PREFS_WEEKS_IN_FUTURE, 6));
+		Boolean vibrate = prefs.getBoolean(Constants.PREFS_VIBRATE_ON_NOTIFICATION, false);
 		
 		weeks_before.setSelection(adapter.getPosition(before_item));
 		weeks_future.setSelection(adapter.getPosition(after_item));
+		vibrate_on_notification.setChecked(vibrate);
 		
 		cancel_button.setOnClickListener(new OnClickListener() {
 
@@ -67,6 +72,7 @@ public class Preferences extends Activity {
 		
 		editor.putInt(Constants.PREFS_WEEKS_IN_PAST, Integer.parseInt((String)weeks_before.getSelectedItem()));
 		editor.putInt(Constants.PREFS_WEEKS_IN_FUTURE, Integer.parseInt((String)weeks_future.getSelectedItem()));
+		editor.putBoolean(Constants.PREFS_VIBRATE_ON_NOTIFICATION, vibrate_on_notification.isChecked());
 		
 		editor.commit();
 	}

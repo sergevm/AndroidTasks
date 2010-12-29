@@ -8,6 +8,7 @@ import android.app.PendingIntent;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.net.Uri;
 import android.util.Log;
 
@@ -75,9 +76,16 @@ public class TaskAlarmReceiver extends BroadcastReceiver {
 		Notification notification = new Notification();
 		notification.icon = R.drawable.exclamation;
 		notification.tickerText = description + " (" + id + ")";
+		
+		notification.flags |= Notification.FLAG_AUTO_CANCEL;
 
-		notification.flags |= Notification.FLAG_AUTO_CANCEL	| Notification.DEFAULT_VIBRATE;
+		SharedPreferences preferences = context.getSharedPreferences("AndroidTasks", Context.MODE_PRIVATE);
+		Boolean vibrate = preferences.getBoolean(Constants.PREFS_VIBRATE_ON_NOTIFICATION, false);
 
+		if(vibrate) {
+			notification.defaults |= Notification.DEFAULT_VIBRATE;
+		}
+		
 		notification.setLatestEventInfo(context, context.getString(R.string.task_due_notification),
 				description + " (" + id + ")", pendingIntent);
 

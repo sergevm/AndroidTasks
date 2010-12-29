@@ -20,4 +20,5 @@ public final class Constants {
 	
 	static final String PREFS_WEEKS_IN_PAST = "Prefs_list_weeks_in_past";
 	static final String PREFS_WEEKS_IN_FUTURE = "Prefs_list_weeks_in_future";
+	static final String PREFS_VIBRATE_ON_NOTIFICATION = "Prefs_vibrate_on_notification";
 }

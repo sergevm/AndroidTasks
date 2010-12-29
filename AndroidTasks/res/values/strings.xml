@@ -66,4 +66,5 @@
 </string-array>
 <string name="recurrence_confirm_button">Confirm</string>
 <string name="recurrence_cancel_button">Cancel</string>
+<string name="prefs_vibrate">Vibrate on notification</string>
 </resources>

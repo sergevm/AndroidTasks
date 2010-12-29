@@ -5,6 +5,10 @@
   android:layout_width="fill_parent"
   android:layout_height="fill_parent">
   
+  <CheckBox android:id="@+id/prefs_vibrate" android:layout_width="fill_parent"
+  	android:layout_height="wrap_content" android:text="@string/prefs_vibrate" 
+  />
+
   <TextView android:text="@string/prefs_range_title"
   	style="@style/prefs_range_title" />
     	
@@ -15,10 +19,6 @@
 
 	  <TextView android:text="@string/prefs_weeks_before" 
 	  	style="@style/prefs_label" />
-
-	
-<!--	  <TextView android:text="@string/prefs_weeks"-->
-<!--	  	style="@style/prefs_label" />-->
   
   </LinearLayout>
     	
@@ -29,10 +29,7 @@
 
 	  <TextView android:text="@string/prefs_weeks_future" 
 	  	style="@style/prefs_label" />
-	
-<!--	  <TextView android:text="@string/prefs_weeks"-->
-<!--	  	style="@style/prefs_label" />-->
-  
+	  
   </LinearLayout>
   	
   <Button android:id="@+id/prefs_ok_button" 
