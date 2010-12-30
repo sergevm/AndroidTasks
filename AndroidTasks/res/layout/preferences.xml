@@ -8,9 +8,22 @@
   <CheckBox android:id="@+id/prefs_vibrate" android:layout_width="fill_parent"
   	android:layout_height="wrap_content" android:text="@string/prefs_vibrate" 
   />
+  
+  <TextView android:text="@string/prefs_purge_title"
+  	style="@style/prefs_sub_title" />
+
+  <LinearLayout style="@style/inner_horizontal_linear_layout">
+
+	  <Spinner android:id="@+id/prefs_purge_age_in_weeks" 
+	  	style="@style/prefs_spinner" />
+
+	  <TextView android:text="@string/prefs_weeks_label" 
+	  	style="@style/prefs_label" />
+  
+  </LinearLayout>
 
   <TextView android:text="@string/prefs_range_title"
-  	style="@style/prefs_range_title" />
+  	style="@style/prefs_sub_title" />
     	
   <LinearLayout style="@style/inner_horizontal_linear_layout">
 

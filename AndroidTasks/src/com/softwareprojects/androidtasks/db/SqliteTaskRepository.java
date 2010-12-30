@@ -50,4 +50,9 @@ public class SqliteTaskRepository implements TaskRepository {
 		return dbHelper.getSingle(task.getNextOccurrenceId());
 	}
 
+	@Override
+	public void purge(int ageInWeeks) {
+		dbHelper.purge(ageInWeeks * 7);
+	}
+
 }

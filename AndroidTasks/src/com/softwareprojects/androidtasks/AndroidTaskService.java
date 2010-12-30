@@ -1,7 +1,9 @@
 package com.softwareprojects.androidtasks;
 
 import android.app.Service;
+import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.IBinder;
 import android.util.Log;
 
@@ -60,6 +62,16 @@ public class AndroidTaskService extends Service {
 			
 			Task task = dbHelper.getSingle(taskId);
 			scheduler.initializeNextOccurrence(task);
+			
+			broadcastTaskListChange();
+		}
+		
+		else if(intent.getDataString().equals(Constants.ANDROIDTASK_TASK_PURGE)) {
+			
+			SharedPreferences preferences = getSharedPreferences("AndroidTasks", Context.MODE_PRIVATE);
+			int weeks = preferences.getInt(Constants.PREFS_PURGING_TASK_AGE_IN_WEEKS, -1);
+			
+			scheduler.purge(weeks);
 			
 			broadcastTaskListChange();
 		}

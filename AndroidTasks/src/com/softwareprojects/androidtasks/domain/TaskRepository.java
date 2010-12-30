@@ -16,4 +16,7 @@ public interface TaskRepository {
 	
 	// Custom fetch
 	Task findNextOccurrenceOf(final Task task);
+	
+	// Purging
+	void purge(int ageInWeeks);
 }

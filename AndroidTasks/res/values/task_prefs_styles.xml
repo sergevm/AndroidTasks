@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-<style name="prefs_range_title" parent="style/TextAppearance">
+<style name="prefs_sub_title" parent="style/TextAppearance">
 	<item name="android:layout_width">fill_parent</item>
 	<item name="android:layout_height">wrap_content</item>	
 	<item name="android:textSize">16sp</item>

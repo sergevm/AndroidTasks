@@ -22,10 +22,16 @@
 			android:label="@string/preferences_activity_name" />
 		<receiver android:name=".TaskAlarmReceiver">
 		</receiver>
+		<receiver android:name=".PurgeAlarmReceiver">
+		</receiver>
 		<service android:name=".AndroidTaskService" android:enabled="true">
 			<intent-filter>
 				<data android:scheme="androidtask" android:path="task/recurrent/" />
 				<action android:name="com.softwareprojects.androidtasks.TASKRECURRENCE"/>
+			</intent-filter>
+			<intent-filter>
+				<data android:scheme="androidtask" android:path="task/purge/" />
+				<action android:name="com.softwareprojects.androidtasks.PURGE"/>
 			</intent-filter>
 		</service>
     </application>

@@ -1,5 +1,6 @@
 package com.softwareprojects.androidtasks.domain;
 
+import java.util.Calendar;
 import java.util.Date;
 
 public class TaskScheduler {
@@ -133,6 +134,26 @@ public class TaskScheduler {
 		}
 
 		repository.update(task);
+	}
+
+	public void purge(int weeks) {
+		log.v(TAG, "Purging completed tasks that are older than " + weeks + " weeks");
+		
+		if(weeks <= 0) {
+			log.v(TAG, "Cancelling purging of old tasks");
+			alarms.cancelPurge();
+			return;
+		}
+		
+		repository.purge(weeks);
+		
+		log.v(TAG, "Completed tasks have been purged");
+		
+		Calendar calendar = dates.getNow();
+		calendar.add(Calendar.DATE, 1);
+		alarms.schedulePurge(calendar);
+		
+		log.v(TAG, "Next purge has been scheduled for " + TaskDateFormatter.format(calendar.getTime()));
 	}
 
 	private void scheduleNextOccurrenceCreation(final Task task) {

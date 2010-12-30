@@ -17,8 +17,10 @@ public final class Constants {
 	static final String ANDROIDTASK_TASK_CURRENT_ALARM_URI = "androidtask://task/alarm/";
 	static final String ANDROIDTASK_TASK_NEXT_REMINDER_URI = "androidtask://task/reminder/";
 	static final String ANDROIDTASK_TASK_NEXT_RECURRENCE_URI = "androidtask://task/recurrent/";
+	static final String ANDROIDTASK_TASK_PURGE = "androidtask://tasks/purge/";
 	
 	static final String PREFS_WEEKS_IN_PAST = "Prefs_list_weeks_in_past";
 	static final String PREFS_WEEKS_IN_FUTURE = "Prefs_list_weeks_in_future";
 	static final String PREFS_VIBRATE_ON_NOTIFICATION = "Prefs_vibrate_on_notification";
+	static final String PREFS_PURGING_TASK_AGE_IN_WEEKS = "Prefs_purge_tasks_with_age";
 }

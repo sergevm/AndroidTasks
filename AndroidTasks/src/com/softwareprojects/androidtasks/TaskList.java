@@ -25,10 +25,23 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.softwareprojects.androidtasks.db.DBHelper;
+import com.softwareprojects.androidtasks.db.SqliteTaskRepository;
+import com.softwareprojects.androidtasks.domain.Logger;
+import com.softwareprojects.androidtasks.domain.RecurrenceCalculationFactory;
+import com.softwareprojects.androidtasks.domain.RecurrenceCalculations;
+import com.softwareprojects.androidtasks.domain.ReminderCalculationFactory;
+import com.softwareprojects.androidtasks.domain.ReminderCalculations;
 import com.softwareprojects.androidtasks.domain.Task;
+import com.softwareprojects.androidtasks.domain.TaskAlarmManager;
 import com.softwareprojects.androidtasks.domain.TaskDateFormatter;
+import com.softwareprojects.androidtasks.domain.TaskDateProvider;
+import com.softwareprojects.androidtasks.domain.TaskRepository;
+import com.softwareprojects.androidtasks.domain.TaskScheduler;
 
 public class TaskList extends ListActivity {
+
+	private static final int ACTIVITY_REQUEST_CODE_ADD = 0;
+	private static final int ACTIVITY_REQUEST_CODE_PREFS = 1;
 
 	private static DBHelper dbHelper;
 
@@ -38,21 +51,29 @@ public class TaskList extends ListActivity {
 	private final static int Filter_Due = 7;
 	private final static int Filter_NoDate = 8;
 
-	private int _currentFilter;
-	
+	private int currentFilter;
+
 	private BroadcastReceiver listChangedReceiver;
 	private IntentFilter listChangedIntentFilter;
-	
+
+	private TaskDateProvider dates;
+	private TaskRepository repository;
+	private TaskAlarmManager alarmManager;
+	private ReminderCalculations reminders;
+	private RecurrenceCalculations recurrences;
+	private TaskScheduler taskScheduler;
+	private boolean updatePurgingSchemeOnResume;
+
 	private static final String TAG = TaskList.class.getSimpleName();
-	
+
 	private void setCurrentFilter(int filter) {
-		if(_currentFilter != filter) {
-			_currentFilter = filter;
+		if(currentFilter != filter) {
+			currentFilter = filter;
 		}
 	}
 
 	private int getCurrentFilter() {
-		return _currentFilter;
+		return currentFilter;
 	}
 
 	@Override
@@ -60,10 +81,10 @@ public class TaskList extends ListActivity {
 		super.onCreate(savedInstanceState);
 
 		Log.i(TAG, "onCreate");
-				
+
 		// Set up the adapter
 		initializeTaskList();
-				
+
 		// Fetch the initial filter from the shared preferences
 		SharedPreferences preferences = getSharedPreferences("AndroidTasks", MODE_PRIVATE);
 		setCurrentFilter(preferences.getInt("ActiveFilter", Filter_All));
@@ -72,19 +93,19 @@ public class TaskList extends ListActivity {
 		listChangedIntentFilter = new IntentFilter("com.softwareprojects.androidtasks.TASKLISTCHANGE");
 		listChangedReceiver = new TaskListChangeReceiver();
 	}
-	
+
 	@Override
 	protected void onPause() {
 		super.onPause();
-		
+
 		Log.i(TAG, "onPause");
-		
+
 		SharedPreferences preferences = getSharedPreferences("AndroidTasks", MODE_PRIVATE);
 		Editor prefEditor = preferences.edit();
-		
+
 		prefEditor.putInt("ActiveFilter", getCurrentFilter());
 		prefEditor.commit();
-		
+
 		unregisterReceiver(listChangedReceiver);
 	}
 
@@ -92,41 +113,56 @@ public class TaskList extends ListActivity {
 	protected void onResume() {
 		super.onResume();
 
+		// Update purging scheme. Ugly way to do this, but due to the fact that onActivityResult is 
+		// called before onResume is called (so not all objects such as the db access helper are in 
+		// acceptable state in onActivityResult)
+		if(updatePurgingSchemeOnResume) {
+			SharedPreferences preferences = getSharedPreferences("AndroidTasks", MODE_PRIVATE);
+			int purgeAgeInWeeks = preferences.getInt(Constants.PREFS_PURGING_TASK_AGE_IN_WEEKS, 0);
+			taskScheduler.purge(purgeAgeInWeeks);
+			updatePurgingSchemeOnResume = false;
+		}
+
 		// Update the filtered list
 		updateFilteredList();
-		
+
 		// Register broadcasts that inform us that the list of tasks has changed
 		registerReceiver(listChangedReceiver, listChangedIntentFilter);
-		
+
 		Log.i(TAG, "onResume");
 	}
-	
+
 	@Override
 	protected void onStart() {
 		super.onStart();
 
-		// Initialize the database helper
 		dbHelper = new DBHelper(this);
-
+		repository = new SqliteTaskRepository(dbHelper);
+		alarmManager = new AndroidTaskAlarmManager(this);
+		reminders = new ReminderCalculationFactory();
+		recurrences = new RecurrenceCalculationFactory();
+		taskScheduler = new TaskScheduler(reminders, recurrences, alarmManager, dates, repository, new Logger());
+		
 		Log.i(TAG, "onStart");
 	}
-	
+
 	@Override
 	protected void onStop() {
 		super.onStop();
-		
+
 		dbHelper.Cleanup();
-		
+		repository = null;
+
 		Log.i(TAG, "onStop");
 	}
-	
+
 	@Override
 	protected void onDestroy() {
 		super.onDestroy();
 
 		Log.i(TAG, "onDestroy");
 	}
-	
+
 	private void initializeTaskList() {
 
 		this.getListView().setOnItemClickListener(
@@ -198,6 +234,21 @@ public class TaskList extends ListActivity {
 			return true;
 		}
 	}
+	
+	@Override
+	protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+
+		super.onActivityResult(requestCode, resultCode, data);
+
+		if(resultCode == RESULT_CANCELED) return;
+		
+		if(requestCode == ACTIVITY_REQUEST_CODE_PREFS) {
+			// Ugly way to work, but necessary because onResume() has not been called here, 
+			// so not possible e.g. to do database access here. This flag will be picked up 
+			// in another step in the life cycle of the activity
+			updatePurgingSchemeOnResume = true;
+		}
+	}
 
 	private void refresh() {
 		updateFilteredList();
@@ -205,35 +256,36 @@ public class TaskList extends ListActivity {
 
 	private void addTask() {
 		Intent intent = new Intent(this, EditTask.class);
-		startActivityForResult(intent, 0);
+		startActivityForResult(intent, ACTIVITY_REQUEST_CODE_ADD);
 	}
-	
+
 	private void showPreferences() {
 		Intent intent = new Intent(this, Preferences.class);
-		startActivity(intent);
+		startActivityForResult(intent, ACTIVITY_REQUEST_CODE_PREFS);
 	}
 
 	private void updateFilteredList() {
 		List<Task> list = null;
-		
+
 		SharedPreferences prefs = getSharedPreferences("AndroidTasks", Preferences.MODE_PRIVATE);
 		int pastWeeks = prefs.getInt(Constants.PREFS_WEEKS_IN_PAST, 3);
 		int futureWeeks = prefs.getInt(Constants.PREFS_WEEKS_IN_FUTURE, 6);
-		
+
 		switch(getCurrentFilter()) {
 		case Filter_All:
-			list = dbHelper.getAll();
+			list = repository.getAll();
 			break;
 		case Filter_All_In_Range:
-			list = dbHelper.getAll(pastWeeks, futureWeeks);
+			list = repository.getAll(pastWeeks, futureWeeks);
 			break;
 		case Filter_Active:
-			list = dbHelper.getActive(pastWeeks, futureWeeks);
+			list = repository.getActive(pastWeeks, futureWeeks);
 			break;
 		case Filter_Due:
-			list = dbHelper.getDue();
+			list = repository.getDue();
 			break;
 		case Filter_NoDate:
+			// TODO: move to repository
 			list = dbHelper.getNoDate();
 		default:
 			break;
@@ -249,7 +301,7 @@ public class TaskList extends ListActivity {
 	{
 		StringBuilder sb = new StringBuilder(getResources().getString(R.string.app_name));
 		sb.append(" - ");
-		
+
 		switch(getCurrentFilter()) {
 		case Filter_All:
 			sb.append(getResources().getString(R.string.list_filter_all));
@@ -331,7 +383,7 @@ public class TaskList extends ListActivity {
 						}
 					}
 				}
-				
+
 				if(task.getReminderDate() != null) {
 					reminderdate.setVisibility(View.VISIBLE);
 					reminderdate.setText(TaskDateFormatter.format(task.getReminderDate()));
@@ -344,7 +396,7 @@ public class TaskList extends ListActivity {
 					reminderimage.setImageResource(0);
 					reminderimage.setVisibility(View.GONE);
 				}
-				
+
 				if(task.getRecurrenceType() == Task.REPEAT_NONE) {
 					repeatingimage.setImageResource(0);
 					repeatingimage.setVisibility(View.GONE);
@@ -375,6 +427,6 @@ public class TaskList extends ListActivity {
 		public void onReceive(Context context, Intent intent) {
 			updateFilteredList();
 		}
-		
+
 	}
 }
