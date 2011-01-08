@@ -3,7 +3,6 @@ package com.softwareprojects.androidtasks;
 import java.security.InvalidParameterException;
 import java.util.Date;
 import java.util.List;
-import java.util.zip.Inflater;
 
 import android.app.AlertDialog;
 import android.app.Dialog;
@@ -20,6 +19,7 @@ import android.graphics.Paint;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.ContextMenu;
+import android.view.ContextMenu.ContextMenuInfo;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -27,8 +27,6 @@ import android.view.MenuItem;
 import android.view.SubMenu;
 import android.view.View;
 import android.view.ViewGroup;
-import android.view.ContextMenu.ContextMenuInfo;
-import android.view.Window;
 import android.widget.AdapterView;
 import android.widget.AdapterView.AdapterContextMenuInfo;
 import android.widget.ArrayAdapter;
@@ -46,6 +44,7 @@ import com.softwareprojects.androidtasks.domain.Task;
 import com.softwareprojects.androidtasks.domain.TaskAlarmManager;
 import com.softwareprojects.androidtasks.domain.TaskDateFormatter;
 import com.softwareprojects.androidtasks.domain.TaskDateProvider;
+import com.softwareprojects.androidtasks.domain.TaskDateProviderImpl;
 import com.softwareprojects.androidtasks.domain.TaskRepository;
 import com.softwareprojects.androidtasks.domain.TaskScheduler;
 
@@ -153,6 +152,7 @@ public class TaskList extends ListActivity {
 		super.onStart();
 
 		dbHelper = new DBHelper(this);
+		dates = new TaskDateProviderImpl();
 		repository = new SqliteTaskRepository(dbHelper);
 		alarmManager = new AndroidTaskAlarmManager(this);
 		reminders = new ReminderCalculationFactory();
