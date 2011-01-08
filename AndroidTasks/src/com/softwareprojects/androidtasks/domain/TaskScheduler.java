@@ -136,6 +136,13 @@ public class TaskScheduler {
 		repository.update(task);
 	}
 
+	public void delete(final Task task) {
+		log.v(TAG, String.format("Deleting task with id %d", task.getId()));
+		
+		alarms.remove(task);
+		repository.delete(task);
+	}
+
 	public void purge(int weeks) {
 		log.v(TAG, "Purging completed tasks that are older than " + weeks + " weeks");
 		

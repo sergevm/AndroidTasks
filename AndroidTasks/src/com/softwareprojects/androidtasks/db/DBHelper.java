@@ -130,7 +130,7 @@ public class DBHelper {
 		this.db.update(DB_TASKS_TABLE, values, "id = " + task.getId(), null);
 	}
 
-	public void delete(int id){
+	public void delete(long id){
 		this.db.delete(DB_TASKS_TABLE, "id = " + id, null);
 	}
 

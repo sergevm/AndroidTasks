@@ -1,5 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <string name="general_no">NO</string>
+    <string name="general_yes">YES</string>
+    <string name="dialog_confirm_delete_caption">Please confirm</string>
+    <string name="dialog_confirm_delete_text">Sure you want to delete \'%s\'?</string>
+    <string name="list_context_menu_complete">Complete</string>
+    <string name="list_context_menu_edit">Edit</string>
+    <string name="list_context_menu_delete">Delete</string>
     <string name="list_menu_refresh">Refresh</string>
     <string name="list_menu_new">New</string>
     <string name="list_menu_filter_header">Filter</string>

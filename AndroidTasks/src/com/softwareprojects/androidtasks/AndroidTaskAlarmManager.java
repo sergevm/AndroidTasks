@@ -53,7 +53,14 @@ public class AndroidTaskAlarmManager implements TaskAlarmManager {
 	@Override
 	public void complete(final Task task) {
 		Log.v(TAG, "Completing task with id " + task.getId());
+		// Is conceptually the same as removing (deleting) a task, as far as alarms are concerned
+		remove(task);
+	}
 
+	@Override
+	public void remove(Task task) {
+		Log.v(TAG, String.format("Removing task with id %d", task.getId()));
+		
 		removeAlarm(task, Uri.parse(Constants.ANDROIDTASK_TASK_CURRENT_ALARM_URI + task.getId()));
 		removeAlarm(task, Uri.parse(Constants.ANDROIDTASK_TASK_NEXT_REMINDER_URI + task.getId()));
 	}

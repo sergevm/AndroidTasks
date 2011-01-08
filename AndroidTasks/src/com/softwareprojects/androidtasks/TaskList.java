@@ -1,11 +1,17 @@
 package com.softwareprojects.androidtasks;
 
+import java.security.InvalidParameterException;
 import java.util.Date;
 import java.util.List;
+import java.util.zip.Inflater;
 
+import android.app.AlertDialog;
+import android.app.Dialog;
 import android.app.ListActivity;
 import android.content.BroadcastReceiver;
 import android.content.Context;
+import android.content.DialogInterface;
+import android.content.DialogInterface.OnClickListener;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.SharedPreferences;
@@ -13,13 +19,18 @@ import android.content.SharedPreferences.Editor;
 import android.graphics.Paint;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.ContextMenu;
 import android.view.LayoutInflater;
 import android.view.Menu;
+import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.SubMenu;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.ContextMenu.ContextMenuInfo;
+import android.view.Window;
 import android.widget.AdapterView;
+import android.widget.AdapterView.AdapterContextMenuInfo;
 import android.widget.ArrayAdapter;
 import android.widget.ImageView;
 import android.widget.TextView;
@@ -42,6 +53,8 @@ public class TaskList extends ListActivity {
 
 	private static final int ACTIVITY_REQUEST_CODE_ADD = 0;
 	private static final int ACTIVITY_REQUEST_CODE_PREFS = 1;
+
+	private static final int DIALOG_CONFIRM_DELETE_ID = 0;
 
 	private static DBHelper dbHelper;
 
@@ -92,6 +105,9 @@ public class TaskList extends ListActivity {
 		// Listener for external modification to the task list
 		listChangedIntentFilter = new IntentFilter("com.softwareprojects.androidtasks.TASKLISTCHANGE");
 		listChangedReceiver = new TaskListChangeReceiver();
+
+		// Register all items on the list view for context menus
+		registerForContextMenu(getListView());
 	}
 
 	@Override
@@ -142,7 +158,7 @@ public class TaskList extends ListActivity {
 		reminders = new ReminderCalculationFactory();
 		recurrences = new RecurrenceCalculationFactory();
 		taskScheduler = new TaskScheduler(reminders, recurrences, alarmManager, dates, repository, new Logger());
-		
+
 		Log.i(TAG, "onStart");
 	}
 
@@ -177,13 +193,14 @@ public class TaskList extends ListActivity {
 
 					}
 
-					private void editTask(Task task) {
-						Intent intent = new Intent(getBaseContext(), EditTask.class);
-						intent.putExtra(Constants.CURRENT_TASK, task);
-						startActivity(intent);
-					}
 				});
 	}  
+
+	private void editTask(Task task) {
+		Intent intent = new Intent(getBaseContext(), EditTask.class);
+		intent.putExtra(Constants.CURRENT_TASK, task);
+		startActivity(intent);
+	}
 
 	@Override
 	public boolean onCreateOptionsMenu(Menu menu) {
@@ -197,6 +214,12 @@ public class TaskList extends ListActivity {
 		subMenu.add(1, 8, 8, R.string.list_filter_due).setChecked(getCurrentFilter() == Filter_Due);
 		subMenu.add(1, 9, 9, R.string.list_filter_nodate).setChecked(getCurrentFilter() == Filter_NoDate);
 		return super.onCreateOptionsMenu(menu);
+	}
+
+	@Override
+	public void onCreateContextMenu(ContextMenu menu, View v, ContextMenuInfo menuInfo) {
+		MenuInflater inflater = getMenuInflater();
+		inflater.inflate(R.menu.task_list_context_menu, menu);
 	}
 
 	@Override
@@ -234,20 +257,87 @@ public class TaskList extends ListActivity {
 			return true;
 		}
 	}
-	
+
+	@Override
+	public boolean onContextItemSelected(MenuItem item) {
+		AdapterContextMenuInfo info = (AdapterContextMenuInfo)item.getMenuInfo();
+		Task task = (Task)getListAdapter().getItem((int)info.id);
+
+		int menuItemId = item.getItemId();
+		switch(menuItemId)
+		{
+		case R.id.list_context_menu_delete:
+			Bundle bundle = new Bundle();
+			bundle.putParcelable(Constants.CURRENT_TASK, task);
+			showDialog(DIALOG_CONFIRM_DELETE_ID, bundle);
+			break;
+		case R.id.list_context_menu_complete:
+			taskScheduler.complete(task);
+			updateFilteredList();
+			break;
+		case R.id.list_context_menu_edit:
+			editTask(task);
+			break;
+		}
+
+		return true;
+	}
+
 	@Override
 	protected void onActivityResult(int requestCode, int resultCode, Intent data) {
 
 		super.onActivityResult(requestCode, resultCode, data);
 
 		if(resultCode == RESULT_CANCELED) return;
-		
+
 		if(requestCode == ACTIVITY_REQUEST_CODE_PREFS) {
 			// Ugly way to work, but necessary because onResume() has not been called here, 
 			// so not possible e.g. to do database access here. This flag will be picked up 
 			// in another step in the life cycle of the activity
 			updatePurgingSchemeOnResume = true;
 		}
+	}
+
+	@Override
+	protected Dialog onCreateDialog(int id, Bundle bundle) {
+		Dialog createdDialog = null;
+
+		switch(id) {
+		case DIALOG_CONFIRM_DELETE_ID:
+
+			final Task toDelete = (Task)bundle.getParcelable(Constants.CURRENT_TASK);
+
+			AlertDialog.Builder builder = new AlertDialog.Builder(this); 
+			createdDialog = builder
+			.setTitle(R.string.dialog_confirm_delete_caption)
+			.setMessage(String.format(getString(R.string.dialog_confirm_delete_text), toDelete.getDescription()))
+			.setPositiveButton(R.string.general_yes, new OnClickListener() {
+
+				@Override
+				public void onClick(DialogInterface dialog, int which) {
+					Log.v(TAG, String.format("Confirmed delete of task with id %d", toDelete.getId()));
+					
+					taskScheduler.delete(toDelete);
+					updateFilteredList();
+					removeDialog(DIALOG_CONFIRM_DELETE_ID);
+				}
+			})
+			.setNegativeButton(R.string.general_no, new OnClickListener() {
+
+				@Override
+				public void onClick(DialogInterface dialog, int which) {
+					Log.v(TAG, String.format("Nonconfirmed delete of task with id %d", toDelete.getId()));
+					removeDialog(DIALOG_CONFIRM_DELETE_ID);
+				}	
+			})
+			.create();
+
+			break;
+		default:
+			throw new InvalidParameterException("onCreateDialog is called with an invalid key");
+		}
+
+		return createdDialog;
 	}
 
 	private void refresh() {

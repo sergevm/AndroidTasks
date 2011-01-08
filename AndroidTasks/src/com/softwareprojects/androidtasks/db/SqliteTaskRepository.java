@@ -25,6 +25,11 @@ public class SqliteTaskRepository implements TaskRepository {
 	}
 
 	@Override
+	public void delete(Task task) {
+		dbHelper.delete(task.getId());
+	}
+
+	@Override
 	public List<Task> getAll() {
 		return dbHelper.getAll();
 	}

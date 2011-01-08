@@ -7,6 +7,7 @@ public interface TaskRepository {
 	// CRUD
 	void insert(final Task task);
 	void update(final Task task);
+	void delete(final Task task);
 	
 	// Lists
 	List<Task> getAll();
