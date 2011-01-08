@@ -63,6 +63,7 @@ public class AndroidTaskAlarmManager implements TaskAlarmManager {
 		
 		removeAlarm(task, Uri.parse(Constants.ANDROIDTASK_TASK_CURRENT_ALARM_URI + task.getId()));
 		removeAlarm(task, Uri.parse(Constants.ANDROIDTASK_TASK_NEXT_REMINDER_URI + task.getId()));
+		removeAlarm(task, Uri.parse(Constants.ANDROIDTASK_TASK_NEXT_RECURRENCE_URI + task.getId()));
 	}
 
 	@Override
