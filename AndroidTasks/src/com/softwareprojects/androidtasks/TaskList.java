@@ -47,6 +47,7 @@ import com.softwareprojects.androidtasks.domain.TaskDateProvider;
 import com.softwareprojects.androidtasks.domain.TaskDateProviderImpl;
 import com.softwareprojects.androidtasks.domain.TaskRepository;
 import com.softwareprojects.androidtasks.domain.TaskScheduler;
+import com.softwareprojects.androidtasks.helpers.ToodledoSynchronizer;
 
 public class TaskList extends ListActivity {
 
@@ -213,6 +214,7 @@ public class TaskList extends ListActivity {
 		subMenu.add(1, 7, 7, R.string.list_filter_active).setChecked(getCurrentFilter() == Filter_Active);
 		subMenu.add(1, 8, 8, R.string.list_filter_due).setChecked(getCurrentFilter() == Filter_Due);
 		subMenu.add(1, 9, 9, R.string.list_filter_nodate).setChecked(getCurrentFilter() == Filter_NoDate);
+		menu.add(Menu.NONE, 10, 10, "Toodledoo");
 		return super.onCreateOptionsMenu(menu);
 	}
 
@@ -253,9 +255,19 @@ public class TaskList extends ListActivity {
 		case 9:
 			setCurrentFilter(Filter_NoDate);
 			updateFilteredList();
+			return true;
+		case 10:
+			getToodledooTasks("td4d35ff02625cc", "HitTheRoadJack!");
+			return true;
 		default:
 			return true;
 		}
+	}
+
+	private void getToodledooTasks(String user, String password) {
+		ToodledoSynchronizer syncer = new ToodledoSynchronizer();
+		syncer.init(user, password);
+		syncer.sync();
 	}
 
 	@Override
@@ -520,3 +532,4 @@ public class TaskList extends ListActivity {
 
 	}
 }
+
