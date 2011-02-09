@@ -13,9 +13,12 @@ import com.softwareprojects.androidtasks.Constants;
 
 public class Task implements Parcelable, Cloneable {
 	private long id;
+	private Date createDate;
+	private Date modificationDate;
 	private Date targetDate;
 	private String description;
 	private boolean completed;
+	private boolean deleted;
 	private int snoozeCount = 0;
 	private String notes;
 	private String location;
@@ -24,7 +27,7 @@ public class Task implements Parcelable, Cloneable {
 	private int recurrenceType;
 	private int recurrenceValue;
 	private long nextOccurrenceId;
-	
+
 
 	private static final String CLASSNAME = Task.class.getSimpleName();
 
@@ -155,6 +158,18 @@ public class Task implements Parcelable, Cloneable {
 		// id
 		dest.writeLong(id);
 
+		// create date
+		if(createDate != null) {
+			dest.writeString(new SimpleDateFormat(
+					Constants.DATETIME_FORMAT_STRING).format(createDate));
+		}
+
+		// modification date
+		if(modificationDate != null) {
+			dest.writeString(new SimpleDateFormat(
+					Constants.DATETIME_FORMAT_STRING).format(modificationDate));
+		}
+
 		// target date
 		if (targetDate != null) {
 			dest.writeString(new SimpleDateFormat(
@@ -167,7 +182,7 @@ public class Task implements Parcelable, Cloneable {
 		dest.writeString(description);
 
 		// completed
-		dest.writeBooleanArray(new boolean[] { completed });
+		dest.writeBooleanArray(new boolean[] { completed, deleted });
 
 		// snoozeCount
 		dest.writeInt(snoozeCount);
@@ -195,7 +210,7 @@ public class Task implements Parcelable, Cloneable {
 
 		// recurrencyValue
 		dest.writeInt(recurrenceValue);
-		
+
 		// nextOccurrencId
 		dest.writeLong(nextOccurrenceId);
 	}
@@ -216,7 +231,28 @@ public class Task implements Parcelable, Cloneable {
 		// id
 		id = parcel.readLong();
 
-		// date
+		// create date
+		try {
+			String dateAsString = parcel.readString();
+			if(dateAsString != null) {
+				createDate = new SimpleDateFormat(
+						Constants.DATETIME_FORMAT_STRING).parse(dateAsString);
+			}
+		} catch (ParseException e) {
+			Log.e(Constants.LOGTAG, CLASSNAME, e);
+		}
+		// modification date
+		try {
+			String dateAsString = parcel.readString();
+			if(dateAsString != null) {
+				modificationDate = new SimpleDateFormat(
+						Constants.DATETIME_FORMAT_STRING).parse(dateAsString);
+			}
+		} catch (ParseException e) {
+			Log.e(Constants.LOGTAG, CLASSNAME, e);
+		}
+
+		// target date
 		try {
 			String dateAsString = parcel.readString();
 			if (dateAsString != null) {
@@ -233,6 +269,7 @@ public class Task implements Parcelable, Cloneable {
 		// Boolean values grouped in a single array
 		boolean[] buffer = parcel.createBooleanArray();
 		completed = buffer[0];
+		deleted = buffer[1];
 
 		// snoozeCount
 		snoozeCount = parcel.readInt();
@@ -266,7 +303,15 @@ public class Task implements Parcelable, Cloneable {
 
 	public Task clone() throws CloneNotSupportedException{
 		Task task = (Task)super.clone();
+
+		Date cloneDate = new Date();
+
 		task.setId(0);
+
+		task.setDeleted(false);
+		task.setCreateDate(cloneDate);
+		task.setModificationDate(cloneDate);
+
 		task.setNextOccurrenceId(0);
 
 		return task;
@@ -288,18 +333,18 @@ public class Task implements Parcelable, Cloneable {
 		Date nextOccurrenceTargetDate =  recurrences.create(this).getNext(getTargetDate(), dateProvider, getRecurrenceValue());
 
 		if(nextOccurrenceTargetDate == null) return null;
-		
+
 		try {
 			Task nextOccurrence = clone();
 			nextOccurrence.setCompleted(false);
 			nextOccurrence.setTargetDate(nextOccurrenceTargetDate);
-			
+
 			return nextOccurrence;
-			
+
 		} catch (CloneNotSupportedException e) {
 			e.printStackTrace();
 		}
-		
+
 		return null;
 	}
 
@@ -309,7 +354,7 @@ public class Task implements Parcelable, Cloneable {
 	}
 
 	public void initializeReminders(ReminderCalculations reminders, TaskDateProvider dateProvider) {
-		
+
 		if(isCompleted()) return;
 
 		Date now = dateProvider.getNow().getTime();
@@ -334,18 +379,18 @@ public class Task implements Parcelable, Cloneable {
 	}
 
 	public void updateReminder(ReminderCalculations reminders, TaskDateProvider dateProvider) {
-		
+
 		if(isCompleted()) {
 			setReminderDate(null);
 			return;
 		}
-		
+
 		reminderDate = reminders.create(this).getNext(targetDate == null ? 
 				reminderDate : targetDate, dateProvider, 1);
 	}
-	
+
 	public Date snooze(final TaskDateProvider dateProvider, int snoozeTimeInMinutes) {
-		
+
 		Calendar snoozedTimeCalendar = dateProvider.getNow();
 		snoozedTimeCalendar.add(Calendar.MINUTE, snoozeTimeInMinutes);
 
@@ -354,9 +399,9 @@ public class Task implements Parcelable, Cloneable {
 				return null;
 			}
 		}
-		
+
 		setSnoozeCount(getSnoozeCount() + 1);
-		
+
 		return snoozedTimeCalendar.getTime();
 	}
 
@@ -368,5 +413,29 @@ public class Task implements Parcelable, Cloneable {
 	public void complete() {
 		reminderDate = null;
 		setCompleted(true);
+	}
+
+	public void setCreateDate(Date createDate) {
+		this.createDate = createDate;
+	}
+
+	public Date getCreateDate() {
+		return createDate;
+	}
+
+	public void setModificationDate(Date modificationDate) {
+		this.modificationDate = modificationDate;
+	}
+
+	public Date getModificationDate() {
+		return modificationDate;
+	}
+
+	public void setDeleted(boolean deleted) {
+		this.deleted = deleted;
+	}
+
+	public boolean isDeleted() {
+		return deleted;
 	}
 }

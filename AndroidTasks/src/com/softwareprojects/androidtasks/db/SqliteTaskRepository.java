@@ -1,5 +1,6 @@
 package com.softwareprojects.androidtasks.db;
 
+import java.util.Calendar;
 import java.util.List;
 
 import com.softwareprojects.androidtasks.domain.Task;
@@ -22,11 +23,6 @@ public class SqliteTaskRepository implements TaskRepository {
 	@Override
 	public void update(Task task) {
 		dbHelper.update(task);
-	}
-
-	@Override
-	public void delete(Task task) {
-		dbHelper.delete(task.getId());
 	}
 
 	@Override
@@ -58,6 +54,21 @@ public class SqliteTaskRepository implements TaskRepository {
 	@Override
 	public void purge(int ageInWeeks) {
 		dbHelper.purge(ageInWeeks * 7);
+	}
+
+	@Override
+	public List<Task> getNewSince(Calendar date) {
+		return dbHelper.getNewSince(date);
+	}
+
+	@Override
+	public List<Task> getDeletedSince(Calendar date) {
+		return dbHelper.getDeletedSince(date);
+	}
+
+	@Override
+	public List<Task> getUpdatedSince(Calendar date) {
+		return dbHelper.getUpdatedSince(date);
 	}
 
 }

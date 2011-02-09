@@ -1,5 +1,6 @@
 package com.softwareprojects.androidtasks.domain;
 
+import java.util.Calendar;
 import java.util.List;
 
 public interface TaskRepository {
@@ -7,7 +8,6 @@ public interface TaskRepository {
 	// CRUD
 	void insert(final Task task);
 	void update(final Task task);
-	void delete(final Task task);
 	
 	// Lists
 	List<Task> getAll();
@@ -20,4 +20,10 @@ public interface TaskRepository {
 	
 	// Purging
 	void purge(int ageInWeeks);
+
+	// Sync
+	List<Task> getNewSince(Calendar lastSyncTime);
+	List<Task> getDeletedSince(Calendar lastSyncTime);
+	List<Task> getUpdatedSince(Calendar lastSyncTime);
 }
+
