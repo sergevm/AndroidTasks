@@ -3,6 +3,8 @@ package com.softwareprojects.androidtasks.domain.sync;
 import java.util.List;
 import java.util.ListIterator;
 
+import org.json.JSONException;
+
 import com.softwareprojects.androidtasks.domain.ILog;
 import com.softwareprojects.androidtasks.domain.Task;
 import com.softwareprojects.androidtasks.domain.TaskRepository;
@@ -25,10 +27,16 @@ public class SynchronizationManager {
 
 		log.v(TAG, "Synchronization starting");
 		
-		processLocalAdds();
-		processLocalDeletes();
-		processRemoteUpdates();
-		processLocalUpdates();
+		try {
+			processLocalAdds();
+			processLocalDeletes();
+			processRemoteUpdates();
+			processLocalUpdates();
+		} catch (JSONException e) {
+			e.printStackTrace();
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
 		
 		log.v(TAG, "Synchronization completed");
 
@@ -53,7 +61,7 @@ public class SynchronizationManager {
 		return deleteResult;
 	}
 
-	private SynchronizationResult processLocalAdds() {
+	private SynchronizationResult processLocalAdds() throws JSONException, Exception {
 		List<Task> tasksAddedLocally = localTasks.getNewSince(synchronizer.getLastSyncTime());
 
 		log.d(TAG, String.format("Processing local adds: # of tasks: %d", tasksAddedLocally.size()));
