@@ -28,7 +28,7 @@ import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.TimePicker;
 
-import com.softwareprojects.androidtasks.db.DBHelper;
+import com.softwareprojects.androidtasks.db.TasksDBHelper;
 import com.softwareprojects.androidtasks.db.SqliteTaskRepository;
 import com.softwareprojects.androidtasks.domain.Logger;
 import com.softwareprojects.androidtasks.domain.RecurrenceCalculationFactory;
@@ -40,7 +40,7 @@ import com.softwareprojects.androidtasks.domain.TaskScheduler;
 
 public class EditTask extends Activity {
 
-	private DBHelper dbHelper;
+	private TasksDBHelper dbHelper;
 	private EditText description;
 	private CheckBox completed;
 	private CheckBox hasTargetDate;
@@ -213,7 +213,7 @@ public class EditTask extends Activity {
 		super.onStart();
 
 		Log.i(TAG, "onStart");
-		dbHelper = new DBHelper(this);
+		dbHelper = new TasksDBHelper(this);
 
 		taskScheduler = new TaskScheduler(new ReminderCalculationFactory(), 
 				new RecurrenceCalculationFactory(),	new AndroidTaskAlarmManager(this), 

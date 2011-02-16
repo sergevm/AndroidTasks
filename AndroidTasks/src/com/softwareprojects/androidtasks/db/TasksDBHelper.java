@@ -18,7 +18,7 @@ import android.util.Log;
 import com.softwareprojects.androidtasks.Constants;
 import com.softwareprojects.androidtasks.domain.Task;
 
-public class DBHelper {
+public class TasksDBHelper {
 	// DB names
 	private static final String DB_NAME = "AndroidTasks";
 	private static final String DB_TASKS_TABLE = "Tasks";
@@ -28,9 +28,9 @@ public class DBHelper {
 		new String[]{"id", "description", "createdate", "modificationdate", "completed", "deleted", 
 		"targetdate", "snoozecount", "notes", "location", "remindertype", "reminderdate", 
 		"recurrencetype", "recurrencevalue", "nextoccurrenceid"};
-
+	
 	// Logging stuff
-	private static final String CLASSNAME = DBHelper.class.getSimpleName();
+	private static final String CLASSNAME = TasksDBHelper.class.getSimpleName();
 
 	// Instance of the database
 	private SQLiteDatabase db;
@@ -42,7 +42,7 @@ public class DBHelper {
 	{
 		// SQL statement that creates the TASKS table 
 		private static final String DB_CREATE_TASKS_TABLE = "CREATE TABLE " + 
-		DBHelper.DB_TASKS_TABLE + " (id INTEGER PRIMARY KEY, description TEXT, " + 
+		TasksDBHelper.DB_TASKS_TABLE + " (id INTEGER PRIMARY KEY, description TEXT, " + 
 		"createdate TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP, " + 
 		"modificationdate TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP, " + 
 		"completed INTEGER, deleted INTEGER, targetdate TEXT, " + 
@@ -52,7 +52,7 @@ public class DBHelper {
 		"nextoccurrenceid INTEGER DEFAULT 0);";
 
 		public DBOpenHelper(Context context) {
-			super(context, DBHelper.DB_NAME, null, DBHelper.DB_VERSION);
+			super(context, TasksDBHelper.DB_NAME, null, TasksDBHelper.DB_VERSION);
 
 		}
 
@@ -62,18 +62,18 @@ public class DBHelper {
 				db.execSQL(DB_CREATE_TASKS_TABLE);
 			}
 			catch(SQLException e){
-				Log.e(Constants.LOGTAG, DBHelper.CLASSNAME, e);
+				Log.e(Constants.LOGTAG, TasksDBHelper.CLASSNAME, e);
 			}
 		}
 
 		@Override
 		public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
-			db.execSQL("DROP TABLE IF EXISTS " + DBHelper.DB_TASKS_TABLE);
+			db.execSQL("DROP TABLE IF EXISTS " + TasksDBHelper.DB_TASKS_TABLE);
 			this.onCreate(db);
 		}
 	}
 
-	public DBHelper(Context context)
+	public TasksDBHelper(Context context)
 	{
 		this.dbOpenHelper = new DBOpenHelper(context);
 		this.establishDb();
@@ -190,7 +190,7 @@ public class DBHelper {
 		Cursor c = null;
 
 		try {
-			c = this.db.query(DB_TASKS_TABLE, DBHelper.DB_TASKS_COLS, 
+			c = this.db.query(DB_TASKS_TABLE, TasksDBHelper.DB_TASKS_COLS, 
 					selection, selectionArgs, groupby, having, orderby);
 
 			int rowCount = c.getCount();
@@ -222,7 +222,7 @@ public class DBHelper {
 			}
 		}
 		catch(SQLException e) {
-			Log.e(Constants.LOGTAG, DBHelper.CLASSNAME, e);
+			Log.e(Constants.LOGTAG, TasksDBHelper.CLASSNAME, e);
 		}
 		finally {
 			if(c != null & c.isClosed() == false) {

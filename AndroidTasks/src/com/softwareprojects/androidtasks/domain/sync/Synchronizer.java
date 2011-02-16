@@ -10,10 +10,10 @@ import com.softwareprojects.androidtasks.domain.Task;
 public interface Synchronizer {
 	
 	SynchronizationResult addTasks(final List<Task> tasks) throws JSONException, Exception;
-	SynchronizationResult deleteTasks(final List<Task> tasks);
+	SynchronizationResult deleteTasks(final List<Task> tasks) throws JSONException, Exception;
 	SynchronizationResult updateTasks(final List<Task> tasks);
 
-	List<Task> getNew();
+	List<Task> getNew() throws JSONException, Exception;
 	List<Task> getDeleted();
 	List<Task> getUpdated();
 		

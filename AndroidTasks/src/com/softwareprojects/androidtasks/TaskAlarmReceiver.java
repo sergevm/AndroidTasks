@@ -12,14 +12,14 @@ import android.content.SharedPreferences;
 import android.net.Uri;
 import android.util.Log;
 
-import com.softwareprojects.androidtasks.db.DBHelper;
+import com.softwareprojects.androidtasks.db.TasksDBHelper;
 import com.softwareprojects.androidtasks.domain.NotificationSource;
 
 public class TaskAlarmReceiver extends BroadcastReceiver {
 
 	private final static String TAG = TaskAlarmReceiver.class.getSimpleName();
 	final static Integer REQUEST_CODE = 0;
-	static DBHelper dbHelper;
+	static TasksDBHelper dbHelper;
 
 	@Override
 	public void onReceive(Context context, Intent intent) {

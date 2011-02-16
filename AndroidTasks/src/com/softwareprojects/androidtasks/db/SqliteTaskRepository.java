@@ -8,9 +8,9 @@ import com.softwareprojects.androidtasks.domain.TaskRepository;
 
 public class SqliteTaskRepository implements TaskRepository {
 
-	private final DBHelper dbHelper;
+	private final TasksDBHelper dbHelper;
 	
-	public SqliteTaskRepository(DBHelper dbHelper) {
+	public SqliteTaskRepository(TasksDBHelper dbHelper) {
 		this.dbHelper = dbHelper;
 	}
 	
@@ -71,4 +71,5 @@ public class SqliteTaskRepository implements TaskRepository {
 		return dbHelper.getUpdatedSince(date);
 	}
 
+	
 }

@@ -7,7 +7,7 @@ import android.content.SharedPreferences;
 import android.os.IBinder;
 import android.util.Log;
 
-import com.softwareprojects.androidtasks.db.DBHelper;
+import com.softwareprojects.androidtasks.db.TasksDBHelper;
 import com.softwareprojects.androidtasks.db.SqliteTaskRepository;
 import com.softwareprojects.androidtasks.domain.Logger;
 import com.softwareprojects.androidtasks.domain.RecurrenceCalculationFactory;
@@ -24,7 +24,7 @@ import com.softwareprojects.androidtasks.domain.TaskScheduler;
 public class AndroidTaskService extends Service {
 
 	static final String TAG = AndroidTaskService.class.getSimpleName();
-	DBHelper dbHelper;
+	TasksDBHelper dbHelper;
 	TaskDateProvider dates;
 	TaskRepository repository;
 	TaskScheduler scheduler;
@@ -41,7 +41,7 @@ public class AndroidTaskService extends Service {
 	public void onCreate() {
 		super.onCreate();
 
-		dbHelper = new DBHelper(this);
+		dbHelper = new TasksDBHelper(this);
 		dates = new TaskDateProviderImpl();
 		reminders = new ReminderCalculationFactory();
 		recurrences = new RecurrenceCalculationFactory();

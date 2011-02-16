@@ -52,7 +52,7 @@ public class SynchronizationManager {
 		return updateResult;
 	}
 
-	private SynchronizationResult processLocalDeletes() {
+	private SynchronizationResult processLocalDeletes() throws JSONException, Exception {
 		List<Task> tasksDeletedLocally = localTasks.getDeletedSince(synchronizer.getLastSyncTime());
 
 		log.d(TAG, String.format("Processing local deletes: # of tasks: %d", tasksDeletedLocally.size()));
@@ -70,7 +70,7 @@ public class SynchronizationManager {
 		return addResult;
 	}
 
-	private void processRemoteUpdates() {
+	private void processRemoteUpdates() throws JSONException, Exception {
 			
 		List<Task> tasksAddedRemotely = synchronizer.getNew();
 		ListIterator<Task> iterator = tasksAddedRemotely.listIterator();

@@ -33,8 +33,10 @@ import android.widget.ArrayAdapter;
 import android.widget.ImageView;
 import android.widget.TextView;
 
-import com.softwareprojects.androidtasks.db.DBHelper;
+import com.softwareprojects.androidtasks.db.SqliteToodledoRepository;
+import com.softwareprojects.androidtasks.db.TasksDBHelper;
 import com.softwareprojects.androidtasks.db.SqliteTaskRepository;
+import com.softwareprojects.androidtasks.db.ToodledoDBHelper;
 import com.softwareprojects.androidtasks.domain.Logger;
 import com.softwareprojects.androidtasks.domain.RecurrenceCalculationFactory;
 import com.softwareprojects.androidtasks.domain.RecurrenceCalculations;
@@ -58,7 +60,7 @@ public class TaskList extends ListActivity {
 
 	private static final int DIALOG_CONFIRM_DELETE_ID = 0;
 
-	private static DBHelper dbHelper;
+	private static TasksDBHelper dbHelper;
 
 	private final static int Filter_All = 4;
 	private final static int Filter_All_In_Range = 5;
@@ -154,7 +156,7 @@ public class TaskList extends ListActivity {
 	protected void onStart() {
 		super.onStart();
 
-		dbHelper = new DBHelper(this);
+		dbHelper = new TasksDBHelper(this);
 		dates = new TaskDateProviderImpl();
 		repository = new SqliteTaskRepository(dbHelper);
 		alarmManager = new AndroidTaskAlarmManager(this);
@@ -270,7 +272,9 @@ public class TaskList extends ListActivity {
 		
 		Log.d(TAG, "Syncing with Toodledo");
 		
-		ToodledoSynchronizer syncer = new ToodledoSynchronizer(getSharedPreferences("Toodledo", MODE_PRIVATE));
+		ToodledoSynchronizer syncer = new ToodledoSynchronizer(getSharedPreferences("Toodledo", MODE_PRIVATE), 
+				new SqliteToodledoRepository(new ToodledoDBHelper(this)));
+		
 		syncer.init(user, password);
 		
 		Logger logger = new Logger();

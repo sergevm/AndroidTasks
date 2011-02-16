@@ -15,7 +15,7 @@ import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.softwareprojects.androidtasks.db.DBHelper;
+import com.softwareprojects.androidtasks.db.TasksDBHelper;
 import com.softwareprojects.androidtasks.db.SqliteTaskRepository;
 import com.softwareprojects.androidtasks.domain.Logger;
 import com.softwareprojects.androidtasks.domain.NotificationSource;
@@ -40,7 +40,7 @@ public class TaskNotification extends Activity {
 	Task task;
 	TaskScheduler taskScheduler;
 	
-	DBHelper dbHelper;
+	TasksDBHelper dbHelper;
 	private NotificationSource notificationSource;
 
 	private final int[] snoozedMinutes = new int[] { 1, 2, 5, 10, 30, 60, 120, 180, 240, 480, 1440, 2880 };
@@ -68,7 +68,7 @@ public class TaskNotification extends Activity {
 		long taskId = getIntent().getLongExtra(Constants.ALARM_TASK_ID, -1);
 		notificationSource = NotificationSource.valueOf(getIntent().getStringExtra(Constants.ALARM_SOURCE));
 
-		dbHelper = new DBHelper(this);
+		dbHelper = new TasksDBHelper(this);
 		
 		taskScheduler = new TaskScheduler(
 				new ReminderCalculationFactory(), 
