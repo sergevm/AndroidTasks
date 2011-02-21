@@ -6,6 +6,7 @@ import java.util.List;
 public interface TaskRepository {
 	
 	// CRUD
+	Task find(long id);
 	void insert(final Task task);
 	void update(final Task task);
 	

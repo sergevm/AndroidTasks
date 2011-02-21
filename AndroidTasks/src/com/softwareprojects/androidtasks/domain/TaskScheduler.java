@@ -104,7 +104,12 @@ public class TaskScheduler {
 
 	public void schedule(final Task task) {
 
-		if (task.getId() == 0) {
+		Date modificationDate = new Date();
+		
+		task.setModificationDate(modificationDate);
+		
+		if (task.getId() <= 0) {
+			task.setCreateDate(modificationDate);
 			repository.insert(task);
 		}
 
@@ -141,6 +146,7 @@ public class TaskScheduler {
 		
 		alarms.remove(task);
 		task.setDeleted(true);
+		task.setModificationDate(new Date());
 		repository.update(task);
 	}
 

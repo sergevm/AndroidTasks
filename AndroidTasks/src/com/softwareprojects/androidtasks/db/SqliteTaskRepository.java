@@ -15,6 +15,11 @@ public class SqliteTaskRepository implements TaskRepository {
 	}
 	
 	@Override
+	public Task find(long id) {
+		return dbHelper.getSingle(id);
+	}
+
+	@Override
 	public void insert(Task task) {
 		dbHelper.insert(task);
 

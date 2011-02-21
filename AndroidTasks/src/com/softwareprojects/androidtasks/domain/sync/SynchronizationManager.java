@@ -1,86 +1,144 @@
 package com.softwareprojects.androidtasks.domain.sync;
 
+import java.util.Calendar;
 import java.util.List;
-import java.util.ListIterator;
 
 import org.json.JSONException;
 
 import com.softwareprojects.androidtasks.domain.ILog;
 import com.softwareprojects.androidtasks.domain.Task;
 import com.softwareprojects.androidtasks.domain.TaskRepository;
+import com.softwareprojects.androidtasks.domain.TaskScheduler;
 
 public class SynchronizationManager {
 
-	private final Synchronizer synchronizer;
-	private final TaskRepository localTasks;
 	private final ILog log;
-	
+	private TaskScheduler scheduler;
+	private TaskRepository repository;
+	private final Synchronizer synchronizer;
+
 	private static final String TAG = SynchronizationManager.class.getSimpleName();
 
-	public SynchronizationManager(Synchronizer synchronizer, TaskRepository localTasks, ILog log) {
+	public SynchronizationManager(Synchronizer synchronizer, TaskScheduler scheduler, TaskRepository repository, ILog log) {
 		this.synchronizer = synchronizer;
-		this.localTasks = localTasks;
+		this.repository = repository;
+		this.scheduler = scheduler;
 		this.log = log;
 	}
 
 	public SynchronizationResult sync() {
 
 		log.v(TAG, "Synchronization starting");
-		
+
 		try {
+			Calendar localSyncTime = Calendar.getInstance();
+
 			processLocalAdds();
 			processLocalDeletes();
 			processRemoteUpdates();
+			processRemoteDeletes();
 			processLocalUpdates();
+
+			synchronizer.updateSyncStatus(localSyncTime);
+
 		} catch (JSONException e) {
 			e.printStackTrace();
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
-		
+
 		log.v(TAG, "Synchronization completed");
 
-		return new SynchronizationSuccess();
+		return new Success();
 	}
 
 	private SynchronizationResult processLocalUpdates() {
-		List<Task> tasksUpdatedLocally = localTasks.getUpdatedSince(synchronizer.getLastSyncTime());
-		
+		SynchronizationResult updateResult = null;
+
+		List<Task> tasksUpdatedLocally = repository.getUpdatedSince(synchronizer.getLastEditTime());
+
 		log.d(TAG, String.format("Processing local updates: # of tasks: %d", tasksUpdatedLocally.size()));
-		
-		SynchronizationResult updateResult = synchronizer.updateTasks(tasksUpdatedLocally);
+
+		if(tasksUpdatedLocally.size() > 0) {
+			updateResult = synchronizer.updateTasks(tasksUpdatedLocally);
+		}
+		else {
+			return new NoSync();
+		}
 		return updateResult;
 	}
 
 	private SynchronizationResult processLocalDeletes() throws JSONException, Exception {
-		List<Task> tasksDeletedLocally = localTasks.getDeletedSince(synchronizer.getLastSyncTime());
+		SynchronizationResult deleteResult = null;
+
+		List<Task> tasksDeletedLocally = repository.getDeletedSince(synchronizer.getLastDeleteTime());
 
 		log.d(TAG, String.format("Processing local deletes: # of tasks: %d", tasksDeletedLocally.size()));
 
-		SynchronizationResult deleteResult = synchronizer.deleteTasks(tasksDeletedLocally);
+		if(tasksDeletedLocally.size() > 0) {
+			deleteResult = synchronizer.deleteTasks(tasksDeletedLocally);
+		}
+		else {
+			deleteResult = new NoSync();
+		}
+
 		return deleteResult;
 	}
 
 	private SynchronizationResult processLocalAdds() throws JSONException, Exception {
-		List<Task> tasksAddedLocally = localTasks.getNewSince(synchronizer.getLastSyncTime());
+		SynchronizationResult addResult = null;
+
+		List<Task> tasksAddedLocally = repository.getNewSince(synchronizer.getLastEditTime());
 
 		log.d(TAG, String.format("Processing local adds: # of tasks: %d", tasksAddedLocally.size()));
 
-		SynchronizationResult addResult = synchronizer.addTasks(tasksAddedLocally);
+		if(tasksAddedLocally.size() > 0) {
+			addResult = synchronizer.addTasks(tasksAddedLocally);
+		}
+		else {
+			addResult = new NoSync();
+		}
+
 		return addResult;
 	}
 
 	private void processRemoteUpdates() throws JSONException, Exception {
-			
-		List<Task> tasksAddedRemotely = synchronizer.getNew();
-		ListIterator<Task> iterator = tasksAddedRemotely.listIterator();
 
-		if(iterator.hasNext() == true) {
-			do {
-				Task task = iterator.next();
-				localTasks.insert(task);
+		try {
+			List<Task> remoteUpdatedTasks = synchronizer.getUpdated();
+
+			if(remoteUpdatedTasks == null || remoteUpdatedTasks.size() == 0)
+				return;
+
+			for(Task task : remoteUpdatedTasks) {
+				scheduler.schedule(task);
 			}
-			while(iterator.hasNext());
 		}
+		catch(JSONException ex) {
+			log.d(TAG, ex.getMessage());
+		}
+	}
+
+	private void processRemoteDeletes() throws JSONException, Exception {
+
+		try {
+			List<Long> remoteDeletedTasks = synchronizer.getDeleted();
+
+			if(remoteDeletedTasks == null || remoteDeletedTasks.size() == 0)
+				return;
+
+			for(long id : remoteDeletedTasks) {
+
+				Task task = repository.find(id);
+
+				if(task != null) {
+					scheduler.delete(task);
+				}
+			}		
+		}
+		catch(JSONException ex) {
+			log.d(TAG, ex.getMessage());
+		}
+
 	}
 }

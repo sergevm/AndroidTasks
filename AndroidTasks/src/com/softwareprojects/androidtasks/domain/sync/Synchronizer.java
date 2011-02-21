@@ -13,9 +13,11 @@ public interface Synchronizer {
 	SynchronizationResult deleteTasks(final List<Task> tasks) throws JSONException, Exception;
 	SynchronizationResult updateTasks(final List<Task> tasks);
 
-	List<Task> getNew() throws JSONException, Exception;
-	List<Task> getDeleted();
-	List<Task> getUpdated();
+	List<Task> getUpdated() throws JSONException, Exception;
+	List<Long> getDeleted() throws JSONException, Exception;
 		
-	Calendar getLastSyncTime();
+	Calendar getLastEditTime();
+	Calendar getLastDeleteTime();
+	
+	void updateSyncStatus(Calendar localSyncTime);
 }

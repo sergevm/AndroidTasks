@@ -1,10 +1,10 @@
 package com.softwareprojects.androidtasks.domain.sync;
 
-public class SynchronizationSuccess extends SynchronizationResult {
+public class Success extends SynchronizationResult {
 
 	final static String RESULT_TYPE = "success";
 	
-	public SynchronizationSuccess() {
+	public Success() {
 		super(RESULT_TYPE);
 	}	
 }

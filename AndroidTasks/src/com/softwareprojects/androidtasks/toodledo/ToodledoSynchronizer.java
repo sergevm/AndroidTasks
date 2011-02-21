@@ -6,22 +6,16 @@ import java.util.List;
 
 import org.json.JSONException;
 
-import android.content.SharedPreferences;
 import android.util.Log;
+import android.content.SharedPreferences;
 
-import com.domaindriven.toodledo.Account;
-import com.domaindriven.toodledo.AddTasksRequest;
-import com.domaindriven.toodledo.AddTasksResponse;
-import com.domaindriven.toodledo.DeleteTasksRequest;
-import com.domaindriven.toodledo.DeleteTasksResponse;
-import com.domaindriven.toodledo.GetUpdatedTasksRequest;
-import com.domaindriven.toodledo.GetUpdatedTasksResponse;
-import com.domaindriven.toodledo.Session;
-import com.domaindriven.toodledo.ToodledoSession;
+import com.domaindriven.toodledo.*;
 import com.softwareprojects.androidtasks.domain.Task;
-import com.softwareprojects.androidtasks.domain.sync.SynchronizationResult;
-import com.softwareprojects.androidtasks.domain.sync.SynchronizationSuccess;
+import com.softwareprojects.androidtasks.domain.sync.Failure;
+import com.softwareprojects.androidtasks.domain.sync.NoSync;
 import com.softwareprojects.androidtasks.domain.sync.Synchronizer;
+import com.softwareprojects.androidtasks.domain.sync.SynchronizationResult;
+import com.softwareprojects.androidtasks.domain.sync.Success;
 
 public class ToodledoSynchronizer implements Synchronizer {
 
@@ -29,9 +23,8 @@ public class ToodledoSynchronizer implements Synchronizer {
 
 	private Account account;
 	private Session session;
-	private final ToodledoSyncState synchronizationState;
-
 	private final ToodledoRepository repository;
+	private final ToodledoSyncState synchronizationState;
 
 	public ToodledoSynchronizer(SharedPreferences preferences, ToodledoRepository repository) {
 		this.repository = repository;
@@ -41,124 +34,179 @@ public class ToodledoSynchronizer implements Synchronizer {
 	public void init(final String user, final String password) {
 
 		session = ToodledoSession.create(user, password, new ToodledoSession.Log(){
-					@Override public void log(String tag, String message) {
-						Log.d(tag, message);
-					}});
+			@Override public void log(String tag, String message) {
+				Log.d(tag, message);
+			}});
 
 		account = Account.create(session);
 	}
 
 	@Override
-	public SynchronizationResult addTasks(List<Task> tasks) throws JSONException, Exception {
+	public SynchronizationResult addTasks(List<Task> localTasks) throws JSONException, Exception {
 
-		int index = 0;
+		Log.v(TAG, "addTasks");
 
-		com.domaindriven.toodledo.Task toodledoTasks[] = new com.domaindriven.toodledo.Task[tasks.size()];
+		try {
+			List<com.domaindriven.toodledo.Task> remoteTasks = new ArrayList<com.domaindriven.toodledo.Task>();
 
-		for(Task task:tasks){
-			com.domaindriven.toodledo.Task toodledoTask = new com.domaindriven.toodledo.Task();
-			toodledoTask.setTitle(task.getDescription());
+			for(Task task : localTasks){
+				com.domaindriven.toodledo.Task toodledoTask = new com.domaindriven.toodledo.Task();
 
-			toodledoTasks[index++] = toodledoTask;
+				toodledoTask.setTitle(task.getDescription());
+				remoteTasks.add(toodledoTask);
+			}
+
+			AddTasksRequest request = new AddTasksRequest(session, remoteTasks);
+			AddTasksResponse response = new AddTasksResponse(session, request);
+
+			remoteTasks = response.parse();
+
+			int index = 0;
+
+			for(com.domaindriven.toodledo.Task task : remoteTasks) {
+				repository.insert(localTasks.get(index++).getId(), task.getId(), task.getModified());
+			}
+		} 
+		catch(JSONException ex) {
+			return new Failure(ex.getMessage());
 		}
 
-		AddTasksRequest request = new AddTasksRequest(session, toodledoTasks);
-		AddTasksResponse response = new AddTasksResponse(session, request);
-
-		com.domaindriven.toodledo.Task[] addedToodledoTasks = response.parse();
-		
-		index = 0;
-		
-		for(com.domaindriven.toodledo.Task task : addedToodledoTasks) {
-			repository.insert(tasks.get(index++).getId(), task.getId(), task.getModified());
-		}
-
-		return new SynchronizationSuccess();
+		return new Success();
 	}
 
 	@Override
 	public SynchronizationResult deleteTasks(List<Task> tasks) throws JSONException, Exception {
-		
+
+		Log.v(TAG, "deleteTasks");
+
 		if(tasks == null || tasks.size() == 0) {
-			return new SynchronizationSuccess();
+			return new NoSync();
 		}
-		
-		List<String> toodledoTasksList = new ArrayList<String>();
-		
-		for(Task task : tasks) {
-			
-			String remoteId = repository.find(task.getId());
-			
-			// If no remote id is known, then the task was never logged in Toodledo before the 
-			// task was deleted ...
-			if(remoteId != null) {
-				toodledoTasksList.add(String.valueOf(task.getId()));
+
+		try {
+			List<String> remoteIds = new ArrayList<String>();
+
+			for(Task task : tasks) {
+
+				String remoteId = repository.findRemoteIdByLocalId(task.getId());
+
+				if(remoteId != null) {
+					remoteIds.add(String.valueOf(remoteId));
+				}
 			}
+
+			if(remoteIds.size() == 0)
+				return new Success();
+
+			DeleteTasksRequest request = new DeleteTasksRequest(session, remoteIds);
+			DeleteTasksResponse response = new DeleteTasksResponse(session, request);
+
+			remoteIds = response.parse();
+
+			for(String remoteId : remoteIds) {
+				repository.deleteByRemoteId(remoteId);
+			}
+
+			return new Success();
+		} 
+		catch(JSONException ex) {
+			return new Failure(ex.getMessage());
 		}
-		
-		// If nothing to synchronize, don't ...
-		if(toodledoTasksList.size() == 0)
-			return new SynchronizationSuccess();
-		
-		// TODO: change signature to accept a List<String> ?
-		String[] toDelete = new String[toodledoTasksList.size()];
-		
-		// ... but for now we still need an array ...
-		int index = 0;
-		for(String id : toodledoTasksList) {
-			toDelete[index++] = id;
-		}
-		
-		DeleteTasksRequest request = new DeleteTasksRequest(session, toDelete);
-		DeleteTasksResponse response = new DeleteTasksResponse(session, request);
-		
-		toDelete = response.parse();
-		
-		return new SynchronizationSuccess();	
 	}
 
 	@Override
 	public SynchronizationResult updateTasks(List<Task> tasks) {
-		return new SynchronizationSuccess();
+		Log.v(TAG, "updateTasks");
+		return new Success();
 	}
 
 	@Override
-	public List<Task> getNew() throws JSONException, Exception {
-
-		Log.v(TAG, "getNew");
-
-		List<Task> newTasks = new ArrayList<Task>();
-
-		if(account.getLastEditTask() > synchronizationState.getLastEditTimestamp()) {
-			GetUpdatedTasksRequest request = new GetUpdatedTasksRequest(session, synchronizationState.getLastEditTimestamp());
-			GetUpdatedTasksResponse response = new GetUpdatedTasksResponse(session, request);
-			
-			com.domaindriven.toodledo.Task[] updatedTasks = response.parse();
-		}
-		
-		// TODO: Check if tasks exist, if they do, update them. Add them to the newTasks list ...
-
-		return newTasks;
-	}
-
-	@Override
-	public List<Task> getDeleted() {
-
-		Log.v(TAG, "getDeleted");
-
-		return new ArrayList<Task>();
-	}
-
-	@Override
-	public List<Task> getUpdated() {
+	public List<Task> getUpdated() throws JSONException, Exception {
 
 		Log.v(TAG, "getUpdated");
 
-		return new ArrayList<Task>();
+		List<Task> mappedTasks = null;
+
+		if(account.getLastEditTask() > synchronizationState.getLastEditTimestamp()) {
+
+			GetUpdatedTasksRequest request = new GetUpdatedTasksRequest(session, synchronizationState.getLastEditTimestamp());
+			GetUpdatedTasksResponse response = new GetUpdatedTasksResponse(session, request);
+
+			List<com.domaindriven.toodledo.Task> updatedTasks = response.parse();
+
+			mappedTasks = translateUpdated(updatedTasks);
+		}
+
+		return mappedTasks;
 	}
 
 	@Override
-	public Calendar getLastSyncTime() {
-		return synchronizationState.getLastSyncTime();
+	public List<Long> getDeleted() throws JSONException, Exception {
+
+		Log.v(TAG, "getDeleted");
+
+		List<Long> localIds = new ArrayList<Long>();
+
+		if(account.getLastDeleteTask() > synchronizationState.getLastDeleteTimestamp()) {
+
+			GetDeletedTasksRequest request = new GetDeletedTasksRequest(session, synchronizationState.getLastDeleteTimestamp());
+			GetDeletedTasksResponse response = new GetDeletedTasksResponse(session, request);
+
+			List<String> toodledoIds = response.parse();
+
+			if(toodledoIds == null || toodledoIds.size() == 0) { 
+				return localIds;
+			}
+
+			for(String toodledoId : toodledoIds) {
+
+				long localId = repository.findLocalIdByRemoteId(toodledoId);
+
+				if(localId > 0) {
+					localIds.add(localId);
+				}
+			}
+		}
+
+		return localIds;
+	}
+
+	@Override
+	public Calendar getLastEditTime() {
+		return synchronizationState.getLastEditTime();
+	}
+
+	@Override
+	public Calendar getLastDeleteTime() {
+		return synchronizationState.getLastDeleteTime();
+	}
+
+	@Override
+	public void updateSyncStatus(Calendar localSyncTime) {
+
+		account = Account.create(session);
+		synchronizationState.setLastSyncTime(localSyncTime);
+		synchronizationState.setLastEditTimestamp(account.getLastEditTask());
+		synchronizationState.setLastDeleteTimestamp(account.getLastDeleteTask());
+
+		synchronizationState.save();
+	}
+
+	private List<Task> translateUpdated(List<com.domaindriven.toodledo.Task> updatedTasks) {
+
+		List<Task> tasks = new ArrayList<Task>();
+
+		for(com.domaindriven.toodledo.Task updatedTask : updatedTasks) {
+
+			long localId = repository.findLocalIdByRemoteId(updatedTask.getId());
+
+			Task task = new Task();
+			task.setId(localId);
+			task.setDescription(updatedTask.getTitle());
+
+			tasks.add(task);
+		}
+
+		return tasks;
 	}
 }

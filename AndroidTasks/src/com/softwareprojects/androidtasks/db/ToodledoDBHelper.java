@@ -86,7 +86,7 @@ public class ToodledoDBHelper {
 		this.db.insert(DB_TASK_ID_MAPPINGS_TABLE, null, values);
 	}
 
-	public String find(long local_id) {
+	public String findRemoteIdByLocalId(long local_id) {
 		Cursor c = null;
 
 		try {
@@ -95,7 +95,8 @@ public class ToodledoDBHelper {
 			
 			if(c.getCount() == 0) return null;
 			c.moveToFirst();
-			return c.getString(2);
+			
+			return c.getString(1);
 		}
 		catch(SQLException e) {
 			Log.e(Constants.LOGTAG, ToodledoDBHelper.CLASSNAME, e);
@@ -107,5 +108,37 @@ public class ToodledoDBHelper {
 		}
 		
 		return null;
+	}
+
+	public long findLocalIdByRemoteId(String id) {
+		Cursor c = null;
+
+		try {
+			c = db.query(DB_TASK_ID_MAPPINGS_TABLE, new String[]{"local_id", "remote_id", "modified"}, 
+					"remote_id = ?", new String[]{id}, null, null, null);
+			
+			if(c.getCount() == 0) return 0;
+			c.moveToFirst();
+			
+			return c.getLong(0);
+		}
+		catch(SQLException e) {
+			Log.e(Constants.LOGTAG, ToodledoDBHelper.CLASSNAME, e);
+		}
+		finally {
+			if(c != null & c.isClosed() == false) {
+				c.close();
+			}			
+		}
+		
+		return -1;
+	}
+
+	public void deleteByLocalId(long id) {
+		this.db.delete(DB_TASK_ID_MAPPINGS_TABLE, String.format("local_id = ?"), new String[]{String.valueOf(id)});
+	}
+
+	public void deleteByRemoteId(String id) {
+		this.db.delete(DB_TASK_ID_MAPPINGS_TABLE, String.format("remote_id = ?"), new String[]{id});		
 	}
 }

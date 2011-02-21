@@ -51,6 +51,7 @@ import com.softwareprojects.androidtasks.domain.TaskRepository;
 import com.softwareprojects.androidtasks.domain.TaskScheduler;
 import com.softwareprojects.androidtasks.domain.sync.SynchronizationManager;
 import com.softwareprojects.androidtasks.domain.sync.SynchronizationResult;
+import com.softwareprojects.androidtasks.toodledo.ToodledoRepository;
 import com.softwareprojects.androidtasks.toodledo.ToodledoSynchronizer;
 
 public class TaskList extends ListActivity {
@@ -74,7 +75,7 @@ public class TaskList extends ListActivity {
 	private IntentFilter listChangedIntentFilter;
 
 	private TaskDateProvider dates;
-	private TaskRepository repository;
+	private TaskRepository taskRepository;
 	private TaskAlarmManager alarmManager;
 	private ReminderCalculations reminders;
 	private RecurrenceCalculations recurrences;
@@ -158,11 +159,11 @@ public class TaskList extends ListActivity {
 
 		dbHelper = new TasksDBHelper(this);
 		dates = new TaskDateProviderImpl();
-		repository = new SqliteTaskRepository(dbHelper);
+		taskRepository = new SqliteTaskRepository(dbHelper);
 		alarmManager = new AndroidTaskAlarmManager(this);
 		reminders = new ReminderCalculationFactory();
 		recurrences = new RecurrenceCalculationFactory();
-		taskScheduler = new TaskScheduler(reminders, recurrences, alarmManager, dates, repository, new Logger());
+		taskScheduler = new TaskScheduler(reminders, recurrences, alarmManager, dates, taskRepository, new Logger());
 
 		Log.i(TAG, "onStart");
 	}
@@ -172,7 +173,7 @@ public class TaskList extends ListActivity {
 		super.onStop();
 
 		dbHelper.Cleanup();
-		repository = null;
+		taskRepository = null;
 
 		Log.i(TAG, "onStop");
 	}
@@ -269,20 +270,30 @@ public class TaskList extends ListActivity {
 	}
 
 	private void getToodledoTasks(final String user, final String password) {
-		
-		Log.d(TAG, "Syncing with Toodledo");
-		
-		ToodledoSynchronizer syncer = new ToodledoSynchronizer(getSharedPreferences("Toodledo", MODE_PRIVATE), 
-				new SqliteToodledoRepository(new ToodledoDBHelper(this)));
-		
-		syncer.init(user, password);
-		
-		Logger logger = new Logger();
 
-		SynchronizationManager manager = new SynchronizationManager(syncer, repository, logger);
-		SynchronizationResult synchronizationResult = manager.sync();
-		
-		Log.d(TAG, String.format("Syncing with Toodledo completed: %s", synchronizationResult));
+		Log.d(TAG, "Syncing with Toodledo");
+
+
+		ToodledoDBHelper toodledoDBHelper = new ToodledoDBHelper(this);
+
+		try {
+			ToodledoRepository toodledoRepository = new SqliteToodledoRepository(toodledoDBHelper);
+			ToodledoSynchronizer syncer = new ToodledoSynchronizer(getSharedPreferences("Toodledo", MODE_PRIVATE), toodledoRepository);
+
+			syncer.init(user, password);
+
+			Logger logger = new Logger();
+
+			SynchronizationManager manager = new SynchronizationManager(syncer,taskScheduler, taskRepository, logger);
+			SynchronizationResult synchronizationResult = manager.sync();
+
+			Log.d(TAG, String.format("Syncing with Toodledo completed: %s", synchronizationResult));
+			
+			updateFilteredList();
+		}
+		finally {
+			toodledoDBHelper.Cleanup();
+		}		
 	}
 
 	@Override
@@ -343,7 +354,7 @@ public class TaskList extends ListActivity {
 				@Override
 				public void onClick(DialogInterface dialog, int which) {
 					Log.v(TAG, String.format("Confirmed delete of task with id %d", toDelete.getId()));
-					
+
 					taskScheduler.delete(toDelete);
 					updateFilteredList();
 					removeDialog(DIALOG_CONFIRM_DELETE_ID);
@@ -390,16 +401,16 @@ public class TaskList extends ListActivity {
 
 		switch(getCurrentFilter()) {
 		case Filter_All:
-			list = repository.getAll();
+			list = taskRepository.getAll();
 			break;
 		case Filter_All_In_Range:
-			list = repository.getAll(pastWeeks, futureWeeks);
+			list = taskRepository.getAll(pastWeeks, futureWeeks);
 			break;
 		case Filter_Active:
-			list = repository.getActive(pastWeeks, futureWeeks);
+			list = taskRepository.getActive(pastWeeks, futureWeeks);
 			break;
 		case Filter_Due:
-			list = repository.getDue();
+			list = taskRepository.getDue();
 			break;
 		case Filter_NoDate:
 			// TODO: move to repository
