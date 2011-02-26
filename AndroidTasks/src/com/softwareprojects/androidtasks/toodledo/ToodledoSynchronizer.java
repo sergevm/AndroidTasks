@@ -6,16 +6,29 @@ import java.util.List;
 
 import org.json.JSONException;
 
-import android.util.Log;
 import android.content.SharedPreferences;
+import android.util.Log;
 
-import com.domaindriven.toodledo.*;
+import com.domaindriven.toodledo.Account;
+import com.domaindriven.toodledo.AddTasksRequest;
+import com.domaindriven.toodledo.AddTasksResponse;
+import com.domaindriven.toodledo.DeleteTasksRequest;
+import com.domaindriven.toodledo.DeleteTasksResponse;
+import com.domaindriven.toodledo.GetDeletedTasksRequest;
+import com.domaindriven.toodledo.GetDeletedTasksResponse;
+import com.domaindriven.toodledo.GetUpdatedTasksRequest;
+import com.domaindriven.toodledo.GetUpdatedTasksResponse;
+import com.domaindriven.toodledo.RestClientFactory;
+import com.domaindriven.toodledo.Session;
+import com.domaindriven.toodledo.ToodledoSession;
+import com.domaindriven.toodledo.UpdateTasksRequest;
+import com.domaindriven.toodledo.UpdateTasksResponse;
 import com.softwareprojects.androidtasks.domain.Task;
 import com.softwareprojects.androidtasks.domain.sync.Failure;
 import com.softwareprojects.androidtasks.domain.sync.NoSync;
-import com.softwareprojects.androidtasks.domain.sync.Synchronizer;
-import com.softwareprojects.androidtasks.domain.sync.SynchronizationResult;
 import com.softwareprojects.androidtasks.domain.sync.Success;
+import com.softwareprojects.androidtasks.domain.sync.SynchronizationResult;
+import com.softwareprojects.androidtasks.domain.sync.Synchronizer;
 
 public class ToodledoSynchronizer implements Synchronizer {
 
@@ -26,7 +39,10 @@ public class ToodledoSynchronizer implements Synchronizer {
 	private final ToodledoRepository repository;
 	private final ToodledoSyncState synchronizationState;
 
-	public ToodledoSynchronizer(SharedPreferences preferences, ToodledoRepository repository) {
+	private final RestClientFactory factory;
+
+	public ToodledoSynchronizer(SharedPreferences preferences, ToodledoRepository repository, RestClientFactory factory) {
+		this.factory = factory;
 		this.repository = repository;
 		this.synchronizationState = new ToodledoSyncState(preferences);
 	}
@@ -36,9 +52,9 @@ public class ToodledoSynchronizer implements Synchronizer {
 		session = ToodledoSession.create(user, password, new ToodledoSession.Log(){
 			@Override public void log(String tag, String message) {
 				Log.d(tag, message);
-			}});
+			}},factory);
 
-		account = Account.create(session);
+		account = Account.create(session, factory);
 	}
 
 	@Override
@@ -69,7 +85,7 @@ public class ToodledoSynchronizer implements Synchronizer {
 				return new NoSync("No locally added tasks to sync with Toodledo");
 			}
 			
-			AddTasksRequest request = new AddTasksRequest(session, remoteTasks);
+			AddTasksRequest request = new AddTasksRequest(session, remoteTasks, factory);
 			AddTasksResponse response = new AddTasksResponse(session, request);
 
 			remoteTasks = response.parse();
@@ -111,7 +127,7 @@ public class ToodledoSynchronizer implements Synchronizer {
 			if(remoteIds.size() == 0)
 				return new NoSync("No locally deleted tasks to sync with Toodledo");
 
-			DeleteTasksRequest request = new DeleteTasksRequest(session, remoteIds);
+			DeleteTasksRequest request = new DeleteTasksRequest(session, remoteIds, factory);
 			DeleteTasksResponse response = new DeleteTasksResponse(session, request);
 
 			remoteIds = response.parse();
@@ -158,7 +174,7 @@ public class ToodledoSynchronizer implements Synchronizer {
 			if(toodledoTasks.size() == 0)
 				return new NoSync("No locally updated tasks to sync with Toodledo");
 
-			UpdateTasksRequest request = new UpdateTasksRequest(session, toodledoTasks);
+			UpdateTasksRequest request = new UpdateTasksRequest(session, toodledoTasks, factory);
 			UpdateTasksResponse response = new UpdateTasksResponse(session, request);
 
 			toodledoTasks = response.parse();
@@ -186,7 +202,7 @@ public class ToodledoSynchronizer implements Synchronizer {
 
 		if(account.getLastEditTask() > synchronizationState.getLastEditTimestamp()) {
 
-			GetUpdatedTasksRequest request = new GetUpdatedTasksRequest(session, synchronizationState.getLastEditTimestamp());
+			GetUpdatedTasksRequest request = new GetUpdatedTasksRequest(session, synchronizationState.getLastEditTimestamp(), factory);
 			GetUpdatedTasksResponse response = new GetUpdatedTasksResponse(session, request);
 
 			List<com.domaindriven.toodledo.Task> updatedTasks = response.parse();
@@ -206,7 +222,7 @@ public class ToodledoSynchronizer implements Synchronizer {
 
 		if(account.getLastDeleteTask() > synchronizationState.getLastDeleteTimestamp()) {
 
-			GetDeletedTasksRequest request = new GetDeletedTasksRequest(session, synchronizationState.getLastDeleteTimestamp());
+			GetDeletedTasksRequest request = new GetDeletedTasksRequest(session, synchronizationState.getLastDeleteTimestamp(), factory);
 			GetDeletedTasksResponse response = new GetDeletedTasksResponse(session, request);
 
 			List<String> toodledoIds = response.parse();
@@ -241,7 +257,7 @@ public class ToodledoSynchronizer implements Synchronizer {
 	@Override
 	public void updateSyncStatus(Calendar localSyncTime) {
 
-		account = Account.create(session);
+		account = Account.create(session, factory);
 		synchronizationState.setLastSyncTime(localSyncTime);
 		synchronizationState.setLastEditTimestamp(account.getLastEditTask());
 		synchronizationState.setLastDeleteTimestamp(account.getLastDeleteTask());

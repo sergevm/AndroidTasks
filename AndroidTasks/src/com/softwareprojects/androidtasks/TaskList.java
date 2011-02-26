@@ -51,6 +51,7 @@ import com.softwareprojects.androidtasks.domain.TaskRepository;
 import com.softwareprojects.androidtasks.domain.TaskScheduler;
 import com.softwareprojects.androidtasks.domain.sync.SynchronizationManager;
 import com.softwareprojects.androidtasks.domain.sync.SynchronizationResult;
+import com.softwareprojects.androidtasks.toodledo.HttpRestClientFactory;
 import com.softwareprojects.androidtasks.toodledo.ToodledoRepository;
 import com.softwareprojects.androidtasks.toodledo.ToodledoSynchronizer;
 
@@ -278,7 +279,10 @@ public class TaskList extends ListActivity {
 
 		try {
 			ToodledoRepository toodledoRepository = new SqliteToodledoRepository(toodledoDBHelper);
-			ToodledoSynchronizer syncer = new ToodledoSynchronizer(getSharedPreferences("Toodledo", MODE_PRIVATE), toodledoRepository);
+			
+			ToodledoSynchronizer syncer = new ToodledoSynchronizer(
+					getSharedPreferences("Toodledo", MODE_PRIVATE), 
+					toodledoRepository, new HttpRestClientFactory());
 
 			syncer.init(user, password);
 
