@@ -46,16 +46,29 @@ public class ToodledoSynchronizer implements Synchronizer {
 
 		Log.v(TAG, "addTasks");
 
+		if(localTasks == null || localTasks.size() == 0) {
+			return new NoSync("The list of locally added tasks is empty");
+		}
+		
 		try {
 			List<com.domaindriven.toodledo.Task> remoteTasks = new ArrayList<com.domaindriven.toodledo.Task>();
 
 			for(Task task : localTasks){
+				
+				if(repository.findRemoteIdByLocalId(task.getId()) != null) {
+					continue;
+				}
+				
 				com.domaindriven.toodledo.Task toodledoTask = new com.domaindriven.toodledo.Task();
 
 				toodledoTask.setTitle(task.getDescription());
 				remoteTasks.add(toodledoTask);
 			}
-
+			
+			if(remoteTasks.size() == 0) {
+				return new NoSync("No locally added tasks to sync with Toodledo");
+			}
+			
 			AddTasksRequest request = new AddTasksRequest(session, remoteTasks);
 			AddTasksResponse response = new AddTasksResponse(session, request);
 
@@ -80,7 +93,7 @@ public class ToodledoSynchronizer implements Synchronizer {
 		Log.v(TAG, "deleteTasks");
 
 		if(tasks == null || tasks.size() == 0) {
-			return new NoSync();
+			return new NoSync("The list of locally deleted tasks is empty");
 		}
 
 		try {
@@ -96,7 +109,7 @@ public class ToodledoSynchronizer implements Synchronizer {
 			}
 
 			if(remoteIds.size() == 0)
-				return new Success();
+				return new NoSync("No locally deleted tasks to sync with Toodledo");
 
 			DeleteTasksRequest request = new DeleteTasksRequest(session, remoteIds);
 			DeleteTasksResponse response = new DeleteTasksResponse(session, request);
@@ -117,6 +130,50 @@ public class ToodledoSynchronizer implements Synchronizer {
 	@Override
 	public SynchronizationResult updateTasks(List<Task> tasks) {
 		Log.v(TAG, "updateTasks");
+
+
+		if(tasks == null || tasks.size() == 0) {
+			return new NoSync("The list of locally updated tasks is empty");
+		}
+
+		try {
+			List<com.domaindriven.toodledo.Task> toodledoTasks = new ArrayList<com.domaindriven.toodledo.Task>();
+
+			for(Task task : tasks) {
+
+				String remoteId = repository.findRemoteIdByLocalId(task.getId());
+
+				if(remoteId != null) {
+					
+					com.domaindriven.toodledo.Task toodledoTask = new com.domaindriven.toodledo.Task();
+					toodledoTask.setId(remoteId);
+					toodledoTask.setTitle(task.getDescription());
+					toodledoTask.setCompleted(task.isCompleted());
+					toodledoTask.setModified(task.getModificationDate().getTime() / 1000);
+					
+					toodledoTasks.add(toodledoTask);
+				}
+			}
+
+			if(toodledoTasks.size() == 0)
+				return new NoSync("No locally updated tasks to sync with Toodledo");
+
+			UpdateTasksRequest request = new UpdateTasksRequest(session, toodledoTasks);
+			UpdateTasksResponse response = new UpdateTasksResponse(session, request);
+
+			toodledoTasks = response.parse();
+
+			return new Success();
+		} 
+		catch(JSONException e) {
+			
+			e.printStackTrace();
+			return new Failure(e.getMessage());
+			
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		
 		return new Success();
 	}
 

@@ -168,19 +168,19 @@ public class TasksDBHelper {
 	}
 
 	public List<Task> getNewSince(Calendar date) {
-		return getTasks(String.format("deleted = 0 AND strftime('%%Y-%%m-%%d %%H:%%M', createdate) > strftime('%%Y-%%m-%%d %%H:%%M', '%s')", 
+		return getTasks(String.format("deleted = 0 AND strftime('%%Y-%%m-%%d %%H:%%M', createdate) >= strftime('%%Y-%%m-%%d %%H:%%M', '%s')", 
 				toDatabaseFormat(date)), null, null, null, "length(createdate) DESC, strftime('%Y-%m-%d %H:%M', createdate)");
 	}
 
 	public List<Task> getDeletedSince(Calendar date) {
-		return getTasks(String.format("deleted = 1 AND strftime('%%Y-%%m-%%d %%H:%%M', modificationdate) > strftime('%%Y-%%m-%%d %%H:%%M', '%s')", 
+		return getTasks(String.format("deleted = 1 AND strftime('%%Y-%%m-%%d %%H:%%M', modificationdate) >= strftime('%%Y-%%m-%%d %%H:%%M', '%s')", 
 				toDatabaseFormat(date)), null, null, null, "length(createdate) DESC, strftime('%Y-%m-%d %H:%M', createdate)");
 	}
 
 	public List<Task> getUpdatedSince(Calendar date) {
 		String databaseDate = toDatabaseFormat(date);
 		
-		return getTasks(String.format("deleted = 0 AND strftime('%%Y-%%m-%%d %%H:%%M', modificationdate) > strftime('%%Y-%%m-%%d %%H:%%M', '%s') AND strftime('%%Y-%%m-%%d %%H:%%M', createdate) <= strftime('%%Y-%%m-%%d %%H:%%M', '%s')", 
+		return getTasks(String.format("deleted = 0 AND strftime('%%Y-%%m-%%d %%H:%%M', modificationdate) >= strftime('%%Y-%%m-%%d %%H:%%M', '%s') AND strftime('%%Y-%%m-%%d %%H:%%M', createdate) <= strftime('%%Y-%%m-%%d %%H:%%M', '%s')", 
 				databaseDate, databaseDate), null, null, null, "length(createdate) DESC, strftime('%Y-%m-%d %H:%M', createdate)");
 	}
 

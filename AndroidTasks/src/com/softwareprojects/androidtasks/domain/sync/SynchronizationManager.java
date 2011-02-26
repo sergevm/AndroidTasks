@@ -38,7 +38,7 @@ public class SynchronizationManager {
 			processRemoteUpdates();
 			processRemoteDeletes();
 			processLocalUpdates();
-
+			
 			synchronizer.updateSyncStatus(localSyncTime);
 
 		} catch (JSONException e) {
@@ -63,8 +63,11 @@ public class SynchronizationManager {
 			updateResult = synchronizer.updateTasks(tasksUpdatedLocally);
 		}
 		else {
-			return new NoSync();
+			return new NoSync("No local updates to sync");
 		}
+
+		log.d(TAG, updateResult.toString());
+
 		return updateResult;
 	}
 
@@ -79,8 +82,10 @@ public class SynchronizationManager {
 			deleteResult = synchronizer.deleteTasks(tasksDeletedLocally);
 		}
 		else {
-			deleteResult = new NoSync();
+			deleteResult = new NoSync("No local deletes to sync");
 		}
+		
+		log.d(TAG, deleteResult.toString());
 
 		return deleteResult;
 	}
@@ -96,8 +101,10 @@ public class SynchronizationManager {
 			addResult = synchronizer.addTasks(tasksAddedLocally);
 		}
 		else {
-			addResult = new NoSync();
+			addResult = new NoSync("No local adds to sync");
 		}
+		
+		log.d(TAG, addResult.toString());
 
 		return addResult;
 	}
