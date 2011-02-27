@@ -2,6 +2,7 @@ package com.softwareprojects.androidtasks.domain.sync;
 
 import java.util.Calendar;
 import java.util.List;
+import java.util.Map;
 
 import org.json.JSONException;
 
@@ -13,11 +14,14 @@ public interface Synchronizer {
 	SynchronizationResult deleteTasks(final List<Task> tasks) throws JSONException, Exception;
 	SynchronizationResult updateTasks(final List<Task> tasks);
 
-	List<Task> getUpdated() throws JSONException, Exception;
+	Map<String,Task> getUpdated() throws JSONException, Exception;
 	List<Long> getDeleted() throws JSONException, Exception;
 		
 	Calendar getLastEditTime();
 	Calendar getLastDeleteTime();
+
+	void register(Map<String,Task> tasks);
+	void unregister(List<Long> tasks);
 	
 	void updateSyncStatus(Calendar localSyncTime);
 }

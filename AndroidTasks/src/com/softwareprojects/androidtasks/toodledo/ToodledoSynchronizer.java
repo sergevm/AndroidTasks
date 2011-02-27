@@ -2,7 +2,9 @@ package com.softwareprojects.androidtasks.toodledo;
 
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.json.JSONException;
 
@@ -18,6 +20,7 @@ import com.domaindriven.toodledo.GetDeletedTasksRequest;
 import com.domaindriven.toodledo.GetDeletedTasksResponse;
 import com.domaindriven.toodledo.GetUpdatedTasksRequest;
 import com.domaindriven.toodledo.GetUpdatedTasksResponse;
+import com.domaindriven.toodledo.Response;
 import com.domaindriven.toodledo.RestClientFactory;
 import com.domaindriven.toodledo.Session;
 import com.domaindriven.toodledo.ToodledoSession;
@@ -128,7 +131,7 @@ public class ToodledoSynchronizer implements Synchronizer {
 				return new NoSync("No locally deleted tasks to sync with Toodledo");
 
 			DeleteTasksRequest request = new DeleteTasksRequest(session, remoteIds, factory);
-			DeleteTasksResponse response = new DeleteTasksResponse(session, request);
+			Response<List<String>> response = new DeleteTasksResponse(session, request);
 
 			remoteIds = response.parse();
 
@@ -194,11 +197,11 @@ public class ToodledoSynchronizer implements Synchronizer {
 	}
 
 	@Override
-	public List<Task> getUpdated() throws JSONException, Exception {
+	public Map<String,Task> getUpdated() throws JSONException, Exception {
 
 		Log.v(TAG, "getUpdated");
 
-		List<Task> mappedTasks = null;
+		Map<String,Task> mappedTasks = null;
 
 		if(account.getLastEditTask() > synchronizationState.getLastEditTimestamp()) {
 
@@ -255,6 +258,21 @@ public class ToodledoSynchronizer implements Synchronizer {
 	}
 
 	@Override
+	public void register(Map<String,Task> tasks) {
+		for(String remoteKey : tasks.keySet()) {
+			Task task = tasks.get(remoteKey);
+			repository.insert(tasks.get(remoteKey).getId(), remoteKey, task.getModificationDate().getTime() / 1000);
+		}
+	}
+
+	@Override
+	public void unregister(List<Long> tasks) {
+		for(Long id : tasks) {
+			repository.deleteByLocalId(id);
+		}
+	}
+
+	@Override
 	public void updateSyncStatus(Calendar localSyncTime) {
 
 		account = Account.create(session, factory);
@@ -265,9 +283,9 @@ public class ToodledoSynchronizer implements Synchronizer {
 		synchronizationState.save();
 	}
 
-	private List<Task> translateUpdated(List<com.domaindriven.toodledo.Task> updatedTasks) {
+	private Map<String,Task> translateUpdated(List<com.domaindriven.toodledo.Task> updatedTasks) {
 
-		List<Task> tasks = new ArrayList<Task>();
+		Map<String,Task> tasks = new HashMap<String,Task>();
 
 		for(com.domaindriven.toodledo.Task updatedTask : updatedTasks) {
 
@@ -277,7 +295,7 @@ public class ToodledoSynchronizer implements Synchronizer {
 			task.setId(localId);
 			task.setDescription(updatedTask.getTitle());
 
-			tasks.add(task);
+			tasks.put(updatedTask.getId(),task);
 		}
 
 		return tasks;

@@ -1,7 +1,10 @@
 package com.softwareprojects.androidtasks.domain.sync;
 
+import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.json.JSONException;
 
@@ -112,14 +115,21 @@ public class SynchronizationManager {
 	private void processRemoteUpdates() throws JSONException, Exception {
 
 		try {
-			List<Task> remoteUpdatedTasks = synchronizer.getUpdated();
+			Map<String,Task> remoteUpdatedTasks = synchronizer.getUpdated();
+			Map<String,Task> unregisteredTasks = new HashMap<String,Task>();
 
 			if(remoteUpdatedTasks == null || remoteUpdatedTasks.size() == 0)
 				return;
 
-			for(Task task : remoteUpdatedTasks) {
+			for(String remoteKey : remoteUpdatedTasks.keySet()) {
+				Task task = remoteUpdatedTasks.get(remoteKey);
+				boolean isNew = task.getId() == 0;
 				scheduler.schedule(task);
+				
+				if(isNew) unregisteredTasks.put(remoteKey, task);
 			}
+			
+			synchronizer.register(unregisteredTasks);
 		}
 		catch(JSONException ex) {
 			log.d(TAG, ex.getMessage());
@@ -142,6 +152,8 @@ public class SynchronizationManager {
 					scheduler.delete(task);
 				}
 			}		
+			
+			synchronizer.unregister(remoteDeletedTasks);
 		}
 		catch(JSONException ex) {
 			log.d(TAG, ex.getMessage());
