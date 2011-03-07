@@ -1,4 +1,6 @@
-package com.softwareprojects.androidtasks;
+package com.softwareprojects.androidtasks.receiver;
+
+import com.softwareprojects.androidtasks.Constants;
 
 import android.content.BroadcastReceiver;
 import android.content.Context;

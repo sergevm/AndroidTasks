@@ -26,30 +26,32 @@ import com.domaindriven.toodledo.Session;
 import com.domaindriven.toodledo.ToodledoSession;
 import com.domaindriven.toodledo.UpdateTasksRequest;
 import com.domaindriven.toodledo.UpdateTasksResponse;
+import com.google.inject.Inject;
 import com.softwareprojects.androidtasks.domain.Task;
 import com.softwareprojects.androidtasks.domain.sync.Failure;
 import com.softwareprojects.androidtasks.domain.sync.NoSync;
 import com.softwareprojects.androidtasks.domain.sync.Success;
 import com.softwareprojects.androidtasks.domain.sync.SynchronizationResult;
-import com.softwareprojects.androidtasks.domain.sync.Synchronizer;
+import com.softwareprojects.androidtasks.domain.sync.TaskSynchronizer;
 
-public class ToodledoSynchronizer implements Synchronizer {
+public class ToodledoSynchronizer implements TaskSynchronizer {
 
 	private static final String TAG = ToodledoSynchronizer.class.getSimpleName();
 
 	private Account account;
 	private Session session;
+	private final RestClientFactory factory;
 	private final ToodledoRepository repository;
 	private final ToodledoSyncState synchronizationState;
 
-	private final RestClientFactory factory;
-
+	@Inject
 	public ToodledoSynchronizer(SharedPreferences preferences, ToodledoRepository repository, RestClientFactory factory) {
 		this.factory = factory;
 		this.repository = repository;
 		this.synchronizationState = new ToodledoSyncState(preferences);
 	}
 
+	@Override
 	public void init(final String user, final String password) {
 
 		session = ToodledoSession.create(user, password, new ToodledoSession.Log(){

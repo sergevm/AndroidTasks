@@ -1,11 +1,13 @@
 package com.softwareprojects.androidtasks.db;
 
+import com.google.inject.Inject;
 import com.softwareprojects.androidtasks.toodledo.ToodledoRepository;
 
 public class SqliteToodledoRepository implements ToodledoRepository{
 
 	private ToodledoDBHelper dbHelper;
 
+	@Inject
 	public SqliteToodledoRepository(ToodledoDBHelper dbHelper) {
 		this.dbHelper = dbHelper;
 	}

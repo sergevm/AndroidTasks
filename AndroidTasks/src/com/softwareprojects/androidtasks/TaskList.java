@@ -1,6 +1,7 @@
 package com.softwareprojects.androidtasks;
 
 import java.security.InvalidParameterException;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 
@@ -220,7 +221,7 @@ public class TaskList extends ListActivity {
 		subMenu.add(1, 7, 7, R.string.list_filter_active).setChecked(getCurrentFilter() == Filter_Active);
 		subMenu.add(1, 8, 8, R.string.list_filter_due).setChecked(getCurrentFilter() == Filter_Due);
 		subMenu.add(1, 9, 9, R.string.list_filter_nodate).setChecked(getCurrentFilter() == Filter_NoDate);
-		menu.add(Menu.NONE, 10, 10, "Toodledo");
+		menu.add(Menu.NONE, 10, 10, "Sync");
 		return super.onCreateOptionsMenu(menu);
 	}
 
@@ -263,14 +264,14 @@ public class TaskList extends ListActivity {
 			updateFilteredList();
 			return true;
 		case 10:
-			getToodledoTasks("td4d35ff02625cc", "HitTheRoadJack!");
+			sync("td4d35ff02625cc", "HitTheRoadJack!");
 			return true;
 		default:
 			return true;
 		}
 	}
 
-	private void getToodledoTasks(final String user, final String password) {
+	private void sync(final String user, final String password) {
 
 		Log.d(TAG, "Syncing with Toodledo");
 
@@ -290,6 +291,10 @@ public class TaskList extends ListActivity {
 
 			SynchronizationManager manager = new SynchronizationManager(syncer,taskScheduler, taskRepository, logger);
 			SynchronizationResult synchronizationResult = manager.sync();
+			
+			Calendar calendar = Calendar.getInstance();
+			calendar.add(Calendar.HOUR, 1);
+			alarmManager.scheduleSync(calendar);
 
 			Log.d(TAG, String.format("Syncing with Toodledo completed: %s", synchronizationResult));
 			

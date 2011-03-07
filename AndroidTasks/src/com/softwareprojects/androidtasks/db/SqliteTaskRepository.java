@@ -3,6 +3,7 @@ package com.softwareprojects.androidtasks.db;
 import java.util.Calendar;
 import java.util.List;
 
+import com.google.inject.Inject;
 import com.softwareprojects.androidtasks.domain.Task;
 import com.softwareprojects.androidtasks.domain.TaskRepository;
 
@@ -10,6 +11,7 @@ public class SqliteTaskRepository implements TaskRepository {
 
 	private final TasksDBHelper dbHelper;
 	
+	@Inject
 	public SqliteTaskRepository(TasksDBHelper dbHelper) {
 		this.dbHelper = dbHelper;
 	}

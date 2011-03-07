@@ -8,7 +8,9 @@ import org.json.JSONException;
 
 import com.softwareprojects.androidtasks.domain.Task;
 
-public interface Synchronizer {
+public interface TaskSynchronizer {
+
+	void init(final String user, final String password);
 	
 	SynchronizationResult addTasks(final List<Task> tasks) throws JSONException, Exception;
 	SynchronizationResult deleteTasks(final List<Task> tasks) throws JSONException, Exception;

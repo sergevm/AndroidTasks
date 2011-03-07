@@ -12,5 +12,6 @@ public interface TaskAlarmManager {
 	public abstract void setRecurrent(final Task task, final Date initializationDate);
 	public abstract void schedulePurge(final Calendar date);
 	public abstract void cancelPurge();
+	public abstract void scheduleSync(final Calendar date);
 	public abstract void remove(final Task task);
 }

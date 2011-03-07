@@ -3,27 +3,21 @@
       package="com.softwareprojects.androidtasks"
       android:versionCode="1"
       android:versionName="1.0">
-    <application android:icon="@drawable/tasks" android:label="@string/app_name" android:debuggable="true">
-        <activity android:name=".TaskList"
-                  android:label="@string/app_name">
+    <application android:icon="@drawable/tasks" android:label="@string/app_name" android:debuggable="true" 
+    	android:name="com.softwareprojects.androidtasks.AndroidTasksApplication">
+        <activity android:name=".TaskList" android:label="@string/app_name">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity android:name=".TaskNotification" 
-        	android:label="@string/notification_activity_name" />
-        <activity android:name=".TaskRecurrence" 
-        	android:label="@string/recurrence_activity_name" />
-		<activity android:name=".EditTask"
-			android:label="@string/edit_task_activity_name">
-		</activity>
-		<activity android:name=".Preferences"
-			android:label="@string/preferences_activity_name" />
-		<receiver android:name=".TaskAlarmReceiver">
-		</receiver>
-		<receiver android:name=".PurgeAlarmReceiver">
-		</receiver>
+        <activity android:name=".TaskNotification" android:label="@string/notification_activity_name" />
+        <activity android:name=".TaskRecurrence" android:label="@string/recurrence_activity_name" />
+		<activity android:name=".EditTask" android:label="@string/edit_task_activity_name" />
+		<activity android:name=".Preferences" android:label="@string/preferences_activity_name" />
+		<receiver android:name=".receiver.TaskAlarmReceiver" />
+		<receiver android:name=".receiver.PurgeAlarmReceiver" />
+		<receiver android:name=".receiver.SyncAlarmReceiver" />
 		<service android:name=".AndroidTaskService" android:enabled="true">
 			<intent-filter>
 				<data android:scheme="androidtask" android:path="task/recurrent/" />
@@ -32,6 +26,12 @@
 			<intent-filter>
 				<data android:scheme="androidtask" android:path="task/purge/" />
 				<action android:name="com.softwareprojects.androidtasks.PURGE"/>
+			</intent-filter>
+		</service>
+		<service android:name=".toodledo.ToodledoSyncService" >
+			<intent-filter>
+				<data android:scheme="androidtask" android:path="task/sync/" />
+				<action android:name="com.softwareprojects.androidtasks.SYNC"/>
 			</intent-filter>
 		</service>
     </application>

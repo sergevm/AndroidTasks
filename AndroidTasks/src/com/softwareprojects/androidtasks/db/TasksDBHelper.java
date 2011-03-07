@@ -15,6 +15,7 @@ import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.util.Log;
 
+import com.google.inject.Inject;
 import com.softwareprojects.androidtasks.Constants;
 import com.softwareprojects.androidtasks.domain.Task;
 
@@ -73,6 +74,7 @@ public class TasksDBHelper {
 		}
 	}
 
+	@Inject
 	public TasksDBHelper(Context context)
 	{
 		this.dbOpenHelper = new DBOpenHelper(context);

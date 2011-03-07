@@ -8,6 +8,7 @@ import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.util.Log;
 
+import com.google.inject.Inject;
 import com.softwareprojects.androidtasks.Constants;
 
 public class ToodledoDBHelper {
@@ -54,6 +55,7 @@ public class ToodledoDBHelper {
 		}
 	}
 
+	@Inject
 	public ToodledoDBHelper(Context context)
 	{
 		this.dbOpenHelper = new DBOpenHelper(context);

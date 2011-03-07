@@ -3,6 +3,8 @@ package com.softwareprojects.androidtasks.domain;
 import java.util.Calendar;
 import java.util.Date;
 
+import com.google.inject.Inject;
+
 public class TaskScheduler {
 
 	private final static String TAG = TaskScheduler.class.getSimpleName();
@@ -14,6 +16,7 @@ public class TaskScheduler {
 	private ReminderCalculations reminders;
 	private ILog log;
 
+	@Inject
 	public TaskScheduler(ReminderCalculations reminders, RecurrenceCalculations recurrences, TaskAlarmManager alarms,
 			TaskDateProvider dates, TaskRepository repository, ILog log) {
 

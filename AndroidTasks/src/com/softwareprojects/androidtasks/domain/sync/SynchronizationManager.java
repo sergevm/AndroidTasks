@@ -1,6 +1,5 @@
 package com.softwareprojects.androidtasks.domain.sync;
 
-import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.HashMap;
 import java.util.List;
@@ -8,6 +7,7 @@ import java.util.Map;
 
 import org.json.JSONException;
 
+import com.google.inject.Inject;
 import com.softwareprojects.androidtasks.domain.ILog;
 import com.softwareprojects.androidtasks.domain.Task;
 import com.softwareprojects.androidtasks.domain.TaskRepository;
@@ -18,11 +18,12 @@ public class SynchronizationManager {
 	private final ILog log;
 	private TaskScheduler scheduler;
 	private TaskRepository repository;
-	private final Synchronizer synchronizer;
+	private final TaskSynchronizer synchronizer;
 
 	private static final String TAG = SynchronizationManager.class.getSimpleName();
 
-	public SynchronizationManager(Synchronizer synchronizer, TaskScheduler scheduler, TaskRepository repository, ILog log) {
+	@Inject
+	public SynchronizationManager(TaskSynchronizer synchronizer, TaskScheduler scheduler, TaskRepository repository, ILog log) {
 		this.synchronizer = synchronizer;
 		this.repository = repository;
 		this.scheduler = scheduler;

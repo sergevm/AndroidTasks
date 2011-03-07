@@ -11,9 +11,13 @@ import android.content.Intent;
 import android.net.Uri;
 import android.util.Log;
 
+import com.google.inject.Inject;
 import com.softwareprojects.androidtasks.domain.NotificationSource;
 import com.softwareprojects.androidtasks.domain.Task;
 import com.softwareprojects.androidtasks.domain.TaskAlarmManager;
+import com.softwareprojects.androidtasks.receiver.PurgeAlarmReceiver;
+import com.softwareprojects.androidtasks.receiver.SyncAlarmReceiver;
+import com.softwareprojects.androidtasks.receiver.TaskAlarmReceiver;
 
 public class AndroidTaskAlarmManager implements TaskAlarmManager {
 
@@ -24,6 +28,7 @@ public class AndroidTaskAlarmManager implements TaskAlarmManager {
 
 	private static final String TAG = AndroidTaskAlarmManager.class.getSimpleName();
 
+	@Inject
 	public AndroidTaskAlarmManager(Context context) {
 		this.context = context;
 		this.alarmManager = (AlarmManager) context.getSystemService(Context.ALARM_SERVICE);
@@ -141,6 +146,14 @@ public class AndroidTaskAlarmManager implements TaskAlarmManager {
 		PendingIntent pendingIntent = getOrCreatePurgePendingIntent();
 		alarmManager.set(AlarmManager.RTC_WAKEUP, date.getTimeInMillis(), pendingIntent);
 	}
+	
+	@Override
+	public void scheduleSync(final Calendar date) {
+		Log.v(TAG, "Scheduling a sync on " + dateFormat.format(date.getTime()));
+
+		PendingIntent pendingIntent = getOrCreateSyncPendingIntent();
+		alarmManager.set(AlarmManager.RTC_WAKEUP, date.getTimeInMillis(), pendingIntent);		
+	}
 
 	@Override
 	public void cancelPurge() {
@@ -160,7 +173,18 @@ public class AndroidTaskAlarmManager implements TaskAlarmManager {
 		return pendingIntent;
 	}
 
+	private PendingIntent getOrCreateSyncPendingIntent() {
+		Intent intent = new Intent(COM_SOFTWAREPROJECTS_ANDROIDTASKS_ALARM_ACTION,
+				Uri.parse(Constants.ANDROIDTASK_TASK_SYNC), context, SyncAlarmReceiver.class);
+		
+		PendingIntent pendingIntent = PendingIntent.getBroadcast(context, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT);
+
+		return pendingIntent;
+	}
+	
 	private String createLogMessage(final Task task, final Uri uri, final String action) {
 		return action + task.getId() + " (" + uri.toString() + ")";
 	}
+
+
 }
