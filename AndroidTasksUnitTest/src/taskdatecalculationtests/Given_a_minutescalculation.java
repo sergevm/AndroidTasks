@@ -20,15 +20,15 @@ public class Given_a_minutescalculation {
 
 	MinutesCalculation minutes;
 	TaskDateProvider dates;
-	Calendar calendar;
+	Calendar expectationCalendar;
 	Calendar taskDateProviderCalendar;
 	
 	@Before
 	public void setUp() throws Exception {
 		dates = mock(TaskDateProvider.class);
 		
-		calendar = Calendar.getInstance();
-		taskDateProviderCalendar = (Calendar)calendar.clone();
+		expectationCalendar = Calendar.getInstance();
+		taskDateProviderCalendar = (Calendar)expectationCalendar.clone();
 		
 		when(dates.getNow()).thenReturn(taskDateProviderCalendar);
 		when(dates.getToday()).thenReturn(taskDateProviderCalendar);
@@ -40,8 +40,8 @@ public class Given_a_minutescalculation {
 	public void When_the_offset_date_is_in_the_future_then_offset_time_is_returned() {
 		taskDateProviderCalendar.add(Calendar.DATE, -1);
 		
-		Date next = minutes.getNext(calendar.getTime(), dates, 1);
-		assertEquals(calendar.getTime(), next);
+		Date next = minutes.getNext(expectationCalendar.getTime(), dates, 1);
+		assertEquals(expectationCalendar.getTime(), next);
 	}
 	
 	@Test
@@ -54,7 +54,7 @@ public class Given_a_minutescalculation {
 	public void When_the_offset_date_is_in_the_past_Then_a_date_is_calculated() {
 		taskDateProviderCalendar.add(Calendar.DATE, 2);
 		
-		Date next = minutes.getNext(calendar.getTime(), dates, 1);
+		Date next = minutes.getNext(expectationCalendar.getTime(), dates, 1);
 		assertNotNull(next);
 	}
 
@@ -62,9 +62,12 @@ public class Given_a_minutescalculation {
 	public void When_the_offset_date_is_in_the_past_Then_the_correct_date_is_calculated() {
 		taskDateProviderCalendar.add(Calendar.DATE, 2);
 		
-		Date next = minutes.getNext(calendar.getTime(), dates, 1);
-		taskDateProviderCalendar.add(Calendar.MINUTE, 1);
-		Date expected = taskDateProviderCalendar.getTime();
+		Date next = minutes.getNext(expectationCalendar.getTime(), dates, 1);
+		
+		expectationCalendar.add(Calendar.MINUTE, 1);
+		expectationCalendar.add(Calendar.DATE, 2);
+
+		Date expected = expectationCalendar.getTime();
 		
 		assertEquals(expected, next);
 	}

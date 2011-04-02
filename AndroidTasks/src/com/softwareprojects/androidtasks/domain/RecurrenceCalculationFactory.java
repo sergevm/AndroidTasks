@@ -2,6 +2,7 @@ package com.softwareprojects.androidtasks.domain;
 
 import com.softwareprojects.androidtasks.domain.dates.HoursCalculation;
 import com.softwareprojects.androidtasks.domain.dates.MinutesCalculation;
+import com.softwareprojects.androidtasks.domain.dates.MonthsCalculation;
 import com.softwareprojects.androidtasks.domain.dates.NullCalculation;
 import com.softwareprojects.androidtasks.domain.dates.WeeksCalculation;
 
@@ -18,7 +19,7 @@ public class RecurrenceCalculationFactory implements RecurrenceCalculations {
 		case Task.REPEAT_INTERVAL_WEEKS:
 			return new WeeksCalculation();
 		case Task.REPEAT_INTERVAL_MONTHS:
-			return new NullCalculation();
+			return new MonthsCalculation();
 		default:
 			return new NullCalculation();
 		}

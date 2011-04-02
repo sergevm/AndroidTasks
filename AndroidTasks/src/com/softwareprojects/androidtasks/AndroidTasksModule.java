@@ -3,11 +3,8 @@ package com.softwareprojects.androidtasks;
 import roboguice.config.AbstractAndroidModule;
 import roboguice.inject.SharedPreferencesName;
 
-import com.domaindriven.toodledo.RestClientFactory;
 import com.softwareprojects.androidtasks.db.SqliteTaskRepository;
-import com.softwareprojects.androidtasks.db.SqliteToodledoRepository;
 import com.softwareprojects.androidtasks.db.TasksDBHelper;
-import com.softwareprojects.androidtasks.db.ToodledoDBHelper;
 import com.softwareprojects.androidtasks.domain.ILog;
 import com.softwareprojects.androidtasks.domain.Logger;
 import com.softwareprojects.androidtasks.domain.RecurrenceCalculationFactory;
@@ -20,10 +17,6 @@ import com.softwareprojects.androidtasks.domain.TaskDateProviderImpl;
 import com.softwareprojects.androidtasks.domain.TaskRepository;
 import com.softwareprojects.androidtasks.domain.TaskScheduler;
 import com.softwareprojects.androidtasks.domain.sync.SynchronizationManager;
-import com.softwareprojects.androidtasks.domain.sync.TaskSynchronizer;
-import com.softwareprojects.androidtasks.toodledo.HttpRestClientFactory;
-import com.softwareprojects.androidtasks.toodledo.ToodledoRepository;
-import com.softwareprojects.androidtasks.toodledo.ToodledoSynchronizer;
 
 public class AndroidTasksModule extends AbstractAndroidModule {
 

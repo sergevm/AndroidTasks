@@ -15,8 +15,6 @@ import android.util.Log;
 import com.softwareprojects.androidtasks.Constants;
 import com.softwareprojects.androidtasks.R;
 import com.softwareprojects.androidtasks.TaskNotification;
-import com.softwareprojects.androidtasks.R.drawable;
-import com.softwareprojects.androidtasks.R.string;
 import com.softwareprojects.androidtasks.db.TasksDBHelper;
 import com.softwareprojects.androidtasks.domain.NotificationSource;
 

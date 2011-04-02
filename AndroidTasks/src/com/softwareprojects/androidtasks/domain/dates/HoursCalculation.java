@@ -1,33 +1,19 @@
 package com.softwareprojects.androidtasks.domain.dates;
 
 import java.util.Calendar;
-import java.util.Date;
 
 import com.softwareprojects.androidtasks.domain.TaskDateCalculation;
-import com.softwareprojects.androidtasks.domain.TaskDateProvider;
 
-public class HoursCalculation implements TaskDateCalculation {
+public class HoursCalculation extends TaskDateCalculation {
 
 	public static final long ONEHOURINMILLIS = 1000 * 60 * 60;
 
-	@Override
-	public Date getNext(Date offset, TaskDateProvider dateProvider, int shift) {
-		
-		if(offset == null) return null;
-		
-		Calendar offsetCalendar = Calendar.getInstance();
-		offsetCalendar.setTime(offset);
-
-		Calendar now = dateProvider.getNow();
-		
-		if(offset.after(now.getTime())) {
-			return offset;
-		}
-
-		long diffInMillis = Math.abs(now.getTimeInMillis() - offsetCalendar.getTimeInMillis());			
-		long numberOfFullHours = diffInMillis / ONEHOURINMILLIS;
-		
-		offsetCalendar.add(Calendar.HOUR, (int)numberOfFullHours + shift);			
-		return offsetCalendar.getTime();	
+	public HoursCalculation() {
+		super(ONEHOURINMILLIS);
 	}
+
+	@Override
+	protected void applyShiftTo(Calendar calendar, int shift) {
+		calendar.add(Calendar.HOUR, shift);
+	}	
 }

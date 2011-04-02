@@ -1,7 +1,6 @@
 package com.softwareprojects.androidtasks.domain;
 
 import java.text.ParseException;
-import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
 
@@ -143,6 +142,30 @@ public class Task implements Parcelable, Cloneable {
 		return nextOccurrenceId;
 	}
 
+	public void setCreateDate(Date createDate) {
+		this.createDate = createDate;
+	}
+
+	public Date getCreateDate() {
+		return createDate;
+	}
+
+	public void setModificationDate(Date modificationDate) {
+		this.modificationDate = modificationDate;
+	}
+
+	public Date getModificationDate() {
+		return modificationDate;
+	}
+
+	public void setDeleted(boolean deleted) {
+		this.deleted = deleted;
+	}
+
+	public boolean isDeleted() {
+		return deleted;
+	}
+
 	@Override
 	public String toString() {
 		return description;
@@ -159,24 +182,13 @@ public class Task implements Parcelable, Cloneable {
 		dest.writeLong(id);
 
 		// create date
-		if(createDate != null) {
-			dest.writeString(new SimpleDateFormat(
-					Constants.DATETIME_FORMAT_STRING).format(createDate));
-		}
+		ParcelReaderWriter.writeDateToParcel(dest, createDate);
 
-		// modification date
-		if(modificationDate != null) {
-			dest.writeString(new SimpleDateFormat(
-					Constants.DATETIME_FORMAT_STRING).format(modificationDate));
-		}
+		// modification date 
+		ParcelReaderWriter.writeDateToParcel(dest, modificationDate);
 
 		// target date
-		if (targetDate != null) {
-			dest.writeString(new SimpleDateFormat(
-					Constants.DATETIME_FORMAT_STRING).format(targetDate));
-		} else {
-			dest.writeString(null);
-		}
+		ParcelReaderWriter.writeDateOrNullToParcel(dest, targetDate);
 
 		// destination
 		dest.writeString(description);
@@ -197,13 +209,7 @@ public class Task implements Parcelable, Cloneable {
 		dest.writeInt(reminderType);
 
 		// reminderDate
-		if (reminderDate != null) {
-			dest.writeString(new SimpleDateFormat(
-					Constants.DATETIME_FORMAT_STRING).format(reminderDate));
-		}
-		else {
-			dest.writeString(null);
-		}
+		ParcelReaderWriter.writeDateOrNullToParcel(dest, reminderDate);
 
 		// recurrencyType
 		dest.writeInt(recurrenceType);
@@ -233,32 +239,20 @@ public class Task implements Parcelable, Cloneable {
 
 		// create date
 		try {
-			String dateAsString = parcel.readString();
-			if(dateAsString != null) {
-				createDate = new SimpleDateFormat(
-						Constants.DATETIME_FORMAT_STRING).parse(dateAsString);
-			}
+			createDate = ParcelReaderWriter.readDateFromParcel(parcel);
 		} catch (ParseException e) {
 			Log.e(Constants.LOGTAG, CLASSNAME, e);
 		}
 		// modification date
 		try {
-			String dateAsString = parcel.readString();
-			if(dateAsString != null) {
-				modificationDate = new SimpleDateFormat(
-						Constants.DATETIME_FORMAT_STRING).parse(dateAsString);
-			}
+			modificationDate = ParcelReaderWriter.readDateFromParcel(parcel);
 		} catch (ParseException e) {
 			Log.e(Constants.LOGTAG, CLASSNAME, e);
 		}
 
 		// target date
 		try {
-			String dateAsString = parcel.readString();
-			if (dateAsString != null) {
-				targetDate = new SimpleDateFormat(
-						Constants.DATETIME_FORMAT_STRING).parse(dateAsString);
-			}
+			targetDate = ParcelReaderWriter.readDateFromParcel(parcel);
 		} catch (ParseException e) {
 			Log.e(Constants.LOGTAG, CLASSNAME, e);
 		}
@@ -285,11 +279,7 @@ public class Task implements Parcelable, Cloneable {
 
 		// reminderDate
 		try {
-			String dateAsString = parcel.readString();
-			if (dateAsString != null) {
-				reminderDate = new SimpleDateFormat(
-						Constants.DATETIME_FORMAT_STRING).parse(dateAsString);
-			}
+			reminderDate = ParcelReaderWriter.readDateFromParcel(parcel);
 		} catch (ParseException e) {
 			Log.e(Constants.LOGTAG, CLASSNAME, e);
 		}
@@ -330,6 +320,7 @@ public class Task implements Parcelable, Cloneable {
 		if(getRecurrenceValue() == 0) return null;
 		if(hasFutureTargetDate(dateProvider)) return null;
 
+		// next occurrence is always calculated against the target date of the current task instance
 		Date nextOccurrenceTargetDate =  recurrences.create(this).getNext(getTargetDate(), dateProvider, getRecurrenceValue());
 
 		if(nextOccurrenceTargetDate == null) return null;
@@ -414,28 +405,5 @@ public class Task implements Parcelable, Cloneable {
 		reminderDate = null;
 		setCompleted(true);
 	}
-
-	public void setCreateDate(Date createDate) {
-		this.createDate = createDate;
-	}
-
-	public Date getCreateDate() {
-		return createDate;
-	}
-
-	public void setModificationDate(Date modificationDate) {
-		this.modificationDate = modificationDate;
-	}
-
-	public Date getModificationDate() {
-		return modificationDate;
-	}
-
-	public void setDeleted(boolean deleted) {
-		this.deleted = deleted;
-	}
-
-	public boolean isDeleted() {
-		return deleted;
-	}
 }
+
