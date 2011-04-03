@@ -31,7 +31,7 @@ public class TasksDBHelper {
 		"recurrencetype", "recurrencevalue", "nextoccurrenceid"};
 	
 	// Logging stuff
-	private static final String CLASSNAME = TasksDBHelper.class.getSimpleName();
+	private static final String TAG = TasksDBHelper.class.getSimpleName();
 
 	// Instance of the database
 	private SQLiteDatabase db;
@@ -60,17 +60,31 @@ public class TasksDBHelper {
 		@Override
 		public void onCreate(SQLiteDatabase db) {
 			try{
+				Log.i(TAG, "onCreate");
 				db.execSQL(DB_CREATE_TASKS_TABLE);
 			}
 			catch(SQLException e){
-				Log.e(Constants.LOGTAG, TasksDBHelper.CLASSNAME, e);
+				Log.e(Constants.LOGTAG, TasksDBHelper.TAG, e);
 			}
 		}
 
 		@Override
 		public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
+			Log.i(TAG, "onUpgrade");
 			db.execSQL("DROP TABLE IF EXISTS " + TasksDBHelper.DB_TASKS_TABLE);
 			this.onCreate(db);
+		}
+		
+		@Override
+		public void onOpen(SQLiteDatabase db) {
+			Log.i(TAG, "onOpen");
+			super.onOpen(db);
+		}
+		
+		@Override
+		public synchronized void close() {
+			Log.i(TAG, "close");
+			super.close();
 		}
 	}
 
@@ -78,15 +92,7 @@ public class TasksDBHelper {
 	public TasksDBHelper(Context context)
 	{
 		this.dbOpenHelper = new DBOpenHelper(context);
-		this.establishDb();
-	}
-
-	public void Cleanup(){
-		if(this.db != null)
-		{
-			this.db.close();
-			this.db = null;
-		}
+		this.open();
 	}
 
 	public void insert(Task task){
@@ -224,7 +230,7 @@ public class TasksDBHelper {
 			}
 		}
 		catch(SQLException e) {
-			Log.e(Constants.LOGTAG, TasksDBHelper.CLASSNAME, e);
+			Log.e(Constants.LOGTAG, TasksDBHelper.TAG, e);
 		}
 		finally {
 			if(c != null & c.isClosed() == false) {
@@ -252,10 +258,20 @@ public class TasksDBHelper {
 		return getTasks("targetdate is null", null, null, null, null);
 	}
 
-	private void establishDb()
+	public void open()
 	{
 		if(this.db == null){
+			Log.d(TAG, "opening db");
 			this.db = dbOpenHelper.getWritableDatabase();
+		}
+	}
+
+	public void close(){
+		if(this.db != null)
+		{
+			Log.d(TAG, "closing db");
+			this.db.close();
+			this.db = null;
 		}
 	}
 

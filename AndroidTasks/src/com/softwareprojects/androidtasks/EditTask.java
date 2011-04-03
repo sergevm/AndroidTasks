@@ -4,7 +4,7 @@ import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
 
-import android.app.Activity;
+import roboguice.activity.RoboActivity;
 import android.app.DatePickerDialog;
 import android.app.DatePickerDialog.OnDateSetListener;
 import android.app.TimePickerDialog;
@@ -28,19 +28,14 @@ import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.TimePicker;
 
-import com.softwareprojects.androidtasks.db.TasksDBHelper;
-import com.softwareprojects.androidtasks.db.SqliteTaskRepository;
-import com.softwareprojects.androidtasks.domain.Logger;
-import com.softwareprojects.androidtasks.domain.RecurrenceCalculationFactory;
-import com.softwareprojects.androidtasks.domain.ReminderCalculationFactory;
+import com.google.inject.Inject;
 import com.softwareprojects.androidtasks.domain.Task;
 import com.softwareprojects.androidtasks.domain.TaskDateProvider;
-import com.softwareprojects.androidtasks.domain.TaskDateProviderImpl;
+import com.softwareprojects.androidtasks.domain.TaskRepository;
 import com.softwareprojects.androidtasks.domain.TaskScheduler;
 
-public class EditTask extends Activity {
+public class EditTask extends RoboActivity {
 
-	private TasksDBHelper dbHelper;
 	private EditText description;
 	private CheckBox completed;
 	private CheckBox hasTargetDate;
@@ -57,9 +52,10 @@ public class EditTask extends Activity {
 
 	private final Context context = this;
 
-	private TaskScheduler taskScheduler;
+	@Inject private TaskDateProvider dates;
+	@Inject private TaskScheduler scheduler;
+	@Inject private TaskRepository repository;
 
-	private static final TaskDateProvider dates = new TaskDateProviderImpl();
 	private static final String TAG = EditTask.class.getSimpleName();
 	private static final Calendar calendar = Calendar.getInstance();
 	private static final SimpleDateFormat dateFormat = new SimpleDateFormat(Constants.DATE_FORMAT_STRING);
@@ -178,10 +174,10 @@ public class EditTask extends Activity {
 				task.setReminderType(reminderType.getSelectedItemPosition());
 
 				if (completed.isChecked()) {
-					taskScheduler.complete(task);
+					scheduler.complete(task);
 				}
 
-				taskScheduler.schedule(task);
+				scheduler.schedule(task);
 
 				setResult(RESULT_OK);
 				finish();
@@ -211,37 +207,33 @@ public class EditTask extends Activity {
 	@Override
 	protected void onStart() {
 		super.onStart();
-
 		Log.i(TAG, "onStart");
-		dbHelper = new TasksDBHelper(this);
-
-		taskScheduler = new TaskScheduler(new ReminderCalculationFactory(), 
-				new RecurrenceCalculationFactory(),	new AndroidTaskAlarmManager(this), 
-				dates, new SqliteTaskRepository(dbHelper), new Logger());
 	}
 
 	@Override
 	protected void onStop() {
 		super.onStop();
-
 		Log.i(TAG, "onStop");
-		taskScheduler = null;
-		dbHelper.Cleanup();
 	}
 
 	@Override
 	protected void onResume() {
 		Log.i(TAG, "onResume");
+		repository.init();
 		super.onResume();
 	}
 
 	@Override
 	protected void onDestroy() {
 		super.onDestroy();
-
 		Log.i(TAG, "onDestroy");
-
-		dbHelper = null;
+	}
+	
+	@Override
+	protected void onPause() {
+		Log.i(TAG, "onPause");
+		repository.flush();
+		super.onPause();
 	}
 
 	private Task getOrCreateTask() {
@@ -251,7 +243,7 @@ public class EditTask extends Activity {
 			return (Task) extras.getParcelable(Constants.CURRENT_TASK);
 		} else if (getIntent().hasExtra(Constants.ALARM_TASK_ID)) {
 			long dueTaskId = getIntent().getLongExtra(Constants.ALARM_TASK_ID, -1);
-			Task task = dbHelper.getSingle(dueTaskId);
+			Task task = repository.find(dueTaskId);
 			return task;
 		} else {
 			Task newTask = new Task();

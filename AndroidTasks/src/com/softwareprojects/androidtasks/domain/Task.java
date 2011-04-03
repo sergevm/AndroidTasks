@@ -27,7 +27,6 @@ public class Task implements Parcelable, Cloneable {
 	private int recurrenceValue;
 	private long nextOccurrenceId;
 
-
 	private static final String CLASSNAME = Task.class.getSimpleName();
 
 	public static final int REMINDER_MANUAL = 0;
@@ -89,7 +88,7 @@ public class Task implements Parcelable, Cloneable {
 
 	public void setReminderType(int reminder) {
 		this.reminderType = reminder;
-		if(this.getReminderType() == REMINDER_MANUAL) {
+		if (this.getReminderType() == REMINDER_MANUAL) {
 			setReminderDate(null);
 		}
 	}
@@ -184,7 +183,7 @@ public class Task implements Parcelable, Cloneable {
 		// create date
 		ParcelReaderWriter.writeDateToParcel(dest, createDate);
 
-		// modification date 
+		// modification date
 		ParcelReaderWriter.writeDateToParcel(dest, modificationDate);
 
 		// target date
@@ -291,8 +290,8 @@ public class Task implements Parcelable, Cloneable {
 
 	}
 
-	public Task clone() throws CloneNotSupportedException{
-		Task task = (Task)super.clone();
+	public Task clone() throws CloneNotSupportedException {
+		Task task = (Task) super.clone();
 
 		Date cloneDate = new Date();
 
@@ -316,14 +315,20 @@ public class Task implements Parcelable, Cloneable {
 
 	public Task createNextOccurrence(RecurrenceCalculations recurrences, TaskDateProvider dateProvider) {
 
-		if(getTargetDate() == null) return null;
-		if(getRecurrenceValue() == 0) return null;
-		if(hasFutureTargetDate(dateProvider)) return null;
+		if (getTargetDate() == null)
+			return null;
+		if (getRecurrenceValue() == 0)
+			return null;
+		if (hasFutureTargetDate(dateProvider))
+			return null;
 
-		// next occurrence is always calculated against the target date of the current task instance
-		Date nextOccurrenceTargetDate =  recurrences.create(this).getNext(getTargetDate(), dateProvider, getRecurrenceValue());
+		// next occurrence is always calculated against the target date of the
+		// current task instance
+		Date nextOccurrenceTargetDate = recurrences.create(this).getNext(getTargetDate(), dateProvider,
+				getRecurrenceValue());
 
-		if(nextOccurrenceTargetDate == null) return null;
+		if (nextOccurrenceTargetDate == null)
+			return null;
 
 		try {
 			Task nextOccurrence = clone();
@@ -340,44 +345,43 @@ public class Task implements Parcelable, Cloneable {
 	}
 
 	public boolean hasFutureTargetDate(TaskDateProvider dateProvider) {
-		if(getTargetDate() == null) return false;
+		if (getTargetDate() == null)
+			return false;
 		return getTargetDate().after(dateProvider.getNow().getTime());
 	}
 
 	public void initializeReminders(ReminderCalculations reminders, TaskDateProvider dateProvider) {
 
-		if(isCompleted()) return;
+		if (isCompleted())
+			return;
 
 		Date now = dateProvider.getNow().getTime();
 
 		if (reminderType == REMINDER_MANUAL) {
 			reminderDate = targetDate;
+			return;
 		}
 
 		if (targetDate == null) {
-			if (reminderType != REMINDER_MANUAL) {
-				reminderDate = reminders.create(this).getNext(dateProvider.getToday().getTime(), dateProvider, 1);
-			}
+			reminderDate = reminders.create(this).getNext(dateProvider.getToday().getTime(), dateProvider, 1);
 		} else if (targetDate != null) {
-			if (reminderType != REMINDER_MANUAL) {
-				if (targetDate.before(now)) {
-					reminderDate = reminders.create(this).getNext(targetDate, dateProvider, 1);
-				} else if (targetDate == now | targetDate.after(now)) {
-					reminderDate = targetDate;
-				}
+		
+			if (targetDate.before(now)) {
+				reminderDate = reminders.create(this).getNext(targetDate, dateProvider, 1);
+			} else if (targetDate == now | targetDate.after(now)) {
+				reminderDate = targetDate;			
 			}
 		}
 	}
 
 	public void updateReminder(ReminderCalculations reminders, TaskDateProvider dateProvider) {
 
-		if(isCompleted()) {
+		if (isCompleted()) {
 			setReminderDate(null);
 			return;
 		}
 
-		reminderDate = reminders.create(this).getNext(targetDate == null ? 
-				reminderDate : targetDate, dateProvider, 1);
+		reminderDate = reminders.create(this).getNext(targetDate == null ? reminderDate : targetDate, dateProvider, 1);
 	}
 
 	public Date snooze(final TaskDateProvider dateProvider, int snoozeTimeInMinutes) {
@@ -406,4 +410,3 @@ public class Task implements Parcelable, Cloneable {
 		setCompleted(true);
 	}
 }
-

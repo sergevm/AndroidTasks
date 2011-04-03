@@ -26,5 +26,9 @@ public interface TaskRepository {
 	List<Task> getNewSince(Calendar lastSyncTime);
 	List<Task> getDeletedSince(Calendar lastSyncTime);
 	List<Task> getUpdatedSince(Calendar lastSyncTime);
+	
+	// Lifecycle
+	void init();
+	void flush();
 }
 

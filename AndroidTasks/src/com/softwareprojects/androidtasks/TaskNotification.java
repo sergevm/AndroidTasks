@@ -1,6 +1,6 @@
 package com.softwareprojects.androidtasks;
 
-import android.app.Activity;
+import roboguice.activity.RoboActivity;
 import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
@@ -15,18 +15,14 @@ import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.softwareprojects.androidtasks.db.TasksDBHelper;
-import com.softwareprojects.androidtasks.db.SqliteTaskRepository;
-import com.softwareprojects.androidtasks.domain.Logger;
+import com.google.inject.Inject;
 import com.softwareprojects.androidtasks.domain.NotificationSource;
-import com.softwareprojects.androidtasks.domain.RecurrenceCalculationFactory;
-import com.softwareprojects.androidtasks.domain.ReminderCalculationFactory;
 import com.softwareprojects.androidtasks.domain.Task;
 import com.softwareprojects.androidtasks.domain.TaskDateFormatter;
-import com.softwareprojects.androidtasks.domain.TaskDateProviderImpl;
+import com.softwareprojects.androidtasks.domain.TaskRepository;
 import com.softwareprojects.androidtasks.domain.TaskScheduler;
 
-public class TaskNotification extends Activity {
+public class TaskNotification extends RoboActivity {
 
 	TextView description;
 	TextView targetdate;
@@ -38,9 +34,10 @@ public class TaskNotification extends Activity {
 	Button edit;
 
 	Task task;
-	TaskScheduler taskScheduler;
 	
-	TasksDBHelper dbHelper;
+	@Inject TaskScheduler scheduler;
+	@Inject TaskRepository repository;
+	
 	private NotificationSource notificationSource;
 
 	private final int[] snoozedMinutes = new int[] { 1, 2, 5, 10, 30, 60, 120, 180, 240, 480, 1440, 2880 };
@@ -67,18 +64,8 @@ public class TaskNotification extends Activity {
 
 		long taskId = getIntent().getLongExtra(Constants.ALARM_TASK_ID, -1);
 		notificationSource = NotificationSource.valueOf(getIntent().getStringExtra(Constants.ALARM_SOURCE));
-
-		dbHelper = new TasksDBHelper(this);
 		
-		taskScheduler = new TaskScheduler(
-				new ReminderCalculationFactory(), 
-				new RecurrenceCalculationFactory(), 
-				new AndroidTaskAlarmManager(this), 
-				new TaskDateProviderImpl(), 
-				new SqliteTaskRepository(dbHelper), 
-				new Logger());
-		
-		task = dbHelper.getSingle(taskId);
+		task = repository.find(taskId);
 		if(task == null)
 		{
 			Toast toast = Toast.makeText(getApplicationContext(), "Task is no longer available", Toast.LENGTH_LONG);
@@ -99,7 +86,7 @@ public class TaskNotification extends Activity {
 		case ALARMSOURCE_TARGETDATE:
 		case ALARMSOURCE_REMINDERDATE:
 
-			taskScheduler.updateReminder(task);
+			scheduler.updateReminder(task);
 			break;
 		}
 
@@ -144,14 +131,14 @@ public class TaskNotification extends Activity {
 			}
 
 			private void completeTask() {
-				taskScheduler.complete(task);
+				scheduler.complete(task);
 			}
 
 			private void snoozeTask() {
 				int pos = snoozePeriod.getSelectedItemPosition();
 				int snoozeTime = snoozedMinutes[pos];
 				
-				taskScheduler.snooze(task, snoozeTime, notificationSource);
+				scheduler.snooze(task, snoozeTime, notificationSource);
 			};
 		});
 
@@ -172,16 +159,20 @@ public class TaskNotification extends Activity {
 	protected void onDestroy() {
 
 		Log.v(TAG, "onDestroy");
-		
-		if(taskScheduler != null) {
-			taskScheduler = null;
-		}
-
-		if (dbHelper != null) {
-			dbHelper.Cleanup();
-			dbHelper = null;
-		}
-
 		super.onDestroy();
+	}
+	
+	@Override
+	protected void onResume() {
+		Log.i(TAG, "onResume");
+		repository.init();
+		super.onStart();
+	}
+	
+	@Override
+	protected void onPause() {
+		Log.i(TAG, "onPause");
+		repository.flush();
+		super.onStop();
 	}
 }

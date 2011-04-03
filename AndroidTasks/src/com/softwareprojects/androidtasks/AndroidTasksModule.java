@@ -3,6 +3,7 @@ package com.softwareprojects.androidtasks;
 import roboguice.config.AbstractAndroidModule;
 import roboguice.inject.SharedPreferencesName;
 
+import com.google.inject.Singleton;
 import com.softwareprojects.androidtasks.db.SqliteTaskRepository;
 import com.softwareprojects.androidtasks.db.TasksDBHelper;
 import com.softwareprojects.androidtasks.domain.ILog;
@@ -26,19 +27,19 @@ public class AndroidTasksModule extends AbstractAndroidModule {
 		// Name of the shared preferences file
 		bindConstant().annotatedWith(SharedPreferencesName.class).to("androidtasks");
 			
-		bind(ILog.class).to(Logger.class).asEagerSingleton();
-		bind(ReminderCalculations.class).to(ReminderCalculationFactory.class).asEagerSingleton();
-		bind(RecurrenceCalculations.class).to(RecurrenceCalculationFactory.class).asEagerSingleton();
+		bind(ILog.class).to(Logger.class);
+		bind(ReminderCalculations.class).to(ReminderCalculationFactory.class).in(Singleton.class);
+		bind(RecurrenceCalculations.class).to(RecurrenceCalculationFactory.class).in(Singleton.class);
 		
 		// Task scheduling
-		bind(TaskAlarmManager.class).to(AndroidTaskAlarmManager.class).asEagerSingleton();
+		bind(TaskAlarmManager.class).to(AndroidTaskAlarmManager.class).in(Singleton.class);
 				
-		requestStaticInjection(TasksDBHelper.class);
-		bind(TaskDateProvider.class).to(TaskDateProviderImpl.class).asEagerSingleton();
-		bind(TaskRepository.class).to(SqliteTaskRepository.class).asEagerSingleton();
-		requestStaticInjection(TaskScheduler.class);
+		bind(TasksDBHelper.class).in(Singleton.class);
+		bind(TaskDateProvider.class).to(TaskDateProviderImpl.class).in(Singleton.class);
+		bind(TaskRepository.class).to(SqliteTaskRepository.class).in(Singleton.class);
+		bind(TaskScheduler.class).in(Singleton.class);
 		
 		// Synchronization manager
-		requestStaticInjection(SynchronizationManager.class);
+		bind(SynchronizationManager.class).in(Singleton.class);
 	}
 }

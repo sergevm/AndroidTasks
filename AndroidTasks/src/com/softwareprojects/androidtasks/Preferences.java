@@ -1,6 +1,6 @@
 package com.softwareprojects.androidtasks;
 
-import android.app.Activity;
+import roboguice.activity.RoboActivity;
 import android.content.SharedPreferences;
 import android.content.SharedPreferences.Editor;
 import android.os.Bundle;
@@ -11,12 +11,16 @@ import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.Spinner;
 
-public class Preferences extends Activity {
+import com.google.inject.Inject;
+
+public class Preferences extends RoboActivity {
 
 	Spinner weeks_before;
 	Spinner weeks_future;
 	CheckBox vibrate_on_notification;
 	Spinner purge_age_in_weeks;
+	
+	@Inject SharedPreferences preferences;
 		
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -46,12 +50,11 @@ public class Preferences extends Activity {
 		weeks_future.setAdapter(rangeAdapter);
 		purge_age_in_weeks.setAdapter(purgeAdapter);
 
-		SharedPreferences prefs = getSharedPreferences("AndroidTasks", Preferences.MODE_PRIVATE);
 		
-		int before_item = prefs.getInt(Constants.PREFS_WEEKS_IN_PAST, 3);
-		int after_item = prefs.getInt(Constants.PREFS_WEEKS_IN_FUTURE, 6);
-		int purge_age_in_weeks_preference = prefs.getInt(Constants.PREFS_PURGING_TASK_AGE_IN_WEEKS, 0);
-		Boolean vibrate = prefs.getBoolean(Constants.PREFS_VIBRATE_ON_NOTIFICATION, false);
+		int before_item = preferences.getInt(Constants.PREFS_WEEKS_IN_PAST, 3);
+		int after_item = preferences.getInt(Constants.PREFS_WEEKS_IN_FUTURE, 6);
+		int purge_age_in_weeks_preference = preferences.getInt(Constants.PREFS_PURGING_TASK_AGE_IN_WEEKS, 0);
+		Boolean vibrate = preferences.getBoolean(Constants.PREFS_VIBRATE_ON_NOTIFICATION, false);
 		
 		weeks_before.setSelection(rangeAdapter.getPosition(before_item));
 		weeks_future.setSelection(rangeAdapter.getPosition(after_item));
@@ -79,8 +82,7 @@ public class Preferences extends Activity {
 	}
 	
 	private void updateSharedPreferences() {
-		SharedPreferences prefs = this.getSharedPreferences("AndroidTasks", Preferences.MODE_PRIVATE);
-		Editor editor = prefs.edit();
+		Editor editor = preferences.edit();
 		
 		editor.putInt(Constants.PREFS_WEEKS_IN_PAST, (Integer)weeks_before.getSelectedItem());
 		editor.putInt(Constants.PREFS_WEEKS_IN_FUTURE, (Integer)weeks_future.getSelectedItem());

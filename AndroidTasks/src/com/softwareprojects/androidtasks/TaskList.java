@@ -5,9 +5,9 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 
+import roboguice.activity.RoboListActivity;
 import android.app.AlertDialog;
 import android.app.Dialog;
-import android.app.ListActivity;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.DialogInterface;
@@ -34,20 +34,13 @@ import android.widget.ArrayAdapter;
 import android.widget.ImageView;
 import android.widget.TextView;
 
+import com.google.inject.Inject;
 import com.softwareprojects.androidtasks.db.SqliteToodledoRepository;
-import com.softwareprojects.androidtasks.db.TasksDBHelper;
-import com.softwareprojects.androidtasks.db.SqliteTaskRepository;
 import com.softwareprojects.androidtasks.db.ToodledoDBHelper;
 import com.softwareprojects.androidtasks.domain.Logger;
-import com.softwareprojects.androidtasks.domain.RecurrenceCalculationFactory;
-import com.softwareprojects.androidtasks.domain.RecurrenceCalculations;
-import com.softwareprojects.androidtasks.domain.ReminderCalculationFactory;
-import com.softwareprojects.androidtasks.domain.ReminderCalculations;
 import com.softwareprojects.androidtasks.domain.Task;
 import com.softwareprojects.androidtasks.domain.TaskAlarmManager;
 import com.softwareprojects.androidtasks.domain.TaskDateFormatter;
-import com.softwareprojects.androidtasks.domain.TaskDateProvider;
-import com.softwareprojects.androidtasks.domain.TaskDateProviderImpl;
 import com.softwareprojects.androidtasks.domain.TaskRepository;
 import com.softwareprojects.androidtasks.domain.TaskScheduler;
 import com.softwareprojects.androidtasks.domain.sync.SynchronizationManager;
@@ -56,14 +49,12 @@ import com.softwareprojects.androidtasks.toodledo.HttpRestClientFactory;
 import com.softwareprojects.androidtasks.toodledo.ToodledoRepository;
 import com.softwareprojects.androidtasks.toodledo.ToodledoSynchronizer;
 
-public class TaskList extends ListActivity {
+public class TaskList extends RoboListActivity {
 
 	private static final int ACTIVITY_REQUEST_CODE_ADD = 0;
 	private static final int ACTIVITY_REQUEST_CODE_PREFS = 1;
 
 	private static final int DIALOG_CONFIRM_DELETE_ID = 0;
-
-	private static TasksDBHelper dbHelper;
 
 	private final static int Filter_All = 4;
 	private final static int Filter_All_In_Range = 5;
@@ -72,17 +63,16 @@ public class TaskList extends ListActivity {
 	private final static int Filter_NoDate = 8;
 
 	private int currentFilter;
+	private boolean updatePurgingSchemeOnResume;
 
 	private BroadcastReceiver listChangedReceiver;
 	private IntentFilter listChangedIntentFilter;
 
-	private TaskDateProvider dates;
-	private TaskRepository taskRepository;
-	private TaskAlarmManager alarmManager;
-	private ReminderCalculations reminders;
-	private RecurrenceCalculations recurrences;
-	private TaskScheduler taskScheduler;
-	private boolean updatePurgingSchemeOnResume;
+	@Inject private TaskScheduler scheduler;
+	@Inject private TaskRepository repository;
+	@Inject private TaskAlarmManager alarmManager;
+	@Inject private SharedPreferences preferences;
+	
 
 	private static final String TAG = TaskList.class.getSimpleName();
 
@@ -106,7 +96,6 @@ public class TaskList extends ListActivity {
 		initializeTaskList();
 
 		// Fetch the initial filter from the shared preferences
-		SharedPreferences preferences = getSharedPreferences("AndroidTasks", MODE_PRIVATE);
 		setCurrentFilter(preferences.getInt("ActiveFilter", Filter_All));
 
 		// Listener for external modification to the task list
@@ -123,26 +112,28 @@ public class TaskList extends ListActivity {
 
 		Log.i(TAG, "onPause");
 
-		SharedPreferences preferences = getSharedPreferences("AndroidTasks", MODE_PRIVATE);
 		Editor prefEditor = preferences.edit();
 
 		prefEditor.putInt("ActiveFilter", getCurrentFilter());
 		prefEditor.commit();
 
 		unregisterReceiver(listChangedReceiver);
+		
+		repository.flush();
 	}
 
 	@Override
 	protected void onResume() {
 		super.onResume();
 
+		repository.init();
+
 		// Update purging scheme. Ugly way to do this, but due to the fact that onActivityResult is 
 		// called before onResume is called (so not all objects such as the db access helper are in 
 		// acceptable state in onActivityResult)
 		if(updatePurgingSchemeOnResume) {
-			SharedPreferences preferences = getSharedPreferences("AndroidTasks", MODE_PRIVATE);
 			int purgeAgeInWeeks = preferences.getInt(Constants.PREFS_PURGING_TASK_AGE_IN_WEEKS, 0);
-			taskScheduler.purge(purgeAgeInWeeks);
+			scheduler.purge(purgeAgeInWeeks);
 			updatePurgingSchemeOnResume = false;
 		}
 
@@ -158,32 +149,18 @@ public class TaskList extends ListActivity {
 	@Override
 	protected void onStart() {
 		super.onStart();
-
-		dbHelper = new TasksDBHelper(this);
-		dates = new TaskDateProviderImpl();
-		taskRepository = new SqliteTaskRepository(dbHelper);
-		alarmManager = new AndroidTaskAlarmManager(this);
-		reminders = new ReminderCalculationFactory();
-		recurrences = new RecurrenceCalculationFactory();
-		taskScheduler = new TaskScheduler(reminders, recurrences, alarmManager, dates, taskRepository, new Logger());
-
 		Log.i(TAG, "onStart");
 	}
 
 	@Override
 	protected void onStop() {
 		super.onStop();
-
-		dbHelper.Cleanup();
-		taskRepository = null;
-
 		Log.i(TAG, "onStop");
 	}
 
 	@Override
 	protected void onDestroy() {
 		super.onDestroy();
-
 		Log.i(TAG, "onDestroy");
 	}
 
@@ -289,7 +266,7 @@ public class TaskList extends ListActivity {
 
 			Logger logger = new Logger();
 
-			SynchronizationManager manager = new SynchronizationManager(syncer,taskScheduler, taskRepository, logger);
+			SynchronizationManager manager = new SynchronizationManager(syncer,scheduler, repository, logger);
 			SynchronizationResult synchronizationResult = manager.sync();
 			
 			Calendar calendar = Calendar.getInstance();
@@ -319,7 +296,7 @@ public class TaskList extends ListActivity {
 			showDialog(DIALOG_CONFIRM_DELETE_ID, bundle);
 			break;
 		case R.id.list_context_menu_complete:
-			taskScheduler.complete(task);
+			scheduler.complete(task);
 			updateFilteredList();
 			break;
 		case R.id.list_context_menu_edit:
@@ -364,7 +341,7 @@ public class TaskList extends ListActivity {
 				public void onClick(DialogInterface dialog, int which) {
 					Log.v(TAG, String.format("Confirmed delete of task with id %d", toDelete.getId()));
 
-					taskScheduler.delete(toDelete);
+					scheduler.delete(toDelete);
 					updateFilteredList();
 					removeDialog(DIALOG_CONFIRM_DELETE_ID);
 				}
@@ -410,20 +387,20 @@ public class TaskList extends ListActivity {
 
 		switch(getCurrentFilter()) {
 		case Filter_All:
-			list = taskRepository.getAll();
+			list = repository.getAll();
 			break;
 		case Filter_All_In_Range:
-			list = taskRepository.getAll(pastWeeks, futureWeeks);
+			list = repository.getAll(pastWeeks, futureWeeks);
 			break;
 		case Filter_Active:
-			list = taskRepository.getActive(pastWeeks, futureWeeks);
+			list = repository.getActive(pastWeeks, futureWeeks);
 			break;
 		case Filter_Due:
-			list = taskRepository.getDue();
+			list = repository.getDue();
 			break;
 		case Filter_NoDate:
 			// TODO: move to repository
-			list = dbHelper.getNoDate();
+//			list = dbHelper.getNoDate();
 		default:
 			break;
 		}

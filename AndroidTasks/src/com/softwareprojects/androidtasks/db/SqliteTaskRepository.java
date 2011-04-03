@@ -78,5 +78,14 @@ public class SqliteTaskRepository implements TaskRepository {
 		return dbHelper.getUpdatedSince(date);
 	}
 
-	
+	@Override
+	public void init() {
+		dbHelper.open();
+		
+	}
+
+	@Override
+	public void flush() {
+		dbHelper.close();
+	}
 }
