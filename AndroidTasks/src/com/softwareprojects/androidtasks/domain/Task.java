@@ -187,7 +187,7 @@ public class Task implements Parcelable, Cloneable {
 		ParcelReaderWriter.writeDateToParcel(dest, modificationDate);
 
 		// target date
-		ParcelReaderWriter.writeDateOrNullToParcel(dest, targetDate);
+		ParcelReaderWriter.writeDateToParcel(dest, targetDate);
 
 		// destination
 		dest.writeString(description);
@@ -208,7 +208,7 @@ public class Task implements Parcelable, Cloneable {
 		dest.writeInt(reminderType);
 
 		// reminderDate
-		ParcelReaderWriter.writeDateOrNullToParcel(dest, reminderDate);
+		ParcelReaderWriter.writeDateToParcel(dest, reminderDate);
 
 		// recurrencyType
 		dest.writeInt(recurrenceType);
@@ -313,29 +313,40 @@ public class Task implements Parcelable, Cloneable {
 		return completed == false;
 	}
 
-	public Task createNextOccurrence(RecurrenceCalculations recurrences, TaskDateProvider dateProvider) {
+	/**
+	 * Creates the next instance of a recurrent task, given that:
+	 * <ul>
+	 * <li>The task has a target date</li>
+	 * <li>The task has a recurrence set</li>
+	 * </ul>
+	 * 
+	 * The next instance is a clone of this instance, with a target date that 
+	 * is calculated with this tasks' target date as an offset, and such that 
+	 * the target date of the returned tasks is in the future and later than 
+	 * the target date of the current task.
+	 * 
+	 * @param recurrences Factory for recurrent task date calculations
+	 * @param dateProvider Provides date bound info such as the current time, today, ...
+	 * @return
+	 */
+	public Task createNextInstance(RecurrenceCalculations recurrences, TaskDateProvider dateProvider) {
 
-		if (getTargetDate() == null)
-			return null;
-		if (getRecurrenceValue() == 0)
-			return null;
-		if (hasFutureTargetDate(dateProvider))
-			return null;
+		if (getTargetDate() == null) return null;
+		if (getRecurrenceValue() == 0) return null;
 
-		// next occurrence is always calculated against the target date of the
-		// current task instance
-		Date nextOccurrenceTargetDate = recurrences.create(this).getNext(getTargetDate(), dateProvider,
-				getRecurrenceValue());
+		// TODO: the target date should always be bigger than the current instances' target date !!!!!
+		Date nextInstanceTargetDate = recurrences.create(this).
+			getNext(getTargetDate(), dateProvider, getRecurrenceValue());
 
-		if (nextOccurrenceTargetDate == null)
+		if (nextInstanceTargetDate == null)
 			return null;
 
 		try {
-			Task nextOccurrence = clone();
-			nextOccurrence.setCompleted(false);
-			nextOccurrence.setTargetDate(nextOccurrenceTargetDate);
+			Task nextInstance = clone();
+			nextInstance.setCompleted(false);
+			nextInstance.setTargetDate(nextInstanceTargetDate);
 
-			return nextOccurrence;
+			return nextInstance;
 
 		} catch (CloneNotSupportedException e) {
 			e.printStackTrace();
@@ -344,69 +355,141 @@ public class Task implements Parcelable, Cloneable {
 		return null;
 	}
 
-	public boolean hasFutureTargetDate(TaskDateProvider dateProvider) {
-		if (getTargetDate() == null)
+	/**
+	 * Returns whether the target date of the Task instance is in the future.
+	 * 
+	 * @param dateProvider Provides access to date bound info such as current time
+	 * @return
+	 */
+	public boolean hasTargetDateInFuture(TaskDateProvider dateProvider) {
+		
+		if (getTargetDate() == null) {
 			return false;
+		}
+		
 		return getTargetDate().after(dateProvider.getNow().getTime());
 	}
 
+	/**
+	 * (Re)calculates the first expected reminder date on the task. Neglects the current value of 
+	 * the reminder date, in contrast with the nextReminder() method, which explicitly expects the
+	 * reminder date to be set on the current task instance!!!!!
+	 * 
+	 @param reminders Reminder calculation factory. This factory decides which calculator to use 
+	 		based on the characteristics of the current Task instance
+	 @param dateProvider Provides access to the current time, today, etc.
+	 */
 	public void initializeReminders(ReminderCalculations reminders, TaskDateProvider dateProvider) {
 
-		if (isCompleted())
-			return;
-
-		Date now = dateProvider.getNow().getTime();
-
-		if (reminderType == REMINDER_MANUAL) {
-			reminderDate = targetDate;
-			return;
-		}
-
-		if (targetDate == null) {
-			reminderDate = reminders.create(this).getNext(dateProvider.getToday().getTime(), dateProvider, 1);
-		} else if (targetDate != null) {
-		
-			if (targetDate.before(now)) {
-				reminderDate = reminders.create(this).getNext(targetDate, dateProvider, 1);
-			} else if (targetDate == now | targetDate.after(now)) {
-				reminderDate = targetDate;			
-			}
-		}
-	}
-
-	public void updateReminder(ReminderCalculations reminders, TaskDateProvider dateProvider) {
-
 		if (isCompleted()) {
+			
 			setReminderDate(null);
 			return;
 		}
 
-		reminderDate = reminders.create(this).getNext(targetDate == null ? reminderDate : targetDate, dateProvider, 1);
+		Date now = dateProvider.getNow().getTime();
+
+		if (reminderType == REMINDER_MANUAL) {
+			
+			if (targetDate != null && targetDate.after(now)) {
+				reminderDate = targetDate;
+			} else {
+				reminderDate = null;
+			}
+			
+			return;
+		}
+
+		if (targetDate == null) {
+						
+			// No target date, and yet a reminder type set => create a reminder 
+			// that is calculated for that type, with the current time as offset
+			reminderDate = reminders.create(this).getNext(now, dateProvider, 1);
+			
+		} else {
+
+			if (targetDate.before(now)) {
+				
+				// Set the first reminder to a valid multiple of the reminder type basic 
+				// unit, valid meaning that the reminder time is in the future
+				reminderDate = reminders.create(this).getNext(targetDate, dateProvider, 1);
+				
+			} else {
+				
+				// Set the first reminder to the target date
+				reminderDate = targetDate;
+				
+			}
+		}
 	}
 
+	/**
+	 * Sets a new reminder date on an this instance. If the task has a target date, than that one 
+	 * is used to calculate the next reminder time. If there is no target date on the task, then 
+	 * the current instances' reminder date is used as the basis for the calculation. 
+	 * 
+	 * <i>Note that the current reminder date is taken into account when no target date is set!</i>
+	 * 
+	 * @param reminders Factory that chooses the correct reminder time calculator based on the task
+	 * @param dateProvider Provides access to date bound info, such as current time, ...
+	 */
+	public void nextReminder(ReminderCalculations reminders, TaskDateProvider dateProvider) {
+
+		if (isCompleted() || isDeleted()) {
+			
+			setReminderDate(null);
+			return;
+		}
+
+		reminderDate = reminders.create(this).getNext(targetDate == null ? 
+				reminderDate : targetDate, dateProvider, 1);
+	}
+
+	/**
+	 * Calculates the target date for the snooze action, and returns the time that the 
+	 * a notification for the current reminder should be displayed. Validates that that 
+	 * target date does not cross the next reminder date that has been set for this 
+	 * instance; if it does, then null is returned.<br/><br/>
+	 * 
+	 * @param dateProvider Provides access to date related info such as the current time, ...
+	 * @param snoozeTimeInMinutes The time in minutes that the reminder should be snoozed.
+	 * @return
+	 */
 	public Date snooze(final TaskDateProvider dateProvider, int snoozeTimeInMinutes) {
 
-		Calendar snoozedTimeCalendar = dateProvider.getNow();
-		snoozedTimeCalendar.add(Calendar.MINUTE, snoozeTimeInMinutes);
+		Calendar snoozeTargetTime = dateProvider.getNow();
+		snoozeTargetTime.add(Calendar.MINUTE, snoozeTimeInMinutes);
 
 		if (getReminderDate() != null) {
-			if (snoozedTimeCalendar.getTime().before(getReminderDate()) == false) {
+			
+			if (snoozeTargetTime.getTime().after(getReminderDate())) {
 				return null;
 			}
+		}
+		
+		if(snoozeTargetTime.before(dateProvider.getNow())){
+			return null;
 		}
 
 		setSnoozeCount(getSnoozeCount() + 1);
 
-		return snoozedTimeCalendar.getTime();
+		return snoozeTargetTime.getTime();
 	}
 
 	public void repeats(int recurrenceType, int recurrenceValue) {
+		
 		this.setRecurrenceType(recurrenceType);
 		this.setRecurrenceValue(recurrenceValue);
 	}
 
 	public void complete() {
+		
 		reminderDate = null;
 		setCompleted(true);
+	}
+
+	public boolean isRecurrent() {
+		
+		return getRecurrenceType() != REPEAT_NONE;
 	}
 }

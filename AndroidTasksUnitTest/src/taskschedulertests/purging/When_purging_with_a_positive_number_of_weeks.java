@@ -34,6 +34,6 @@ public class When_purging_with_a_positive_number_of_weeks extends TaskSchedulerT
 		verificationCalendar.add(Calendar.DATE, 1);
 		
 		taskScheduler.purge(10);
-		verify(alarms, times(1)).schedulePurge(verificationCalendar);
+		verify(alarms, times(1)).setPurgeAlarm(verificationCalendar);
 	}
 }

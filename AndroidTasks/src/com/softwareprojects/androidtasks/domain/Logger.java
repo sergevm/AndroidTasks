@@ -23,4 +23,9 @@ public class Logger implements ILog {
 	public void v(String tag, String message) {
 		Log.v(tag, message);
 	}
+
+	@Override
+	public void e(String tag, String message) {
+		Log.e(tag, message);
+	}
 }

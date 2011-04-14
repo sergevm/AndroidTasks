@@ -43,60 +43,108 @@ public class AndroidTaskAlarmManager implements TaskAlarmManager {
 	}
 
 	@Override
-	public void setTarget(final Task task, Date date) {
+	public void setNextReminderNotificationAlarm(final Task task) {
 
-		// Remove any existing reminder type alarm ...
 		removeAlarm(task, Uri.parse(Constants.ANDROIDTASK_TASK_NEXT_REMINDER_URI + task.getId()));
-
-		// Set a new "regular" alarm
-		Log.i(TAG, "Setting alarm for task with id " + task.getId() + "on " + dateFormat.format(date));
-
-		Uri uri = Uri.parse(Constants.ANDROIDTASK_TASK_CURRENT_ALARM_URI + task.getId());
-		setAlarm(task, uri, date, NotificationSource.ALARMSOURCE_TARGETDATE);
-	}
-
-	@Override
-	public void complete(final Task task) {
-		Log.v(TAG, "Completing task with id " + task.getId());
-		// Is conceptually the same as removing (deleting) a task, as far as alarms are concerned
-		remove(task);
-	}
-
-	@Override
-	public void remove(Task task) {
-		Log.v(TAG, String.format("Removing task with id %d", task.getId()));
-		
-		removeAlarm(task, Uri.parse(Constants.ANDROIDTASK_TASK_CURRENT_ALARM_URI + task.getId()));
-		removeAlarm(task, Uri.parse(Constants.ANDROIDTASK_TASK_NEXT_REMINDER_URI + task.getId()));
-		removeAlarm(task, Uri.parse(Constants.ANDROIDTASK_TASK_NEXT_RECURRENCE_URI + task.getId()));
-	}
-
-	@Override
-	public void setReminder(final Task task) {
-
-		// Remove any pending intent used to create an alarm
 		removeAlarm(task, Uri.parse(Constants.ANDROIDTASK_TASK_CURRENT_ALARM_URI + task.getId()));
 
-		// Set a "reminder" alarm
 		Log.i(TAG,
-				"Setting reminder for task with id " + task.getId() + " on "
-						+ dateFormat.format(task.getReminderDate()));
+				String.format("Setting reminder for task with id %d on %s", task.getId(),
+						dateFormat.format(task.getReminderDate())));
 
 		Uri uri = Uri.parse(Constants.ANDROIDTASK_TASK_NEXT_REMINDER_URI + task.getId());
 		setAlarm(task, uri, task.getReminderDate(), NotificationSource.ALARMSOURCE_REMINDERDATE);
 	}
 
 	@Override
-	public void setRecurrent(Task task, Date initializationDate) {
+	public void complete(final Task task) {
+
+		Log.v(TAG, "Completing task with id " + task.getId());
+
+		removeAlarm(task, Uri.parse(Constants.ANDROIDTASK_TASK_CURRENT_ALARM_URI + task.getId()));
+		removeAlarm(task, Uri.parse(Constants.ANDROIDTASK_TASK_NEXT_REMINDER_URI + task.getId()));
+	}
+
+	@Override
+	public void remove(Task task) {
+
+		Log.v(TAG, String.format("Removing task with id %d", task.getId()));
+
+		removeAlarm(task, Uri.parse(Constants.ANDROIDTASK_TASK_CURRENT_ALARM_URI + task.getId()));
+		removeAlarm(task, Uri.parse(Constants.ANDROIDTASK_TASK_NEXT_REMINDER_URI + task.getId()));
+		removeAlarm(task, Uri.parse(Constants.ANDROIDTASK_TASK_NEXT_RECURRENCE_URI + task.getId()));
+	}
+
+	@Override
+	public void setInstantiateRecurrentTaskAlarm(Task task, Date initializationDate) {
+
+		removeInstantiateRecurrentTaskAlarm(task);
+
 		Uri uri = Uri.parse(Constants.ANDROIDTASK_TASK_NEXT_RECURRENCE_URI + task.getId());
 
-		// Remove any pending intent used to create the next instance of a
-		// recurrent task
-		removeAlarm(task, uri);
+		Log.i(TAG,
+				String.format("Setting recurrence for task with id %d on %s", task.getId(),
+						dateFormat.format(initializationDate)));
+
+		setAlarm(task, uri, initializationDate, NotificationSource.ALARMSOURCE_RECURRENCY);
+	}
+
+	@Override
+	public void removeInstantiateRecurrentTaskAlarm(Task task) {
 
 		Log.i(TAG,
-				"Setting recurrence for task with id " + task.getId() + " on " + dateFormat.format(initializationDate));
-		setAlarm(task, uri, initializationDate, NotificationSource.ALARMSOURCE_RECURRENCY);
+				String.format("Removing recurrence for task with id %d", task.getId()));
+		
+		Uri uri = Uri.parse(Constants.ANDROIDTASK_TASK_NEXT_RECURRENCE_URI + task.getId());
+		removeAlarm(task, uri);
+	}
+
+	@Override
+	public void resetReminderNotificationAlarm(final Task task) {
+	
+		removeAlarm(task, Uri.parse(Constants.ANDROIDTASK_TASK_NEXT_REMINDER_URI + task.getId()));
+		removeAlarm(task, Uri.parse(Constants.ANDROIDTASK_TASK_CURRENT_ALARM_URI + task.getId()));
+	
+		Log.i(TAG,
+				String.format("Setting alarm for task with id %d on %s", task.getId(),
+						dateFormat.format(task.getReminderDate())));
+	
+		Uri uri = Uri.parse(Constants.ANDROIDTASK_TASK_CURRENT_ALARM_URI + task.getId());
+		setAlarm(task, uri, task.getReminderDate(), NotificationSource.ALARMSOURCE_TARGETDATE);
+	}
+
+	@Override
+	public void removeReminderNotificationAlarm(Task task) {
+		
+		removeAlarm(task, Uri.parse(Constants.ANDROIDTASK_TASK_NEXT_REMINDER_URI + task.getId()));
+		removeAlarm(task, Uri.parse(Constants.ANDROIDTASK_TASK_CURRENT_ALARM_URI + task.getId()));
+}
+
+	@Override
+	public void setPurgeAlarm(final Calendar date) {
+
+		Log.v(TAG, String.format("Scheduling a purge on %s", dateFormat.format(date.getTime())));
+
+		PendingIntent pendingIntent = getOrCreatePurgePendingIntent();
+		alarmManager.set(AlarmManager.RTC_WAKEUP, date.getTimeInMillis(), pendingIntent);
+	}
+
+	@Override
+	public void removePurgeAlarm() {
+
+		Log.v(TAG, "Canceling purging");
+
+		PendingIntent pendingIntent = getOrCreatePurgePendingIntent();
+		alarmManager.cancel(pendingIntent);
+		pendingIntent.cancel();
+	}
+
+	@Override
+	public void setSynchronizationAlarm(final Calendar date) {
+		Log.v(TAG, "Scheduling a sync on " + dateFormat.format(date.getTime()));
+
+		PendingIntent pendingIntent = getOrCreateSyncPendingIntent();
+		alarmManager.set(AlarmManager.RTC_WAKEUP, date.getTimeInMillis(), pendingIntent);
 	}
 
 	private void setAlarm(final Task task, Uri uri, Date date, NotificationSource source) {
@@ -134,57 +182,28 @@ public class AndroidTaskAlarmManager implements TaskAlarmManager {
 		}
 	}
 
-	@Override
-	public void clearReminder(Task task) {
-		removeAlarm(task, Uri.parse(Constants.ANDROIDTASK_TASK_NEXT_REMINDER_URI + task.getId()));
-	}
-
-	@Override
-	public void schedulePurge(final Calendar date) {
-		Log.v(TAG, "Scheduling a purge on " + dateFormat.format(date.getTime()));
-
-		PendingIntent pendingIntent = getOrCreatePurgePendingIntent();
-		alarmManager.set(AlarmManager.RTC_WAKEUP, date.getTimeInMillis(), pendingIntent);
-	}
-	
-	@Override
-	public void scheduleSync(final Calendar date) {
-		Log.v(TAG, "Scheduling a sync on " + dateFormat.format(date.getTime()));
-
-		PendingIntent pendingIntent = getOrCreateSyncPendingIntent();
-		alarmManager.set(AlarmManager.RTC_WAKEUP, date.getTimeInMillis(), pendingIntent);		
-	}
-
-	@Override
-	public void cancelPurge() {
-		Log.v(TAG, "Canceling purging");
-
-		PendingIntent pendingIntent = getOrCreatePurgePendingIntent();
-		alarmManager.cancel(pendingIntent);
-		pendingIntent.cancel();
-	}
-
 	private PendingIntent getOrCreatePurgePendingIntent() {
+
 		Intent intent = new Intent(COM_SOFTWAREPROJECTS_ANDROIDTASKS_ALARM_ACTION,
 				Uri.parse(Constants.ANDROIDTASK_TASK_PURGE), context, PurgeAlarmReceiver.class);
-		
+
 		PendingIntent pendingIntent = PendingIntent.getBroadcast(context, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT);
 
 		return pendingIntent;
 	}
 
 	private PendingIntent getOrCreateSyncPendingIntent() {
+
 		Intent intent = new Intent(COM_SOFTWAREPROJECTS_ANDROIDTASKS_ALARM_ACTION,
 				Uri.parse(Constants.ANDROIDTASK_TASK_SYNC), context, SyncAlarmReceiver.class);
-		
+
 		PendingIntent pendingIntent = PendingIntent.getBroadcast(context, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT);
 
 		return pendingIntent;
 	}
-	
+
 	private String createLogMessage(final Task task, final Uri uri, final String action) {
 		return action + task.getId() + " (" + uri.toString() + ")";
 	}
-
 
 }

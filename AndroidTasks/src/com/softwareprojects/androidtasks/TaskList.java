@@ -72,7 +72,6 @@ public class TaskList extends RoboListActivity {
 	@Inject private TaskRepository repository;
 	@Inject private TaskAlarmManager alarmManager;
 	@Inject private SharedPreferences preferences;
-	
 
 	private static final String TAG = TaskList.class.getSimpleName();
 
@@ -117,9 +116,9 @@ public class TaskList extends RoboListActivity {
 		prefEditor.putInt("ActiveFilter", getCurrentFilter());
 		prefEditor.commit();
 
-		unregisterReceiver(listChangedReceiver);
-		
 		repository.flush();
+
+		unregisterReceiver(listChangedReceiver);
 	}
 
 	@Override
@@ -271,7 +270,7 @@ public class TaskList extends RoboListActivity {
 			
 			Calendar calendar = Calendar.getInstance();
 			calendar.add(Calendar.HOUR, 1);
-			alarmManager.scheduleSync(calendar);
+			alarmManager.setSynchronizationAlarm(calendar);
 
 			Log.d(TAG, String.format("Syncing with Toodledo completed: %s", synchronizationResult));
 			
@@ -539,9 +538,9 @@ public class TaskList extends RoboListActivity {
 
 		@Override
 		public void onReceive(Context context, Intent intent) {
+			
 			updateFilteredList();
 		}
-
 	}
 }
 

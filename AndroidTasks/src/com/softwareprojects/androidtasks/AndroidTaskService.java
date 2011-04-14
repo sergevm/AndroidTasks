@@ -4,7 +4,6 @@ import roboguice.service.RoboService;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
-import android.database.SQLException;
 import android.os.IBinder;
 import android.util.Log;
 
@@ -38,37 +37,25 @@ public class AndroidTaskService extends RoboService {
 
 		Log.i(TAG, "onStartCommand");
 
-		try {
-		repository.init();
+		if (intent.getDataString().startsWith(Constants.ANDROIDTASK_TASK_NEXT_RECURRENCE_URI)) {
+
+			long taskId = intent.getLongExtra(Constants.ALARM_TASK_ID, 0);
+			Log.v(TAG, "New recurrent task instance is requested for task with id " + taskId);
+
+			Task task = repository.find(taskId);
+			scheduler.instantiateNextOccurrenceOf(task);
+
+			broadcastTaskListChange();
 		}
-		catch(SQLException ex) {
-			Log.e(TAG, ex.getMessage());
-			throw ex;
-		}
-		
-		try {
-			if (intent.getDataString().startsWith(Constants.ANDROIDTASK_TASK_NEXT_RECURRENCE_URI)) {
 
-				long taskId = intent.getLongExtra(Constants.ALARM_TASK_ID, 0);
-				Log.v(TAG, "New recurrent task instance is requested for task with id " + taskId);
+		else if (intent.getDataString().equals(Constants.ANDROIDTASK_TASK_PURGE)) {
 
-				Task task = repository.find(taskId);
-				scheduler.initializeNextOccurrence(task);
+			SharedPreferences preferences = getSharedPreferences("AndroidTasks", Context.MODE_PRIVATE);
+			int weeks = preferences.getInt(Constants.PREFS_PURGING_TASK_AGE_IN_WEEKS, -1);
 
-				broadcastTaskListChange();
-			}
+			scheduler.purge(weeks);
 
-			else if (intent.getDataString().equals(Constants.ANDROIDTASK_TASK_PURGE)) {
-
-				SharedPreferences preferences = getSharedPreferences("AndroidTasks", Context.MODE_PRIVATE);
-				int weeks = preferences.getInt(Constants.PREFS_PURGING_TASK_AGE_IN_WEEKS, -1);
-
-				scheduler.purge(weeks);
-
-				broadcastTaskListChange();
-			}
-		} finally {
-			repository.flush();
+			broadcastTaskListChange();
 		}
 
 		return super.onStartCommand(intent, flags, startId);

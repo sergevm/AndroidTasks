@@ -10,21 +10,21 @@ public class When_updating_reminders_for_an_existing_task extends TaskSchedulerT
 	
 	@Test public void Then_the_task_should_requested_to_update_its_reminder_date() {
 		
-		taskScheduler.updateReminder(task);
-		verify(task, atLeastOnce()).updateReminder(reminders, dates);
+		taskScheduler.createNextReminderFor(task);
+		verify(task, atLeastOnce()).nextReminder(reminders, dates);
 	}
 	
 	@Test public void Then_the_reminder_alarms_should_be_updated() {
 		
 		when(task.getReminderDate()).thenReturn(createFutureDate());
 		
-		taskScheduler.updateReminder(task);
-		verify(alarms, atLeastOnce()).setReminder(task);
+		taskScheduler.createNextReminderFor(task);
+		verify(alarms, atLeastOnce()).setNextReminderNotificationAlarm(task);
 	}
 	
 	@Test public void Then_the_repository_should_update_the_task() {
 
-		taskScheduler.updateReminder(task);
+		taskScheduler.createNextReminderFor(task);
 		verify(taskRepository, atLeastOnce()).update(task);
 	}
 }

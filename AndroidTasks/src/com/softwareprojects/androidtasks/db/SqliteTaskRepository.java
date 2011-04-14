@@ -81,7 +81,6 @@ public class SqliteTaskRepository implements TaskRepository {
 	@Override
 	public void init() {
 		dbHelper.open();
-		
 	}
 
 	@Override

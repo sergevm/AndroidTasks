@@ -18,6 +18,7 @@ import com.softwareprojects.androidtasks.domain.dates.WeeksCalculation;
 
 public class Given_a_weekscalculation {
 
+	private static final int SHIFT = 5;
 	WeeksCalculation weeks;
 	TaskDateProvider dates;
 	Calendar expectationCalendar;
@@ -37,16 +38,19 @@ public class Given_a_weekscalculation {
 	}
 
 	@Test
-	public void When_the_offset_date_is_in_the_future_then_offset_time_is_returned() {
-		taskDateProviderCalendar.add(Calendar.DATE, -1);
+	public void When_the_offset_date_is_in_the_future_then_offset_time_is_incremented_with_shift() {
 		
-		Date next = weeks.getNext(expectationCalendar.getTime(), dates, 1);
+		taskDateProviderCalendar.add(Calendar.DATE, -1);
+		Date next = weeks.getNext(expectationCalendar.getTime(), dates, SHIFT);
+
+		expectationCalendar.add(Calendar.WEEK_OF_YEAR, SHIFT);
+		
 		assertEquals(expectationCalendar.getTime(), next);
 	}
 	
 	@Test
 	public void When_no_offset_date_Then_null_is_returned() {
-		Date next = weeks.getNext(null, dates, 1);
+		Date next = weeks.getNext(null, dates, SHIFT);
 		assertNull(next);
 	}
 	
@@ -54,7 +58,7 @@ public class Given_a_weekscalculation {
 	public void When_the_offset_date_is_in_the_past_Then_a_date_is_calculated() {
 		taskDateProviderCalendar.add(Calendar.DATE, 2);
 		
-		Date next = weeks.getNext(expectationCalendar.getTime(), dates, 1);
+		Date next = weeks.getNext(expectationCalendar.getTime(), dates, SHIFT);
 		assertNotNull(next);
 	}
 
@@ -62,8 +66,8 @@ public class Given_a_weekscalculation {
 	public void When_the_offset_date_is_in_the_past_Then_the_correct_date_is_calculated() {
 		taskDateProviderCalendar.add(Calendar.DATE, 2);
 		
-		Date next = weeks.getNext(expectationCalendar.getTime(), dates, 1);
-		expectationCalendar.add(Calendar.WEEK_OF_MONTH, 1);
+		Date next = weeks.getNext(expectationCalendar.getTime(), dates, SHIFT);
+		expectationCalendar.add(Calendar.WEEK_OF_MONTH, SHIFT);
 		Date expected = expectationCalendar.getTime();
 		
 		assertEquals(expected, next);

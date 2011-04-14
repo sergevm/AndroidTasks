@@ -15,14 +15,12 @@ import android.util.Log;
 import com.softwareprojects.androidtasks.Constants;
 import com.softwareprojects.androidtasks.R;
 import com.softwareprojects.androidtasks.TaskNotification;
-import com.softwareprojects.androidtasks.db.TasksDBHelper;
 import com.softwareprojects.androidtasks.domain.NotificationSource;
 
 public class TaskAlarmReceiver extends BroadcastReceiver {
 
 	private final static String TAG = TaskAlarmReceiver.class.getSimpleName();
 	final static Integer REQUEST_CODE = 0;
-	static TasksDBHelper dbHelper;
 
 	@Override
 	public void onReceive(Context context, Intent intent) {
@@ -40,11 +38,8 @@ public class TaskAlarmReceiver extends BroadcastReceiver {
 		Log.v(TAG, "Intent received handles notification source " + notificationSource);
 
 		if(notificationSource == NotificationSource.ALARMSOURCE_RECURRENCY) {
-			Intent serviceIntent = new Intent("com.softwareprojects.androidtasks.TASKRECURRENCE", 
-					Uri.parse(Constants.ANDROIDTASK_TASK_NEXT_RECURRENCE_URI + taskId));
-
-			serviceIntent.putExtra(Constants.ALARM_TASK_ID, taskId);
-			context.startService(serviceIntent);
+			
+			instantiateNextOccurrenceOfRecurrentTask(context, taskId);
 		}
 		else
 		{
@@ -52,9 +47,33 @@ public class TaskAlarmReceiver extends BroadcastReceiver {
 
 			Uri uri = Uri.parse(Constants.ANDROIDTASK_TASK_CURRENT_ALARM_URI + taskId);
 			PendingIntent pendingIntent = createPendingIntent(context, uri, taskId, notificationSource, alarmDate);
+			
+			String notificationText = taskDescription;
+			
+			if(notificationSource.isReminder()){
+				
+				notificationText = String.format("%s (reminder)", notificationText);
+			}
 
-			createNotification(context, pendingIntent, (int) taskId, taskDescription);
+			createNotification(context, pendingIntent, (int) taskId, notificationText);
 		}
+	}
+
+	/**
+	 * Calls the AndroidTaskService with a request to instantiate the next occurrence of 
+	 * the current instance with the specified id.
+	 * 
+	 * @param context Context
+	 * @param taskId Id of the existing recurrent task, for which the next occurrence should 
+	 * be instantiated
+	 */
+	private void instantiateNextOccurrenceOfRecurrentTask(Context context, long taskId) {
+		
+		Intent serviceIntent = new Intent("com.softwareprojects.androidtasks.TASKRECURRENCE", 
+				Uri.parse(Constants.ANDROIDTASK_TASK_NEXT_RECURRENCE_URI + taskId));
+
+		serviceIntent.putExtra(Constants.ALARM_TASK_ID, taskId);
+		context.startService(serviceIntent);
 	}
 
 	private PendingIntent createPendingIntent(Context context, Uri uri, long id, NotificationSource source, Date alarmDate) {

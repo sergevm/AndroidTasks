@@ -38,13 +38,13 @@ public class Given_the_task_has_no_target_date extends TaskTestBase{
 	
 	@Test
 	public void When_updating_reminders_Then_the_reminder_date_is_used_to_perform_the_update() {
-		task.updateReminder(reminders, dates);
+		task.nextReminder(reminders, dates);
 		verify(calculation, times(1)).getNext(calendar.getTime(), dates, 1);
 	}
 	
 	@Test
 	public void When_updating_reminders_Then_the_a_calculation_is_requested() {
-		task.updateReminder(reminders, dates);
+		task.nextReminder(reminders, dates);
 		verify(reminders, times(1)).create(task);
 	}
 }

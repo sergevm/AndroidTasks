@@ -16,6 +16,7 @@ import com.softwareprojects.androidtasks.domain.dates.HoursCalculation;
 
 public class Given_an_hourscalculation {
 
+	private static final int SHIFT = 1;
 	TaskDateCalculation hours;
 	TaskDateProvider dates;
 	Calendar expectationCalendar;
@@ -36,9 +37,12 @@ public class Given_an_hourscalculation {
 
 	@Test
 	public void When_the_offset_date_is_in_the_future_then_offset_time_is_returned() {
-		taskDateProviderCalendar.add(Calendar.DATE, -1);
 		
-		Date next = hours.getNext(expectationCalendar.getTime(), dates, 1);
+		taskDateProviderCalendar.add(Calendar.DATE, -1);
+		Date next = hours.getNext(expectationCalendar.getTime(), dates, SHIFT);
+
+		expectationCalendar.add(Calendar.HOUR, SHIFT);
+		
 		assertEquals(expectationCalendar.getTime(), next);
 	}
 	
@@ -52,7 +56,7 @@ public class Given_an_hourscalculation {
 	public void When_the_offset_date_is_in_the_past_Then_a_date_is_calculated() {
 		taskDateProviderCalendar.add(Calendar.DATE, 10);
 		
-		Date next = hours.getNext(expectationCalendar.getTime(), dates, 1);
+		Date next = hours.getNext(expectationCalendar.getTime(), dates, SHIFT);
 		assertNotNull(next);
 	}
 
@@ -60,7 +64,7 @@ public class Given_an_hourscalculation {
 	public void When_the_offset_date_is_in_the_past_Then_the_correct_date_is_calculated() {
 		taskDateProviderCalendar.add(Calendar.DATE, 10);
 		
-		Date next = hours.getNext(expectationCalendar.getTime(), dates, 1);
+		Date next = hours.getNext(expectationCalendar.getTime(), dates, SHIFT);
 		
 		expectationCalendar.add(Calendar.HOUR, 1);
 		expectationCalendar.add(Calendar.DATE, 10);

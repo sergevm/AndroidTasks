@@ -63,14 +63,14 @@ public class RecurrentTaskTest {
 		task.setTargetDate(targetDate.getTime());
 		task.repeats(Task.REPEAT_INTERVAL_DAYS, 1);
 		
-		task.createNextOccurrence(recurrences, dateProvider);
+		task.createNextInstance(recurrences, dateProvider);
 		
 		Assert.assertEquals(task.getRecurrenceType(), Task.REPEAT_INTERVAL_DAYS);
 		Assert.assertEquals(task.getRecurrenceValue(), 1);
 		
 		targetDate.add(Calendar.DATE, 1);
 				
-		verify(alarmManager, never()).setRecurrent(task, targetDate.getTime());
+		verify(alarmManager, never()).setInstantiateRecurrentTaskAlarm(task, targetDate.getTime());
 	}
 	
 	@Test
@@ -83,7 +83,7 @@ public class RecurrentTaskTest {
 		task.setTargetDate(targetDate.getTime());
 		task.repeats(Task.REPEAT_INTERVAL_DAYS, 1);
 		
-		Task nextOccurrence = task.createNextOccurrence(recurrences, dateProvider);
+		Task nextOccurrence = task.createNextInstance(recurrences, dateProvider);
 		
 		Calendar expected = (Calendar)now.clone();
 		expected.set(Calendar.HOUR, targetDate.get(Calendar.HOUR));

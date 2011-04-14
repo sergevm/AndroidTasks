@@ -34,10 +34,10 @@ public class AndroidTasksModule extends AbstractAndroidModule {
 		// Task scheduling
 		bind(TaskAlarmManager.class).to(AndroidTaskAlarmManager.class).in(Singleton.class);
 				
-		bind(TasksDBHelper.class).in(Singleton.class);
+		requestStaticInjection(TasksDBHelper.class);
 		bind(TaskDateProvider.class).to(TaskDateProviderImpl.class).in(Singleton.class);
 		bind(TaskRepository.class).to(SqliteTaskRepository.class).in(Singleton.class);
-		bind(TaskScheduler.class).in(Singleton.class);
+		requestStaticInjection(TaskScheduler.class);
 		
 		// Synchronization manager
 		bind(SynchronizationManager.class).in(Singleton.class);

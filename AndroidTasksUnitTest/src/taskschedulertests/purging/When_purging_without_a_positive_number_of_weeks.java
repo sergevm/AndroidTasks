@@ -27,7 +27,7 @@ public class When_purging_without_a_positive_number_of_weeks extends TaskSchedul
 	
 	@Test public void then_the_purging_notification_is_cancelled() {
 		taskScheduler.purge(0);
-		verify(alarms, times(1)).cancelPurge();
+		verify(alarms, times(1)).removePurgeAlarm();
 	}
 	
 	@Test public void then_no_purge_is_performed_on_the_repository() {

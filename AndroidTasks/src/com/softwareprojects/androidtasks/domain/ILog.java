@@ -1,6 +1,8 @@
 package com.softwareprojects.androidtasks.domain;
 
 public interface ILog {
+	
+	abstract void e(String tag, String message);
 
 	abstract void v(String tag, String message);
 

@@ -167,11 +167,7 @@ public class EditTask extends RoboActivity {
 
 			@Override
 			public void onClick(View view) {
-				task.setCompleted(completed.isChecked());
-				task.setDescription(description.getText().toString());
-				task.setNotes(notes.getText().toString());
-				task.setLocation(location.getText().toString());
-				task.setReminderType(reminderType.getSelectedItemPosition());
+				updateTaskFromControls();
 
 				if (completed.isChecked()) {
 					scheduler.complete(task);
@@ -261,6 +257,8 @@ public class EditTask extends RoboActivity {
 	@Override
 	public boolean onOptionsItemSelected(MenuItem item) {
 
+		updateTaskFromControls();
+		
 		Intent intent = new Intent(this, TaskRecurrence.class);
 		intent.putExtra(Constants.CURRENT_TASK, task);
 
@@ -317,5 +315,13 @@ public class EditTask extends RoboActivity {
 			targetTimeButton.setText(timeFormat.format(date));
 			calendar.setTime(date);
 		}
+	}
+
+	private void updateTaskFromControls() {
+		task.setCompleted(completed.isChecked());
+		task.setDescription(description.getText().toString());
+		task.setNotes(notes.getText().toString());
+		task.setLocation(location.getText().toString());
+		task.setReminderType(reminderType.getSelectedItemPosition());
 	}
 }

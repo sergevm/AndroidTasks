@@ -45,13 +45,13 @@ public class Given_the_task_has_a_target_date extends TaskTestBase {
 	
 	@Test
 	public void When_updating_reminders_Then_a_calculation_is_requested() {
-		task.updateReminder(reminders, dates);
+		task.nextReminder(reminders, dates);
 		verify(reminders, times(1)).create(task);
 	}
 	
 	@Test
 	public void When_updating_reminders_Then_a_reminder_time_is_calculated() {
-		task.updateReminder(reminders, dates);
+		task.nextReminder(reminders, dates);
 		verify(calculation, times(1)).getNext(calendar.getTime(), dates, 1);
 	}
 	

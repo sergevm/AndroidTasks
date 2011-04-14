@@ -37,9 +37,18 @@ public class When_scheduling_new_task extends TaskSchedulerTestBase {
 		verify(task, times(1)).initializeReminders(reminders, dates);
 	}
 	
-	@Test public void Then_the_repository_should_be_checked_for_existing_reoccurrence() {
+	@Test public void If_recurrent_then_the_repository_should_be_checked_for_existing_reoccurrence() {
+		
+		when(task.isRecurrent()).thenReturn(true);
+		
 		taskScheduler.schedule(task);
 		verify(taskRepository, times(1)).findNextOccurrenceOf(task);
+	}
+	
+	@Test public void If_not_recurrent_then_the_repository_should_not_be_checked_for_existing_reoccurrence() {
+		
+		taskScheduler.schedule(task);
+		verify(taskRepository, never()).findNextOccurrenceOf(task);
 	}
 	
 	@Test public void Then_an_alarm_should_be_set_for_a_non_null_reminderdate() {
@@ -49,12 +58,12 @@ public class When_scheduling_new_task extends TaskSchedulerTestBase {
 		when(task.getReminderDate()).thenReturn(reminderDate);
 	
 		taskScheduler.schedule(task);
-		verify(alarms, atLeastOnce()).setTarget(task, reminderDate);
+		verify(alarms, atLeastOnce()).resetReminderNotificationAlarm(task);
 	}
 	
 	@Test public void Then_no_alarm_should_be_set_if_the_task_has_no_reminder_date() {
 
 		taskScheduler.schedule(task);
-		verify(alarms, never()).setTarget(any(Task.class), any(Date.class));
+		verify(alarms, never()).resetReminderNotificationAlarm(any(Task.class));
 	}
 }

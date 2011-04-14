@@ -2,6 +2,7 @@ package taskdatecalculationtests;
 
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.mockito.Mockito.mock;
@@ -18,6 +19,7 @@ import com.softwareprojects.androidtasks.domain.dates.MinutesCalculation;
 
 public class Given_a_minutescalculation {
 
+	private static final int SHIFT = 38;
 	MinutesCalculation minutes;
 	TaskDateProvider dates;
 	Calendar expectationCalendar;
@@ -37,38 +39,50 @@ public class Given_a_minutescalculation {
 	}
 
 	@Test
-	public void When_the_offset_date_is_in_the_future_then_offset_time_is_returned() {
-		taskDateProviderCalendar.add(Calendar.DATE, -1);
+	public void When_the_offset_date_is_in_the_future_then_the_offset_time_is_incremented() {
 		
-		Date next = minutes.getNext(expectationCalendar.getTime(), dates, 1);
-		assertEquals(expectationCalendar.getTime(), next);
+		taskDateProviderCalendar.add(Calendar.MINUTE, -1);
+		Date next = minutes.getNext(expectationCalendar.getTime(), dates, SHIFT);
+		
+		expectationCalendar.add(Calendar.MINUTE, SHIFT);
+		
+		Date expected = expectationCalendar.getTime();
+		assertEquals(expected, next);
 	}
 	
 	@Test
-	public void When_no_offset_date_Then_null_is_returned() {
-		Date next = minutes.getNext(null, dates, 1);
+	public void When_no_offset_date_then_null_is_returned() {
+		Date next = minutes.getNext(null, dates, SHIFT);
 		assertNull(next);
 	}
 	
 	@Test
-	public void When_the_offset_date_is_in_the_past_Then_a_date_is_calculated() {
+	public void When_the_offset_date_is_in_the_past_then_a_date_is_calculated() {
 		taskDateProviderCalendar.add(Calendar.DATE, 2);
 		
-		Date next = minutes.getNext(expectationCalendar.getTime(), dates, 1);
+		Date next = minutes.getNext(expectationCalendar.getTime(), dates, SHIFT);
 		assertNotNull(next);
+	}
+	
+	@Test
+	public void When_the_offset_date_is_in_the_past_then_the_calculated_date_is_not_the_offset_date() {
+		
+		taskDateProviderCalendar.add(Calendar.MINUTE, 1);
+		Date next = minutes.getNext(expectationCalendar.getTime(), dates, SHIFT);
+
+		Date expected = expectationCalendar.getTime();
+		assertFalse(expected.equals(next));
 	}
 
 	@Test
-	public void When_the_offset_date_is_in_the_past_Then_the_correct_date_is_calculated() {
-		taskDateProviderCalendar.add(Calendar.DATE, 2);
+	public void When_the_offset_date_is_in_the_past_then_the_correct_date_is_calculated() {
 		
-		Date next = minutes.getNext(expectationCalendar.getTime(), dates, 1);
+		taskDateProviderCalendar.add(Calendar.MINUTE, 1);
+		Date next = minutes.getNext(expectationCalendar.getTime(), dates, SHIFT);
 		
-		expectationCalendar.add(Calendar.MINUTE, 1);
-		expectationCalendar.add(Calendar.DATE, 2);
+		expectationCalendar.add(Calendar.MINUTE, SHIFT);
 
 		Date expected = expectationCalendar.getTime();
-		
 		assertEquals(expected, next);
 	}
 }

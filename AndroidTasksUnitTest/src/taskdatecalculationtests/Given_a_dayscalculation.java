@@ -19,6 +19,7 @@ import com.softwareprojects.androidtasks.domain.dates.DaysCalculation;
 
 public class Given_a_dayscalculation {
 
+	private static final int SHIFT = 8;
 	TaskDateCalculation days;
 	TaskDateProvider dates;
 	Calendar expectationCalendar;
@@ -38,16 +39,19 @@ public class Given_a_dayscalculation {
 	}
 
 	@Test
-	public void When_the_offset_date_is_in_the_future_then_offset_time_is_returned() {
-		taskDateProviderCalendar.add(Calendar.DATE, -1);
+	public void When_the_offset_date_is_in_the_future_then_offset_time_is_incremented_with_shift() {
 		
-		Date next = days.getNext(expectationCalendar.getTime(), dates, 1);
+		taskDateProviderCalendar.add(Calendar.DATE, -1);
+		Date next = days.getNext(expectationCalendar.getTime(), dates, SHIFT);
+
+		expectationCalendar.add(Calendar.DATE, SHIFT);
+		
 		assertEquals(expectationCalendar.getTime(), next);
 	}
 	
 	@Test
 	public void When_no_offset_date_Then_null_is_returned() {
-		Date next = days.getNext(null, dates, 1);
+		Date next = days.getNext(null, dates, SHIFT);
 		assertNull(next);
 	}
 	
@@ -55,7 +59,7 @@ public class Given_a_dayscalculation {
 	public void When_the_offset_date_is_in_the_past_Then_a_date_is_calculated() {
 		taskDateProviderCalendar.add(Calendar.DATE, 2);
 		
-		Date next = days.getNext(expectationCalendar.getTime(), dates, 1);
+		Date next = days.getNext(expectationCalendar.getTime(), dates, SHIFT);
 		assertNotNull(next);
 	}
 
@@ -64,9 +68,9 @@ public class Given_a_dayscalculation {
 		taskDateProviderCalendar.add(Calendar.DATE, 2);
 		taskDateProviderCalendar.add(Calendar.MINUTE, 1);
 		
-		Date next = days.getNext(expectationCalendar.getTime(), dates, 1);
+		Date next = days.getNext(expectationCalendar.getTime(), dates, SHIFT);
 		
-		expectationCalendar.add(Calendar.DATE, 3);
+		expectationCalendar.add(Calendar.DATE, SHIFT);
 		
 		Date expected = expectationCalendar.getTime();
 		

@@ -53,23 +53,28 @@ public class TasksDBHelper {
 		"nextoccurrenceid INTEGER DEFAULT 0);";
 
 		public DBOpenHelper(Context context) {
-			super(context, TasksDBHelper.DB_NAME, null, TasksDBHelper.DB_VERSION);
 
+			super(context, TasksDBHelper.DB_NAME, null, TasksDBHelper.DB_VERSION);
+			Log.i(TAG, "constructor");
 		}
 
 		@Override
 		public void onCreate(SQLiteDatabase db) {
+			
 			try{
+			
 				Log.i(TAG, "onCreate");
 				db.execSQL(DB_CREATE_TASKS_TABLE);
 			}
 			catch(SQLException e){
+				
 				Log.e(Constants.LOGTAG, TasksDBHelper.TAG, e);
 			}
 		}
 
 		@Override
 		public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
+			
 			Log.i(TAG, "onUpgrade");
 			db.execSQL("DROP TABLE IF EXISTS " + TasksDBHelper.DB_TASKS_TABLE);
 			this.onCreate(db);
@@ -77,12 +82,14 @@ public class TasksDBHelper {
 		
 		@Override
 		public void onOpen(SQLiteDatabase db) {
+			
 			Log.i(TAG, "onOpen");
 			super.onOpen(db);
 		}
 		
 		@Override
 		public synchronized void close() {
+			
 			Log.i(TAG, "close");
 			super.close();
 		}
@@ -92,7 +99,6 @@ public class TasksDBHelper {
 	public TasksDBHelper(Context context)
 	{
 		this.dbOpenHelper = new DBOpenHelper(context);
-		this.open();
 	}
 
 	public void insert(Task task){

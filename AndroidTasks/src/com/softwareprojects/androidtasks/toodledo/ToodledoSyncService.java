@@ -55,7 +55,7 @@ public class ToodledoSyncService extends RoboService {
 			
 			Calendar nextSync = Calendar.getInstance();
 			nextSync.add(Calendar.HOUR, 1);
-			alarms.scheduleSync(nextSync);
+			alarms.setSynchronizationAlarm(nextSync);
 
 			super.onPostExecute(result);
 		}		

@@ -15,11 +15,11 @@ import org.junit.Test;
 
 import com.softwareprojects.androidtasks.domain.TaskDateCalculation;
 import com.softwareprojects.androidtasks.domain.TaskDateProvider;
-import com.softwareprojects.androidtasks.domain.dates.DaysCalculation;
 import com.softwareprojects.androidtasks.domain.dates.MonthsCalculation;
 
 public class Given_a_monthscalculation {
 
+	private static final int SHIFT = 1;
 	TaskDateCalculation months;
 	TaskDateProvider dates;
 	Calendar expectationCalendar;
@@ -38,16 +38,19 @@ public class Given_a_monthscalculation {
 	}
 
 	@Test
-	public void When_the_offset_date_is_in_the_future_then_offset_time_is_returned() {
-		taskDateProviderCalendar.add(Calendar.DATE, -1);
+	public void When_the_offset_date_is_in_the_future_then_offset_time_is_incremented_with_shift() {
 		
-		Date next = months.getNext(expectationCalendar.getTime(), dates, 1);
+		taskDateProviderCalendar.add(Calendar.DATE, -1);
+		Date next = months.getNext(expectationCalendar.getTime(), dates, SHIFT);
+
+		expectationCalendar.add(Calendar.MONTH, SHIFT);
+		
 		assertEquals(expectationCalendar.getTime(), next);
 	}
 	
 	@Test
 	public void When_no_offset_date_Then_null_is_returned() {
-		Date next = months.getNext(null, dates, 1);
+		Date next = months.getNext(null, dates, SHIFT);
 		assertNull(next);
 	}
 	
@@ -55,7 +58,7 @@ public class Given_a_monthscalculation {
 	public void When_the_offset_date_is_in_the_past_Then_a_date_is_calculated() {
 		taskDateProviderCalendar.add(Calendar.MONTH, 2);
 		
-		Date next = months.getNext(expectationCalendar.getTime(), dates, 1);
+		Date next = months.getNext(expectationCalendar.getTime(), dates, SHIFT);
 		assertNotNull(next);
 	}
 
@@ -65,7 +68,7 @@ public class Given_a_monthscalculation {
 		taskDateProviderCalendar.add(Calendar.MONTH, 2);
 		taskDateProviderCalendar.add(Calendar.DATE, 3);
 		
-		Date next = months.getNext(expectationCalendar.getTime(), dates, 1);
+		Date next = months.getNext(expectationCalendar.getTime(), dates, SHIFT);
 		
 		// Then the calculated date should be 3 months from the offset date
 		expectationCalendar.add(Calendar.MONTH, 3);

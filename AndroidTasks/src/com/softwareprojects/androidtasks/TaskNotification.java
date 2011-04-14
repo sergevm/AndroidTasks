@@ -34,6 +34,7 @@ public class TaskNotification extends RoboActivity {
 	Button edit;
 
 	Task task;
+	long taskId;
 	
 	@Inject TaskScheduler scheduler;
 	@Inject TaskRepository repository;
@@ -62,46 +63,21 @@ public class TaskNotification extends RoboActivity {
 		commit = (Button) findViewById(R.id.notification_commit_button);
 		edit = (Button) findViewById(R.id.notification_edit_button);
 
-		long taskId = getIntent().getLongExtra(Constants.ALARM_TASK_ID, -1);
+		taskId = getIntent().getLongExtra(Constants.ALARM_TASK_ID, -1);
 		notificationSource = NotificationSource.valueOf(getIntent().getStringExtra(Constants.ALARM_SOURCE));
 		
-		task = repository.find(taskId);
-		if(task == null)
-		{
-			Toast toast = Toast.makeText(getApplicationContext(), "Task is no longer available", Toast.LENGTH_LONG);
-			toast.show();
-			finish();
-			return;
-		}
+		ArrayAdapter<CharSequence> adapter = ArrayAdapter.createFromResource(this, 
+				R.array.snooze_periods,	android.R.layout.simple_spinner_item);
 		
-		if(task.isCompleted()) {
-			snoozePeriod.setVisibility(View.GONE);
-			snooze.setVisibility(View.GONE);
-			complete.setEnabled(false);
-			complete.setChecked(true);
-			commit.setEnabled(false);
-		}
-
-		switch (notificationSource) {
-		case ALARMSOURCE_TARGETDATE:
-		case ALARMSOURCE_REMINDERDATE:
-
-			scheduler.updateReminder(task);
-			break;
-		}
-
-		description.setText(task.getDescription());
-		snoozeCount.setText(Integer.toString(task.getSnoozeCount()));
-
-		if (task.getTargetDate() != null) {
-			targetdate.setText(TaskDateFormatter.format(task.getTargetDate()));
-		}
-
-		ArrayAdapter<CharSequence> adapter = ArrayAdapter.createFromResource(this, R.array.snooze_periods,
-				android.R.layout.simple_spinner_item);
 		adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+		
 		snoozePeriod.setAdapter(adapter);
 
+		retrieveTask();
+		scheduleNextReminder();
+
+		displayTask();
+		
 		complete.setOnCheckedChangeListener(new OnCheckedChangeListener() {
 
 			@Override
@@ -155,6 +131,29 @@ public class TaskNotification extends RoboActivity {
 		});
 	}
 
+	private void scheduleNextReminder() {
+		
+		switch (notificationSource) {
+		case ALARMSOURCE_TARGETDATE:
+		case ALARMSOURCE_REMINDERDATE:
+
+			scheduler.createNextReminderFor(task);
+			break;
+		}
+	}
+	
+	@Override
+	protected void onStart() {
+		Log.v(TAG, "onStart");
+		super.onStart();
+	}
+	
+	@Override
+	protected void onStop() {
+		Log.v(TAG, "onStop");
+		super.onStop();
+	}
+
 	@Override
 	protected void onDestroy() {
 
@@ -166,13 +165,49 @@ public class TaskNotification extends RoboActivity {
 	protected void onResume() {
 		Log.i(TAG, "onResume");
 		repository.init();
-		super.onStart();
+		super.onResume();
 	}
 	
+	private void displayTask() {
+				
+		if(task == null || task.isDeleted())
+		{
+			Toast toast = Toast.makeText(getApplicationContext(), "Task is no longer available", Toast.LENGTH_LONG);
+			toast.show();
+			finish();
+			return;
+		}
+		
+		if(task.isCompleted()) {
+			
+			snoozePeriod.setVisibility(View.GONE);
+			snooze.setVisibility(View.GONE);
+			complete.setEnabled(false);
+			complete.setChecked(true);
+			commit.setEnabled(false);
+		}
+
+		description.setText(task.getDescription());
+		snoozeCount.setText(Integer.toString(task.getSnoozeCount()));
+
+		if (task.getTargetDate() != null) {
+			targetdate.setText(TaskDateFormatter.format(task.getTargetDate()));
+		}
+	}
+
+	/**
+	 * 
+	 */
+	private void retrieveTask() {
+		repository.init();
+		
+		task = repository.find(taskId);
+	}
+
 	@Override
 	protected void onPause() {
 		Log.i(TAG, "onPause");
 		repository.flush();
-		super.onStop();
+		super.onPause();
 	}
 }
