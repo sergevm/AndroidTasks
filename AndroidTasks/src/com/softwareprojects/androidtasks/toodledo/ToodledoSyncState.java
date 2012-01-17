@@ -64,7 +64,7 @@ public class ToodledoSyncState {
 	public void save() {
 		Editor editor = sharedPreferences.edit();
 		
-		// Note the substraction of 1, to force picking up items edited at about the same time 
+		// Note the subtraction of 1, to force picking up items edited at about the same time 
 		// as the sync
 		editor.putLong(LAST_EDIT_TIMESTAMP, getLastEditTimestamp() - 1);
 		editor.putLong(LAST_DELETE_TIMESTAMP, getLastDeleteTimestamp() - 1);

@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <classpath>
 	<classpathentry kind="src" path="src"/>
-	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/JavaSE-1.6"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.junit.JUNIT_CONTAINER/4"/>
 	<classpathentry kind="src" path="/AndroidTasks"/>
-	<classpathentry kind="lib" path="/Users/serge/Development/Android/android-sdk/platforms/android-8/android.jar"/>
-	<classpathentry kind="lib" path="/Users/serge/Development/Android/lib/powermock-mockito_1.4.6-full/powermock-mockito-1.4.6-full.jar"/>
-	<classpathentry kind="lib" path="/Users/serge/Development/Android/lib/mockito-1.8.5/mockito-all-1.8.5.jar"/>
+	<classpathentry kind="lib" path="C:/Development/android/projects/AndroidTasks/lib/mockito-all-1.9.0.jar"/>
+	<classpathentry kind="lib" path="C:/Development/android/projects/AndroidTasks/lib/powermock-mockito-1.4.10-full.jar"/>
+	<classpathentry kind="lib" path="C:/Users/serge/android-sdks/platforms/android-8/android.jar"/>
+	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

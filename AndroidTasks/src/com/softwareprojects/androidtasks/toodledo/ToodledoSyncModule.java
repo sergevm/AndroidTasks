@@ -19,5 +19,4 @@ public class ToodledoSyncModule extends AbstractAndroidModule {
 		bind(TaskSynchronizer.class).to(ToodledoSynchronizer.class).asEagerSingleton();		
 	
 	}
-
 }
