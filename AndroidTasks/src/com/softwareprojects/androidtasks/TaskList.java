@@ -240,7 +240,9 @@ public class TaskList extends RoboListActivity {
 			updateFilteredList();
 			return true;
 		case 10:
-			sync("td4d35ff02625cc", "HitTheRoadJack!");
+			if(preferences.getBoolean(Constants.PREFS_SYNC_WITH_TOODLEDO, false)) {
+				sync(preferences.getString(Constants.PREFS_TOODLEDO_USER, null), preferences.getString(Constants.PREFS_TOODLEDO_PWD, null));
+			}
 			return true;
 		default:
 			return true;

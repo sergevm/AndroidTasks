@@ -61,11 +61,13 @@ public class Preferences extends RoboActivity {
 		int after_item = preferences.getInt(Constants.PREFS_WEEKS_IN_FUTURE, 6);
 		int purge_age_in_weeks_preference = preferences.getInt(Constants.PREFS_PURGING_TASK_AGE_IN_WEEKS, 0);
 		Boolean vibrate = preferences.getBoolean(Constants.PREFS_VIBRATE_ON_NOTIFICATION, false);
+		Boolean sync = preferences.getBoolean(Constants.PREFS_SYNC_WITH_TOODLEDO, false);
 		
 		weeks_before.setSelection(rangeAdapter.getPosition(before_item));
 		weeks_future.setSelection(rangeAdapter.getPosition(after_item));
 		purge_age_in_weeks.setSelection(purgeAdapter.getPosition(purge_age_in_weeks_preference));
 		vibrate_on_notification.setChecked(vibrate);
+		sync_with_toodledo.setChecked(sync);
 		
 		cancel_button.setOnClickListener(new OnClickListener() {
 

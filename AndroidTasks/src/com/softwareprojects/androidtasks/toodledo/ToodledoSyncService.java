@@ -9,6 +9,7 @@ import android.os.AsyncTask;
 import android.os.IBinder;
 
 import com.google.inject.Inject;
+import com.softwareprojects.androidtasks.Constants;
 import com.softwareprojects.androidtasks.domain.TaskAlarmManager;
 import com.softwareprojects.androidtasks.domain.sync.SynchronizationManager;
 import com.softwareprojects.androidtasks.domain.sync.TaskSynchronizer;
@@ -42,7 +43,9 @@ public class ToodledoSyncService extends RoboService {
 
 		@Override
 		protected Long doInBackground(Object... params) {
-			synchronizer.init("td4d35ff02625cc", "HitTheRoadJack!");
+			String user = preferences.getString(Constants.PREFS_TOODLEDO_USER, null);
+			String pwd = preferences.getString(Constants.PREFS_TOODLEDO_PWD, null);
+			synchronizer.init(user, pwd);
 			manager.sync();
 			return 0L;
 		}
