@@ -3,7 +3,6 @@
 	<name>AndroidTasks</name>
 	<comment></comment>
 	<projects>
-		<project>toodledo</project>
 	</projects>
 	<buildSpec>
 		<buildCommand>
