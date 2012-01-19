@@ -24,4 +24,7 @@ public final class Constants {
 	public static final String PREFS_WEEKS_IN_FUTURE = "Prefs_list_weeks_in_future";
 	public static final String PREFS_VIBRATE_ON_NOTIFICATION = "Prefs_vibrate_on_notification";
 	public static final String PREFS_PURGING_TASK_AGE_IN_WEEKS = "Prefs_purge_tasks_with_age";
+	public static final String PREFS_TOODLEDO_PWD = "Prefs_toodledo_sync_pwd";
+	public static final String PREFS_SYNC_WITH_TOODLEDO = "Prefs_sync_with_toodledo";
+	public static final String PREFS_TOODLEDO_USER = "Prefs_toodledo_sync_user";
 }

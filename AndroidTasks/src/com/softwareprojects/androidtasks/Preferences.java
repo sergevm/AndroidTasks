@@ -1,6 +1,7 @@
 package com.softwareprojects.androidtasks;
 
 import roboguice.activity.RoboActivity;
+import android.app.Dialog;
 import android.content.SharedPreferences;
 import android.content.SharedPreferences.Editor;
 import android.os.Bundle;
@@ -9,6 +10,9 @@ import android.view.View.OnClickListener;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.CheckBox;
+import android.widget.CompoundButton;
+import android.widget.CompoundButton.OnCheckedChangeListener;
+import android.widget.EditText;
 import android.widget.Spinner;
 
 import com.google.inject.Inject;
@@ -19,6 +23,7 @@ public class Preferences extends RoboActivity {
 	Spinner weeks_future;
 	CheckBox vibrate_on_notification;
 	Spinner purge_age_in_weeks;
+	CheckBox sync_with_toodledo;
 	
 	@Inject SharedPreferences preferences;
 		
@@ -34,6 +39,7 @@ public class Preferences extends RoboActivity {
 		purge_age_in_weeks = (Spinner) findViewById(R.id.prefs_purge_age_in_weeks);
 		Button ok_button = (Button)findViewById(R.id.prefs_ok_button);
 		Button cancel_button = (Button)findViewById(R.id.prefs_cancel_button);
+		sync_with_toodledo = (CheckBox)findViewById(R.id.sync_with_toodledo_checkbox);
 
 		ArrayAdapter<Integer> rangeAdapter = new ArrayAdapter<Integer>(this, 
 				android.R.layout.simple_spinner_item, 
@@ -79,7 +85,70 @@ public class Preferences extends RoboActivity {
 				finish();
 			}
 		});
+		
+		sync_with_toodledo.setOnCheckedChangeListener(new OnCheckedChangeListener(){
+
+			@Override
+			public void onCheckedChanged(CompoundButton checkbox, boolean checked) {
+				if(checked) {
+					showToodledoPasswordDialog(); 
+				}
+				else {
+					Editor editor = preferences.edit();
+					editor.putBoolean(Constants.PREFS_SYNC_WITH_TOODLEDO, false);
+					editor.remove(Constants.PREFS_TOODLEDO_PWD);
+					editor.commit();
+				}
+			}			
+		});
 	}
+	
+	private void showToodledoPasswordDialog() {
+		
+		final Dialog dialog = new Dialog(this);
+		dialog.setContentView(R.layout.toodledo_syncsettings_dialog);
+		dialog.setTitle(R.string.toodledo_syncsettings_title);
+		
+		final EditText pwdTextBox = (EditText)dialog.findViewById(R.id.password_textbox);
+		final EditText userTextBox = (EditText)dialog.findViewById(R.id.user_textbox);
+		Button okButton = (Button)dialog.findViewById(R.id.ok_button);
+		
+		okButton.setOnClickListener(new OnClickListener(){
+
+			@Override
+			public void onClick(View view) {
+				Editor editor = preferences.edit();
+				
+				String user = userTextBox.getText().toString();
+				String pwd = pwdTextBox.getText().toString();
+				
+				if(user == null || user.length() == 0 || pwd == null || pwd.length() == 0) {
+					editor.putBoolean(Constants.PREFS_SYNC_WITH_TOODLEDO, false);
+					editor.remove(Constants.PREFS_TOODLEDO_PWD);
+					
+					sync_with_toodledo.setChecked(false);
+				}
+				else {
+					editor.putString(Constants.PREFS_TOODLEDO_USER, user);
+					editor.putString(Constants.PREFS_TOODLEDO_PWD, pwd);
+					editor.putBoolean(Constants.PREFS_SYNC_WITH_TOODLEDO, true);
+				}
+				
+				editor.commit();
+				
+				dialog.dismiss();
+			}
+			
+		});
+		
+		String user;
+		if((user = preferences.getString(Constants.PREFS_TOODLEDO_USER, null)) != null) {
+			userTextBox.setText(user);
+		}
+				
+		dialog.show();
+	}
+
 	
 	private void updateSharedPreferences() {
 		Editor editor = preferences.edit();

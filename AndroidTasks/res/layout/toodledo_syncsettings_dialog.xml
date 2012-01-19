@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="fill_parent"
+    android:layout_height="wrap_content">
+
+    <TextView
+        android:id="@+id/user_label"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_margin="5dp"
+        android:text="@string/toodledo_sync_user_label" />
+
+    <EditText
+        android:id="@+id/user_textbox"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/user_label"
+        android:inputType="text" >
+
+        <requestFocus />
+    </EditText>
+    
+    <TextView
+        android:id="@+id/password_label"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_margin="5dp"
+        android:layout_below="@id/user_textbox"
+        android:text="@string/toodledo_sync_password_label" />
+
+    <EditText
+        android:id="@+id/password_textbox"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/password_label"
+        android:inputType="textPassword" >
+
+        <requestFocus />
+    </EditText>
+    <Button
+        android:id="@+id/ok_button"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/password_textbox"
+        android:text="@string/general_ok" />
+
+</RelativeLayout>

@@ -76,4 +76,9 @@
 <string name="prefs_vibrate">Vibrate on notification</string>
 <string name="prefs_weeks_label">weeks</string>
 <string name="prefs_purge_title">Purge completed taks with age more than</string>
+<string name="sync_with_toodledo_checkbox">Sync with Toodledo</string>
+<string name="toodledo_sync_password_label">Password</string>
+<string name="general_ok">Ok</string>
+<string name="toodledo_syncsettings_title">Toodledo Settings</string>
+<string name="toodledo_sync_user_label">User</string>
 </resources>

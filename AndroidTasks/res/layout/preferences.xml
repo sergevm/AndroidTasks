@@ -44,13 +44,20 @@
 	  	style="@style/prefs_label" />
 	  
   </LinearLayout>
+
+  <CheckBox
+      android:id="@+id/sync_with_toodledo_checkbox"
+      android:layout_width="wrap_content"
+      android:layout_height="wrap_content"
+      android:text="@string/sync_with_toodledo_checkbox"/>
   	
   <Button android:id="@+id/prefs_ok_button" 
   	android:text="@string/prefs_ok_button"
   	style="@style/prefs_button" />
 
-  <Button android:id="@+id/prefs_cancel_button" 
-  	android:text="@string/prefs_cancel_button"
-  	style="@style/prefs_button" />
+  <Button
+      android:id="@+id/prefs_cancel_button"
+      style="@style/prefs_button"
+      android:text="@string/prefs_cancel_button" />
   
 </LinearLayout>
