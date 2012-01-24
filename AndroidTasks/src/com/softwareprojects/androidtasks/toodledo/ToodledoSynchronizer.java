@@ -1,5 +1,6 @@
 package com.softwareprojects.androidtasks.toodledo;
 
+import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.HashMap;
@@ -24,6 +25,7 @@ import com.domaindriven.toodledo.Response;
 import com.domaindriven.toodledo.RestClientFactory;
 import com.domaindriven.toodledo.Session;
 import com.domaindriven.toodledo.ToodledoSession;
+import com.domaindriven.toodledo.ToodledoTimestamp;
 import com.domaindriven.toodledo.UpdateTasksRequest;
 import com.domaindriven.toodledo.UpdateTasksResponse;
 import com.google.inject.Inject;
@@ -45,7 +47,7 @@ public class ToodledoSynchronizer implements TaskSynchronizer {
 	private final ToodledoSyncState synchronizationState;
 
 	@Inject
-	public ToodledoSynchronizer(SharedPreferences preferences, ToodledoRepository repository, RestClientFactory factory) {
+	public ToodledoSynchronizer(SharedPreferences preferences, ToodledoRepository repository, RestClientFactory factory) throws ParseException {
 		this.factory = factory;
 		this.repository = repository;
 		this.synchronizationState = new ToodledoSyncState(preferences);
@@ -83,6 +85,12 @@ public class ToodledoSynchronizer implements TaskSynchronizer {
 				com.domaindriven.toodledo.Task toodledoTask = new com.domaindriven.toodledo.Task();
 
 				toodledoTask.setTitle(task.getDescription());
+				toodledoTask.setNote(task.getNotes());
+				
+				if(task.getTargetDate() != null) {
+					toodledoTask.setDueDate(ToodledoTimestamp.GetGMTTimeInSeconds(task.getTargetDate()));
+				}
+				
 				remoteTasks.add(toodledoTask);
 			}
 			
@@ -169,8 +177,12 @@ public class ToodledoSynchronizer implements TaskSynchronizer {
 					com.domaindriven.toodledo.Task toodledoTask = new com.domaindriven.toodledo.Task();
 					toodledoTask.setId(remoteId);
 					toodledoTask.setTitle(task.getDescription());
-					toodledoTask.setCompleted(task.isCompleted());
-					toodledoTask.setModified(task.getModificationDate().getTime() / 1000);
+					toodledoTask.setModified(ToodledoTimestamp.GetGMTTimeInSeconds(task.getModificationDate()));
+					toodledoTask.setNote(task.getNotes());
+					
+					if(task.getTargetDate() != null) {
+						toodledoTask.setDueDate(ToodledoTimestamp.GetGMTTimeInSeconds(task.getTargetDate()));
+					}
 					
 					toodledoTasks.add(toodledoTask);
 				}
@@ -260,10 +272,10 @@ public class ToodledoSynchronizer implements TaskSynchronizer {
 	}
 
 	@Override
-	public void register(Map<String,Task> tasks) {
+	public void register(Map<String,Task> tasks) throws ParseException {
 		for(String remoteKey : tasks.keySet()) {
 			Task task = tasks.get(remoteKey);
-			repository.insert(tasks.get(remoteKey).getId(), remoteKey, task.getModificationDate().getTime() / 1000);
+			repository.insert(tasks.get(remoteKey).getId(), remoteKey, ToodledoTimestamp.GetGMTTimeInSeconds(task.getModificationDate()));
 		}
 	}
 
@@ -285,7 +297,7 @@ public class ToodledoSynchronizer implements TaskSynchronizer {
 		synchronizationState.save();
 	}
 
-	private Map<String,Task> translateUpdated(List<com.domaindriven.toodledo.Task> updatedTasks) {
+	private Map<String,Task> translateUpdated(List<com.domaindriven.toodledo.Task> updatedTasks) throws ParseException {
 
 		Map<String,Task> tasks = new HashMap<String,Task>();
 
@@ -296,6 +308,12 @@ public class ToodledoSynchronizer implements TaskSynchronizer {
 			Task task = new Task();
 			task.setId(localId);
 			task.setDescription(updatedTask.getTitle());
+			task.setNotes(updatedTask.getNote());
+			
+			long dueDate = updatedTask.getDueDate();
+			if(dueDate > 0) {
+				task.setTargetDate(ToodledoTimestamp.GetLocalDateTime(dueDate));			
+			}
 
 			tasks.put(updatedTask.getId(),task);
 		}

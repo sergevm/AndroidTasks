@@ -1,5 +1,6 @@
 package com.softwareprojects.androidtasks.domain.sync;
 
+import java.text.ParseException;
 import java.util.Calendar;
 import java.util.List;
 import java.util.Map;
@@ -22,7 +23,7 @@ public interface TaskSynchronizer {
 	Calendar getLastEditTime();
 	Calendar getLastDeleteTime();
 
-	void register(Map<String,Task> tasks);
+	void register(Map<String,Task> tasks) throws ParseException;
 	void unregister(List<Long> tasks);
 	
 	void updateSyncStatus(Calendar localSyncTime);

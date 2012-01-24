@@ -1,6 +1,7 @@
 package com.softwareprojects.androidtasks;
 
 import java.security.InvalidParameterException;
+import java.text.ParseException;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
@@ -277,6 +278,8 @@ public class TaskList extends RoboListActivity {
 			Log.d(TAG, String.format("Syncing with Toodledo completed: %s", synchronizationResult));
 			
 			updateFilteredList();
+		} catch (ParseException e) {
+			e.printStackTrace();
 		}
 		finally {
 			toodledoDBHelper.Cleanup();

@@ -1,13 +1,16 @@
 package com.softwareprojects.androidtasks.toodledo;
 
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
-
-import com.softwareprojects.androidtasks.Constants;
+import java.util.Date;
 
 import android.content.SharedPreferences;
 import android.content.SharedPreferences.Editor;
 import android.util.Log;
+
+import com.domaindriven.toodledo.ToodledoTimestamp;
+import com.softwareprojects.androidtasks.Constants;
 
 public class ToodledoSyncState {
 	
@@ -25,21 +28,21 @@ public class ToodledoSyncState {
 	private long lastEditTimestamp;
 	private long lastDeleteTimestamp;
 
-	public ToodledoSyncState(final SharedPreferences sharedPreferences) {
+	public ToodledoSyncState(final SharedPreferences sharedPreferences) throws ParseException {
 		this.sharedPreferences = sharedPreferences;
 		init();
 	}
 
-	private void init() {
+	private void init() throws ParseException {
 		
 		this.lastEditTimestamp = sharedPreferences.getLong(LAST_EDIT_TIMESTAMP, 0);
 		this.lastDeleteTimestamp = sharedPreferences.getLong(LAST_DELETE_TIMESTAMP, 0);
 		long lastSyncTimeInMillis = sharedPreferences.getLong(LAST_LOCAL_SYNC_TIME, 0);
 		lastSyncTime = getDate(lastSyncTimeInMillis);
 		
-		Log.d(TAG, String.format("Last Edit Time: %s", getDateAsString(lastEditTimestamp * 1000)));
-		Log.d(TAG, String.format("Last Delete Time: %s", getDateAsString(lastDeleteTimestamp * 1000)));
-		Log.d(TAG, String.format("Last Local Sync Time: %s", getDateAsString(lastSyncTimeInMillis)));
+		Log.d(TAG, String.format("Last Edit Time (GMT): %s", getDateAsString(lastEditTimestamp)));
+		Log.d(TAG, String.format("Last Delete Time (GMT): %s", getDateAsString(lastDeleteTimestamp)));
+		Log.d(TAG, String.format("Last Local Sync Time: %s", formatDate(lastSyncTime.getTime())));
 	}
 	
 	private Calendar getDate(long timeInMillis) {
@@ -54,21 +57,24 @@ public class ToodledoSyncState {
 		return calendar;
 	}
 	
-	private String getDateAsString(long timeInMillis) {
-		Calendar calendar = getDate(timeInMillis);
+	private String getDateAsString(long timeInSeconds) throws ParseException {
+		Date localTime = ToodledoTimestamp.GetLocalDateTime(timeInSeconds);
+		return formatDate(localTime);
+	}
+	
+	private String formatDate(Date date) {
 		SimpleDateFormat format = new SimpleDateFormat(Constants.DATETIME_FORMAT_STRING);
-		
-		return format.format(calendar.getTime());
+		return format.format(date);
 	}
 
 	public void save() {
 		Editor editor = sharedPreferences.edit();
 		
-		// Note the substraction of 1, to force picking up items edited at about the same time 
+		// Note the subtraction of 1, to force picking up items edited at about the same time 
 		// as the sync
-		editor.putLong(LAST_EDIT_TIMESTAMP, getLastEditTimestamp() - 1);
-		editor.putLong(LAST_DELETE_TIMESTAMP, getLastDeleteTimestamp() - 1);
-		editor.putLong(LAST_LOCAL_SYNC_TIME, getLastSyncTime().getTimeInMillis() - 1);
+		editor.putLong(LAST_EDIT_TIMESTAMP, getLastEditTimestamp());
+		editor.putLong(LAST_DELETE_TIMESTAMP, getLastDeleteTimestamp());
+		editor.putLong(LAST_LOCAL_SYNC_TIME, getLastSyncTime().getTimeInMillis());
 		
 		editor.commit();
 	}
