@@ -1,7 +1,6 @@
 package com.softwareprojects.androidtasks.db;
 
 import java.text.ParseException;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
@@ -24,12 +23,13 @@ public class TasksDBHelper {
 	private static final String DB_NAME = "AndroidTasks";
 	private static final String DB_TASKS_TABLE = "Tasks";
 	private static int DB_VERSION = 3;
-
-	private static final String[] DB_TASKS_COLS = 
-		new String[]{"id", "description", "createdate", "modificationdate", "completed", "deleted", 
-		"targetdate", "snoozecount", "notes", "location", "remindertype", "reminderdate", 
-		"recurrencetype", "recurrencevalue", "nextoccurrenceid"};
 	
+	private static final String[] DB_TASKS_COLS = new String[] { "id",
+			"description", "createdate", "modificationdate", "completed",
+			"deleted", "targetdate", "snoozecount", "notes", "location",
+			"remindertype", "reminderdate", "recurrencetype",
+			"recurrencevalue", "nextoccurrenceid" };
+
 	// Logging stuff
 	private static final String TAG = TasksDBHelper.class.getSimpleName();
 
@@ -37,89 +37,92 @@ public class TasksDBHelper {
 	private SQLiteDatabase db;
 
 	// Factory for database instance
-	private DBOpenHelper dbOpenHelper; 
+	private DBOpenHelper dbOpenHelper;
 
-	private static class DBOpenHelper extends SQLiteOpenHelper
-	{
-		// SQL statement that creates the TASKS table 
-		private static final String DB_CREATE_TASKS_TABLE = "CREATE TABLE " + 
-		TasksDBHelper.DB_TASKS_TABLE + " (id INTEGER PRIMARY KEY, description TEXT, " + 
-		"createdate TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP, " + 
-		"modificationdate TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP, " + 
-		"completed INTEGER, deleted INTEGER, targetdate TEXT, " + 
-		"snoozecount INTEGER DEFAULT 0, notes TEXT, " + 
-		"location TEXT, remindertype INTEGER DEFAULT 0, reminderdate TEXT, " + 
-		"recurrencetype INTEGER DEFAULT 0, recurrencevalue INTEGER DEFAULT 0, " + 
-		"nextoccurrenceid INTEGER DEFAULT 0);";
+	private static class DBOpenHelper extends SQLiteOpenHelper {
+		// SQL statement that creates the TASKS table
+		private static final String DB_CREATE_TASKS_TABLE = "CREATE TABLE "
+				+ TasksDBHelper.DB_TASKS_TABLE
+				+ " (id INTEGER PRIMARY KEY, description TEXT, "
+				+ "createdate TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP, "
+				+ "modificationdate TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP, "
+				+ "completed INTEGER, deleted INTEGER, targetdate TEXT, "
+				+ "snoozecount INTEGER DEFAULT 0, notes TEXT, "
+				+ "location TEXT, remindertype INTEGER DEFAULT 0, reminderdate TEXT, "
+				+ "recurrencetype INTEGER DEFAULT 0, recurrencevalue INTEGER DEFAULT 0, "
+				+ "nextoccurrenceid INTEGER DEFAULT 0);";
 
 		public DBOpenHelper(Context context) {
 
-			super(context, TasksDBHelper.DB_NAME, null, TasksDBHelper.DB_VERSION);
+			super(context, TasksDBHelper.DB_NAME, null,
+					TasksDBHelper.DB_VERSION);
 			Log.i(TAG, "constructor");
 		}
 
 		@Override
 		public void onCreate(SQLiteDatabase db) {
-			
-			try{
-			
+
+			try {
+
 				Log.i(TAG, "onCreate");
 				db.execSQL(DB_CREATE_TASKS_TABLE);
-			}
-			catch(SQLException e){
-				
+			} catch (SQLException e) {
+
 				Log.e(Constants.LOGTAG, TasksDBHelper.TAG, e);
 			}
 		}
 
 		@Override
 		public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
-			
+
 			Log.i(TAG, "onUpgrade");
 			db.execSQL("DROP TABLE IF EXISTS " + TasksDBHelper.DB_TASKS_TABLE);
 			this.onCreate(db);
 		}
-		
+
 		@Override
 		public void onOpen(SQLiteDatabase db) {
-			
+
 			Log.i(TAG, "onOpen");
 			super.onOpen(db);
 		}
-		
+
 		@Override
 		public synchronized void close() {
-			
+
 			Log.i(TAG, "close");
 			super.close();
 		}
 	}
 
 	@Inject
-	public TasksDBHelper(Context context)
-	{
+	public TasksDBHelper(Context context) {
 		this.dbOpenHelper = new DBOpenHelper(context);
 	}
 
-	public void insert(Task task){
+	public void insert(Task task) {
 		ContentValues values = new ContentValues();
 		values.put("description", task.getDescription());
 		values.put("completed", task.isCompleted());
 		values.put("deleted", task.isDeleted());
 		values.put("notes", task.getNotes());
 		values.put("location", task.getLocation());
-		if(task.getCreateDate() != null) {
-			values.put("createdate",new SimpleDateFormat("yyyy-MM-dd HH:mm").format(task.getCreateDate()));
+		if (task.getCreateDate() != null) {
+			values.put("createdate",
+					DbDateFormatter.format(task.getCreateDate()));
 		}
-		if(task.getModificationDate() != null) {
-			values.put("modificationdate",new SimpleDateFormat("yyyy-MM-dd HH:mm").format(task.getModificationDate()));
+		if (task.getModificationDate() != null) {
+			values.put("modificationdate",
+					DbDateFormatter.format(task.getModificationDate()));
 		}
-		if(task.getTargetDate() != null) {
-			values.put("targetdate",new SimpleDateFormat("yyyy-MM-dd HH:mm").format(task.getTargetDate()));
+		if (task.getTargetDate() != null) {
+			values.put("targetdate",
+					DbDateFormatter.format(task.getTargetDate()));
 		}
 		values.put("remindertype", task.getReminderType());
-		if(task.getReminderDate() != null) {
-			values.put("reminderdate", new SimpleDateFormat("yyyy-MM-dd HH:mm").format(task.getReminderDate()));
+		if (task.getReminderDate() != null) {
+			values.put("reminderdate",
+					DbDateFormatter.format(task.getReminderDate()));
 		}
 		values.put("recurrencetype", task.getRecurrenceType());
 		values.put("recurrencevalue", task.getRecurrenceValue());
@@ -128,7 +131,7 @@ public class TasksDBHelper {
 		task.setId(this.db.insert(DB_TASKS_TABLE, null, values));
 	}
 
-	public void update(Task task){
+	public void update(Task task) {
 		ContentValues values = new ContentValues();
 		values.put("description", task.getDescription());
 		values.put("completed", task.isCompleted());
@@ -137,82 +140,110 @@ public class TasksDBHelper {
 		values.put("notes", task.getNotes());
 		values.put("location", task.getLocation());
 
-		if(task.getModificationDate() != null) {
-			values.put("modificationdate", new SimpleDateFormat("yyyy-MM-dd HH:mm").format(task.getModificationDate()));
+		if (task.getModificationDate() != null) {
+			values.put("modificationdate",
+					DbDateFormatter.format(task.getModificationDate()));
 		}
-		
-		if(task.getTargetDate() != null) {
-			values.put("targetdate", new SimpleDateFormat("yyyy-MM-dd HH:mm").format(task.getTargetDate()));
-		}
-		else {
-			values.put("targetdate", (String)null);
+
+		if (task.getTargetDate() != null) {
+			values.put("targetdate",
+					DbDateFormatter.format(task.getTargetDate()));
+		} else {
+			values.put("targetdate", (String) null);
 		}
 		values.put("remindertype", task.getReminderType());
-		if(task.getReminderDate() != null) {
-			values.put("reminderdate", new SimpleDateFormat("yyyy-MM-dd HH:mm").format(task.getReminderDate()));
-		}
-		else {
-			values.put("reminderdate", (String)null);
+		if (task.getReminderDate() != null) {
+			values.put("reminderdate",
+					DbDateFormatter.format(task.getReminderDate()));
+		} else {
+			values.put("reminderdate", (String) null);
 		}
 		values.put("recurrencetype", task.getRecurrenceType());
 		values.put("recurrencevalue", task.getRecurrenceValue());
 		values.put("nextoccurrenceid", task.getNextOccurrenceId());
 
-
 		this.db.update(DB_TASKS_TABLE, values, "id = " + task.getId(), null);
 	}
 
 	public List<Task> getActive(int pastWeeks, int futureWeeks) {
-		return getTasks("completed = 0 AND deleted = 0 AND (" +  formatDateRangeStatement(pastWeeks, futureWeeks) + 
-				" OR targetdate is null)", null, null, null, "length(targetdate) DESC, strftime('%Y-%m-%d %H:%M', targetdate)");
+		return getTasks("completed = 0 AND deleted = 0 AND ("
+				+ formatDateRangeStatement(pastWeeks, futureWeeks)
+				+ " OR targetdate is null)", null, null, null,
+				"length(targetdate) DESC, strftime('%Y-%m-%d %H:%M:%S', targetdate)");
 	}
 
 	public List<Task> getDue() {
-		return getTasks("completed = 0 AND deleted = 0 AND strftime('%Y-%m-%d %H:%M', targetdate) <= datetime('now', 'localtime')", 
-				null, null, null, "strftime('%Y-%m-%d %H:%M', targetdate)");
+		return getTasks(
+				"completed = 0 AND deleted = 0 AND strftime('%Y-%m-%d %H:%M:%S', targetdate) <= datetime('now', 'localtime')",
+				null, null, null, "strftime('%Y-%m-%d %H:%M:%S', targetdate)");
 	}
 
 	public List<Task> getAll() {
-		return getTasks("deleted = 0", null, null, null, "length(targetdate) DESC, strftime('%Y-%m-%d %H:%M', targetdate)");
+		return getTasks("deleted = 0", null, null, null,
+				"length(targetdate) DESC, strftime('%Y-%m-%d %H:%M:%S', targetdate)");
 	}
 
-	public List<Task> getAll(int pastWeeks, int futureWeeks){
-		return getTasks(formatDateRangeStatement(pastWeeks, futureWeeks), null, null, null, 
-		"length(targetdate) DESC, strftime('%Y-%m-%d %H:%M', targetdate)");
+	public List<Task> getAll(int pastWeeks, int futureWeeks) {
+		return getTasks(formatDateRangeStatement(pastWeeks, futureWeeks), null,
+				null, null,
+				"length(targetdate) DESC, strftime('%Y-%m-%d %H:%M:%S', targetdate)");
 	}
 
 	public List<Task> getNewSince(Calendar date) {
-		return getTasks(String.format("deleted = 0 AND strftime('%%Y-%%m-%%d %%H:%%M', createdate) > strftime('%%Y-%%m-%%d %%H:%%M', '%s')", 
-				toDatabaseFormat(date)), null, null, null, "length(createdate) DESC, strftime('%Y-%m-%d %H:%M', createdate)");
+
+		final String statement = String
+				.format("deleted = 0 AND strftime('%%Y-%%m-%%d %%H:%%M:%%S', createdate) > strftime('%%Y-%%m-%%d %%H:%%M:%%S', '%s')",
+						DbDateFormatter.format(date));
+
+		Log.d(TAG, statement);
+
+		return getTasks(statement, null, null, null,
+				"length(createdate) DESC, strftime('%Y-%m-%d %H:%M:%S', createdate)");
 	}
 
 	public List<Task> getDeletedSince(Calendar date) {
-		return getTasks(String.format("deleted = 1 AND strftime('%%Y-%%m-%%d %%H:%%M', modificationdate) > strftime('%%Y-%%m-%%d %%H:%%M', '%s')", 
-				toDatabaseFormat(date)), null, null, null, "length(createdate) DESC, strftime('%Y-%m-%d %H:%M', createdate)");
+
+		final String statement = String
+				.format("deleted = 1 AND strftime('%%Y-%%m-%%d %%H:%%M:%%S', modificationdate) > strftime('%%Y-%%m-%%d %%H:%%M:%%S', '%s')",
+						DbDateFormatter.format(date));
+
+		Log.d(TAG, statement);
+
+		return getTasks(statement, null, null, null,
+				"length(createdate) DESC, strftime('%Y-%m-%d %H:%M:%S', createdate)");
 	}
 
 	public List<Task> getUpdatedSince(Calendar date) {
-		String databaseDate = toDatabaseFormat(date);
-		
-		return getTasks(String.format("deleted = 0 AND strftime('%%Y-%%m-%%d %%H:%%M', modificationdate) > strftime('%%Y-%%m-%%d %%H:%%M', '%s') AND strftime('%%Y-%%m-%%d %%H:%%M', createdate) <= strftime('%%Y-%%m-%%d %%H:%%M', '%s')", 
-				databaseDate, databaseDate), null, null, null, "length(createdate) DESC, strftime('%Y-%m-%d %H:%M', createdate)");
+
+		String databaseDate = DbDateFormatter.format(date);
+
+		String statement = String
+				.format("deleted = 0 AND strftime('%%Y-%%m-%%d %%H:%%M:%%S', modificationdate) > strftime('%%Y-%%m-%%d %%H:%%M:%%S', '%s') AND strftime('%%Y-%%m-%%d %%H:%%M:%%S', createdate) <= strftime('%%Y-%%m-%%d %%H:%%M:%%S', '%s')",
+						databaseDate, databaseDate);
+
+		Log.d(TAG, statement);
+
+		return getTasks(statement, null, null, null,
+				"length(createdate) DESC, strftime('%Y-%m-%d %H:%M:%S', createdate)");
 	}
 
-	public List<Task> getTasks(String selection, String[] selectionArgs, String groupby, String having, String orderby){
+	public List<Task> getTasks(String selection, String[] selectionArgs,
+			String groupby, String having, String orderby) {
 
-		ArrayList<Task> list = new ArrayList<Task>();		
+		ArrayList<Task> list = new ArrayList<Task>();
 		Cursor c = null;
 
 		try {
-			c = this.db.query(DB_TASKS_TABLE, TasksDBHelper.DB_TASKS_COLS, 
+			c = this.db.query(DB_TASKS_TABLE, TasksDBHelper.DB_TASKS_COLS,
 					selection, selectionArgs, groupby, having, orderby);
 
 			int rowCount = c.getCount();
-			if(rowCount == 0) return list;
+			if (rowCount == 0)
+				return list;
 
 			c.moveToFirst();
 
-			for(int counter = 0; counter < rowCount; counter++) {
+			for (int counter = 0; counter < rowCount; counter++) {
 				Task task = new Task();
 				task.setId(c.getLong(0));
 				task.setDescription(c.getString(1));
@@ -234,14 +265,12 @@ public class TasksDBHelper {
 
 				c.moveToNext();
 			}
-		}
-		catch(SQLException e) {
+		} catch (SQLException e) {
 			Log.e(Constants.LOGTAG, TasksDBHelper.TAG, e);
-		}
-		finally {
-			if(c != null & c.isClosed() == false) {
+		} finally {
+			if (c != null & c.isClosed() == false) {
 				c.close();
-			}			
+			}
 		}
 
 		return list;
@@ -249,32 +278,32 @@ public class TasksDBHelper {
 
 	public Task getSingle(long id) {
 		List<Task> found = getTasks("id = " + id, null, null, null, null);
-		if(found.size() == 0) return null;
+		if (found.size() == 0)
+			return null;
 		return found.get(0);
 	}
 
 	public void purge(int days) {
 		String template = "%s < date('now', '-%d day')";
-		db.execSQL("delete from Tasks where completed = 1 AND ((targetdate is not null AND " + 
-				String.format(template, "targetdate", days) + ") OR (targetdate is null AND " + 
-				String.format(template,"createdate", days) + "))");
+		db.execSQL("delete from Tasks where completed = 1 AND ((targetdate is not null AND "
+				+ String.format(template, "targetdate", days)
+				+ ") OR (targetdate is null AND "
+				+ String.format(template, "createdate", days) + "))");
 	}
 
 	public List<Task> getNoDate() {
 		return getTasks("targetdate is null", null, null, null, null);
 	}
 
-	public void open()
-	{
-		if(this.db == null){
+	public void open() {
+		if (this.db == null) {
 			Log.d(TAG, "opening db");
 			this.db = dbOpenHelper.getWritableDatabase();
 		}
 	}
 
-	public void close(){
-		if(this.db != null)
-		{
+	public void close() {
+		if (this.db != null) {
 			Log.d(TAG, "closing db");
 			this.db.close();
 			this.db = null;
@@ -282,25 +311,22 @@ public class TasksDBHelper {
 	}
 
 	private String formatDateRangeStatement(int pastWeeks, int futureWeeks) {
-		return "(targetdate between date('now', '-" + pastWeeks * 7 + " day') AND date('now', '+" + futureWeeks * 7 + " day'))";
+		return "(targetdate between date('now', '-" + pastWeeks * 7
+				+ " day') AND date('now', '+" + futureWeeks * 7 + " day'))";
 	}
 
 	private Date parseDate(final Cursor cursor, final int index) {
-		if(cursor.isNull(index) == false) {
+		if (cursor.isNull(index) == false) {
 			String dateAsString = cursor.getString(index);
-			if(dateAsString != null & dateAsString.length() > 0) {
+			if (dateAsString != null & dateAsString.length() > 0) {
 				try {
-					return new SimpleDateFormat("yyyy-MM-dd HH:mm").parse(dateAsString);
+					return DbDateFormatter.parse(dateAsString);
 				} catch (ParseException e) {
 					e.printStackTrace();
-				}					
+				}
 			}
 		}
-		
-		return null;
-	}
 
-	private String toDatabaseFormat(Calendar date) {
-		return new SimpleDateFormat("yyyy-MM-dd HH:mm").format(date.getTime());
+		return null;
 	}
 }
