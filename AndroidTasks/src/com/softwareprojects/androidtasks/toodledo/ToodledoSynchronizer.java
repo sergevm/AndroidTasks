@@ -174,12 +174,18 @@ public class ToodledoSynchronizer implements TaskSynchronizer {
 
 				if(remoteId != null) {
 					
+					long completedInGMTSeconds = ToodledoTimestamp.GetGMTTimeInSeconds(task.getModificationDate());
+
 					com.domaindriven.toodledo.Task toodledoTask = new com.domaindriven.toodledo.Task();
 					toodledoTask.setId(remoteId);
 					toodledoTask.setTitle(task.getDescription());
-					toodledoTask.setModified(ToodledoTimestamp.GetGMTTimeInSeconds(task.getModificationDate()));
+					toodledoTask.setModified(completedInGMTSeconds);
 					toodledoTask.setNote(task.getNotes());
-					
+
+					if(task.isCompleted()) {
+						toodledoTask.setCompleted(completedInGMTSeconds);
+					}
+										
 					if(task.getTargetDate() != null) {
 						toodledoTask.setDueDate(ToodledoTimestamp.GetGMTTimeInSeconds(task.getTargetDate()));
 					}
@@ -313,6 +319,10 @@ public class ToodledoSynchronizer implements TaskSynchronizer {
 			long dueDate = updatedTask.getDueDate();
 			if(dueDate > 0) {
 				task.setTargetDate(ToodledoTimestamp.GetLocalDateTime(dueDate));			
+			}
+			
+			if(updatedTask.getCompleted() > 0) {
+				task.complete();
 			}
 
 			tasks.put(updatedTask.getId(),task);

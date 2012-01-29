@@ -485,6 +485,7 @@ public class Task implements Parcelable, Cloneable {
 	public void complete() {
 		
 		reminderDate = null;
+		setModificationDate(new Date());
 		setCompleted(true);
 	}
 
