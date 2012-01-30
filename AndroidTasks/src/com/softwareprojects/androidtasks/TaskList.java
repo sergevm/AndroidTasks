@@ -232,7 +232,7 @@ public class TaskList extends RoboListActivity {
 			return true;
 		case 10:
 			if(preferences.getBoolean(Constants.PREFS_SYNC_WITH_TOODLEDO, false)) {
-				sync(preferences.getString(Constants.PREFS_TOODLEDO_USER, null), preferences.getString(Constants.PREFS_TOODLEDO_PWD, null));
+				sync();
 			}
 			return true;
 		default:
@@ -240,7 +240,7 @@ public class TaskList extends RoboListActivity {
 		}
 	}
 
-	private void sync(final String user, final String password) {
+	private void sync() {
 
 		Log.i(TAG, "Broadcasting intent to sync with Toodledo");
 
