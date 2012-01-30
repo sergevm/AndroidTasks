@@ -1,6 +1,7 @@
 package com.softwareprojects.androidtasks;
 
 import roboguice.activity.RoboActivity;
+import roboguice.inject.InjectView;
 import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
@@ -24,14 +25,14 @@ import com.softwareprojects.androidtasks.domain.TaskScheduler;
 
 public class TaskNotification extends RoboActivity {
 
-	TextView description;
-	TextView targetdate;
-	CheckBox complete;
-	Spinner snoozePeriod;
-	TextView snooze;
-	TextView snoozeCount;
-	Button commit;
-	Button edit;
+	@InjectView(R.id.notification_task_description) TextView description;
+	@InjectView(R.id.notification_task_targetdate) TextView targetdate;
+	@InjectView(R.id.notification_complete_checkbox) CheckBox complete;
+	@InjectView(R.id.notification_snooze_period) Spinner snoozePeriod;
+	@InjectView(R.id.notification_snooze_textview) TextView snooze;
+	@InjectView(R.id.notification_snooze_count) TextView snoozeCount;
+	@InjectView(R.id.notification_commit_button) Button commit;
+	@InjectView(R.id.notification_edit_button) Button edit;
 
 	Task task;
 	long taskId;
@@ -53,15 +54,6 @@ public class TaskNotification extends RoboActivity {
 		Log.i(TAG, "onCreate");
 
 		setContentView(R.layout.task_notification);
-
-		description = (TextView) findViewById(R.id.notification_task_description);
-		targetdate = (TextView) findViewById(R.id.notification_task_targetdate);
-		complete = (CheckBox) findViewById(R.id.notification_complete_checkbox);
-		snoozePeriod = (Spinner) findViewById(R.id.notification_snooze_period);
-		snooze = (TextView) findViewById(R.id.notification_snooze_textview);
-		snoozeCount = (TextView) findViewById(R.id.notification_snooze_count);
-		commit = (Button) findViewById(R.id.notification_commit_button);
-		edit = (Button) findViewById(R.id.notification_edit_button);
 
 		taskId = getIntent().getLongExtra(Constants.ALARM_TASK_ID, -1);
 		notificationSource = NotificationSource.valueOf(getIntent().getStringExtra(Constants.ALARM_SOURCE));
@@ -195,9 +187,6 @@ public class TaskNotification extends RoboActivity {
 		}
 	}
 
-	/**
-	 * 
-	 */
 	private void retrieveTask() {
 		repository.init();
 		

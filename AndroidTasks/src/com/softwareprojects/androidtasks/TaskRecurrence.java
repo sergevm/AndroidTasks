@@ -1,5 +1,8 @@
 package com.softwareprojects.androidtasks;
 
+import roboguice.activity.RoboActivity;
+import roboguice.inject.InjectView;
+
 import com.softwareprojects.androidtasks.domain.Task;
 
 import android.app.Activity;
@@ -14,12 +17,12 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Spinner;
 
-public class TaskRecurrence extends Activity {
+public class TaskRecurrence extends RoboActivity {
 
-	Spinner spinner;
-	EditText recurrenceValue;
-	Button confirmButton;
-	Button cancelButton;
+	@InjectView(R.id.recurrence_type) Spinner spinner;
+	@InjectView(R.id.recurrency_value) EditText recurrenceValue;
+	@InjectView(R.id.recurrence_confirm) Button confirmButton;
+	@InjectView(R.id.recurrence_cancel) Button cancelButton;
 
 	Task task;
 
@@ -29,14 +32,11 @@ public class TaskRecurrence extends Activity {
 
 		setContentView(R.layout.task_recurrence);
 
-		spinner = (Spinner) findViewById(R.id.recurrence_type);
-		recurrenceValue = (EditText) findViewById(R.id.recurrency_value);
-		confirmButton = (Button) findViewById(R.id.recurrence_confirm);
-		cancelButton = (Button) findViewById(R.id.recurrence_cancel);
+		ArrayAdapter<CharSequence> adapter = ArrayAdapter.createFromResource(
+				this, R.array.recurrence_types, android.R.layout.simple_spinner_item);
 
-		ArrayAdapter<CharSequence> adapter = ArrayAdapter.createFromResource(this, R.array.recurrence_types,
-				android.R.layout.simple_spinner_item);
 		adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+		
 		spinner.setAdapter(adapter);
 
 		task = (Task) getIntent().getExtras().getParcelable(Constants.CURRENT_TASK);

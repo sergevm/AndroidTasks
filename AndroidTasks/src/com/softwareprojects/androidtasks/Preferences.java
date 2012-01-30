@@ -1,6 +1,7 @@
 package com.softwareprojects.androidtasks;
 
 import roboguice.activity.RoboActivity;
+import roboguice.inject.InjectView;
 import android.app.Dialog;
 import android.content.SharedPreferences;
 import android.content.SharedPreferences.Editor;
@@ -19,11 +20,13 @@ import com.google.inject.Inject;
 
 public class Preferences extends RoboActivity {
 
-	Spinner weeks_before;
-	Spinner weeks_future;
-	CheckBox vibrate_on_notification;
-	Spinner purge_age_in_weeks;
-	CheckBox sync_with_toodledo;
+	@InjectView(R.id.prefs_weeks_before) Spinner weeks_before;
+	@InjectView(R.id.prefs_weeks_future) Spinner weeks_future;
+	@InjectView(R.id.prefs_vibrate) CheckBox vibrate_on_notification;
+	@InjectView(R.id.prefs_purge_age_in_weeks) Spinner purge_age_in_weeks;
+	@InjectView(R.id.sync_with_toodledo_checkbox) CheckBox sync_with_toodledo;
+	@InjectView(R.id.prefs_ok_button) Button ok_button;
+	@InjectView(R.id.prefs_cancel_button) Button cancel_button;
 	
 	@Inject SharedPreferences preferences;
 		
@@ -32,14 +35,6 @@ public class Preferences extends RoboActivity {
 		super.onCreate(savedInstanceState);
 
 		setContentView(R.layout.preferences);
-
-		weeks_before = (Spinner)findViewById(R.id.prefs_weeks_before);
-		weeks_future = (Spinner)findViewById(R.id.prefs_weeks_future);
-		vibrate_on_notification = (CheckBox)findViewById(R.id.prefs_vibrate);
-		purge_age_in_weeks = (Spinner) findViewById(R.id.prefs_purge_age_in_weeks);
-		Button ok_button = (Button)findViewById(R.id.prefs_ok_button);
-		Button cancel_button = (Button)findViewById(R.id.prefs_cancel_button);
-		sync_with_toodledo = (CheckBox)findViewById(R.id.sync_with_toodledo_checkbox);
 
 		ArrayAdapter<Integer> rangeAdapter = new ArrayAdapter<Integer>(this, 
 				android.R.layout.simple_spinner_item, 
