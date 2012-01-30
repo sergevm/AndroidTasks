@@ -5,6 +5,7 @@ import java.util.Calendar;
 import java.util.Date;
 
 import roboguice.activity.RoboActivity;
+import roboguice.inject.InjectView;
 import android.app.DatePickerDialog;
 import android.app.DatePickerDialog.OnDateSetListener;
 import android.app.TimePickerDialog;
@@ -36,25 +37,24 @@ import com.softwareprojects.androidtasks.domain.TaskScheduler;
 
 public class EditTask extends RoboActivity {
 
-	private EditText description;
-	private CheckBox completed;
-	private CheckBox hasTargetDate;
-	private EditText notes;
-	private EditText location;
-	private Button targetDateButton;
-	private Button targetTimeButton;
-	private Button complete;
-	private Button cancel;
-	private Spinner reminderType;
-	private TextView reminderTypeLabel;
-
-	private Task task;
-
-	private final Context context = this;
+	private @InjectView(R.id.edit_description) EditText description;
+	private @InjectView(R.id.edit_completed) CheckBox completed;
+	private @InjectView(R.id.edit_has_targetDate) CheckBox hasTargetDate;
+	private @InjectView(R.id.edit_notes) EditText notes;
+	private @InjectView(R.id.edit_location) EditText location;
+	private @InjectView(R.id.edit_targetDate_button) Button targetDateButton;
+	private @InjectView(R.id.edit_targetTime_button) Button targetTimeButton;
+	private @InjectView(R.id.edit_commit_button) Button complete;
+	private @InjectView(R.id.edit_cancel_button) Button cancel;
+	private @InjectView(R.id.edit_reminder_type) Spinner reminderType;
+	private @InjectView(R.id.edit_reminder_type_label) TextView reminderTypeLabel;
 
 	@Inject private TaskDateProvider dates;
 	@Inject private TaskScheduler scheduler;
 	@Inject private TaskRepository repository;
+
+	private Task task;
+	private final Context context = this;
 
 	private static final String TAG = EditTask.class.getSimpleName();
 	private static final Calendar calendar = Calendar.getInstance();
@@ -65,26 +65,11 @@ public class EditTask extends RoboActivity {
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 
-		Log.i(TAG, "onCreate");
+		Log.d(TAG, "onCreate");
 
-		// Associate a layout with this activity ...
 		setContentView(R.layout.edittask);
 
-		// Initialize the calendar so it doesn't specify time ...
 		calendar.setTime(dates.getNow().getTime());
-
-		// Inflate view
-		description = (EditText) findViewById(R.id.edit_description);
-		completed = (CheckBox) findViewById(R.id.edit_completed);
-		hasTargetDate = (CheckBox) findViewById(R.id.edit_has_targetDate);
-		notes = (EditText) findViewById(R.id.edit_notes);
-		location = (EditText) findViewById(R.id.edit_location);
-		complete = (Button) findViewById(R.id.edit_commit_button);
-		cancel = (Button) findViewById(R.id.edit_cancel_button);
-		targetDateButton = (Button) findViewById(R.id.edit_targetDate_button);
-		targetTimeButton = (Button) findViewById(R.id.edit_targetTime_button);
-		reminderType = (Spinner) findViewById(R.id.edit_reminder_type);
-		reminderTypeLabel = (TextView) findViewById(R.id.edit_reminder_type_label);
 		
 		ArrayAdapter<CharSequence> adapter = ArrayAdapter.createFromResource(this, R.array.reminder_types,
 				android.R.layout.simple_spinner_item);
