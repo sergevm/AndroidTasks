@@ -7,6 +7,7 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.AsyncTask;
 import android.os.IBinder;
+import android.widget.Toast;
 
 import com.google.inject.Inject;
 import com.softwareprojects.androidtasks.Constants;
@@ -58,8 +59,12 @@ public class ToodledoSyncService extends RoboService {
 			
 			Calendar nextSync = Calendar.getInstance();
 			nextSync.add(Calendar.HOUR, 1);
+			
 			alarms.setSynchronizationAlarm(nextSync);
 
+			Toast toast = Toast.makeText(getApplicationContext(), "Synchronization completed", Toast.LENGTH_SHORT);
+			toast.show();
+			
 			super.onPostExecute(result);
 		}		
 	}

@@ -1,14 +1,13 @@
 package com.softwareprojects.androidtasks;
 
 import java.security.InvalidParameterException;
-import java.text.ParseException;
-import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 
 import roboguice.activity.RoboListActivity;
 import android.app.AlertDialog;
 import android.app.Dialog;
+import android.app.PendingIntent;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.DialogInterface;
@@ -36,19 +35,11 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.google.inject.Inject;
-import com.softwareprojects.androidtasks.db.SqliteToodledoRepository;
-import com.softwareprojects.androidtasks.db.ToodledoDBHelper;
-import com.softwareprojects.androidtasks.domain.Logger;
 import com.softwareprojects.androidtasks.domain.Task;
-import com.softwareprojects.androidtasks.domain.TaskAlarmManager;
 import com.softwareprojects.androidtasks.domain.TaskDateFormatter;
 import com.softwareprojects.androidtasks.domain.TaskRepository;
 import com.softwareprojects.androidtasks.domain.TaskScheduler;
-import com.softwareprojects.androidtasks.domain.sync.SynchronizationManager;
-import com.softwareprojects.androidtasks.domain.sync.SynchronizationResult;
-import com.softwareprojects.androidtasks.toodledo.HttpRestClientFactory;
-import com.softwareprojects.androidtasks.toodledo.ToodledoRepository;
-import com.softwareprojects.androidtasks.toodledo.ToodledoSynchronizer;
+import com.softwareprojects.androidtasks.receiver.SyncAlarmReceiver;
 
 public class TaskList extends RoboListActivity {
 
@@ -71,7 +62,6 @@ public class TaskList extends RoboListActivity {
 
 	@Inject private TaskScheduler scheduler;
 	@Inject private TaskRepository repository;
-	@Inject private TaskAlarmManager alarmManager;
 	@Inject private SharedPreferences preferences;
 
 	private static final String TAG = TaskList.class.getSimpleName();
@@ -252,38 +242,18 @@ public class TaskList extends RoboListActivity {
 
 	private void sync(final String user, final String password) {
 
-		Log.d(TAG, "Syncing with Toodledo");
+		Log.i(TAG, "Broadcasting intent to sync with Toodledo");
 
-
-		ToodledoDBHelper toodledoDBHelper = new ToodledoDBHelper(this);
-
+		Intent intent = new Intent("com.softwareprojects.androidtasks.SYNC", null, getApplicationContext(), SyncAlarmReceiver.class);
+		
 		try {
-			ToodledoRepository toodledoRepository = new SqliteToodledoRepository(toodledoDBHelper);
-			
-			ToodledoSynchronizer syncer = new ToodledoSynchronizer(
-					getSharedPreferences("Toodledo", MODE_PRIVATE), 
-					toodledoRepository, new HttpRestClientFactory());
-
-			syncer.init(user, password);
-
-			Logger logger = new Logger();
-
-			SynchronizationManager manager = new SynchronizationManager(syncer,scheduler, repository, logger);
-			SynchronizationResult synchronizationResult = manager.sync();
-			
-			Calendar calendar = Calendar.getInstance();
-			calendar.add(Calendar.HOUR, 1);
-			alarmManager.setSynchronizationAlarm(calendar);
-
-			Log.d(TAG, String.format("Syncing with Toodledo completed: %s", synchronizationResult));
-			
-			updateFilteredList();
-		} catch (ParseException e) {
-			e.printStackTrace();
+		PendingIntent pendingIntent = PendingIntent.getBroadcast(getBaseContext(), 0, intent, PendingIntent.FLAG_ONE_SHOT);	
+		pendingIntent.send();
 		}
-		finally {
-			toodledoDBHelper.Cleanup();
-		}		
+		catch(PendingIntent.CanceledException e) {
+			e.printStackTrace();
+			Log.e(TAG, e.getMessage());
+		}
 	}
 
 	@Override

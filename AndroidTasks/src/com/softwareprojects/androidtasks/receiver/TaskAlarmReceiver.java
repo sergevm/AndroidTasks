@@ -2,10 +2,11 @@ package com.softwareprojects.androidtasks.receiver;
 
 import java.util.Date;
 
+import roboguice.receiver.RoboBroadcastReceiver;
+
 import android.app.Notification;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
-import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -17,7 +18,7 @@ import com.softwareprojects.androidtasks.R;
 import com.softwareprojects.androidtasks.TaskNotification;
 import com.softwareprojects.androidtasks.domain.NotificationSource;
 
-public class TaskAlarmReceiver extends BroadcastReceiver {
+public class TaskAlarmReceiver extends RoboBroadcastReceiver {
 
 	private final static String TAG = TaskAlarmReceiver.class.getSimpleName();
 	final static Integer REQUEST_CODE = 0;
