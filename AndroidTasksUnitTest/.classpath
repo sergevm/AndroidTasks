@@ -3,9 +3,10 @@
 	<classpathentry kind="src" path="src"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/JavaSE-1.6"/>
 	<classpathentry kind="src" path="/AndroidTasks"/>
-	<classpathentry kind="lib" path="/Users/serge/Development/Android/Projects/AndroidTasks/lib/mockito-all-1.9.0.jar"/>
-	<classpathentry kind="lib" path="/Users/serge/Development/Android/Projects/AndroidTasks/lib/powermock-mockito-1.4.11-full.jar"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.junit.JUNIT_CONTAINER/4"/>
-	<classpathentry kind="lib" path="/Users/serge/Development/Tools/android-sdk-macosx/platforms/android-8/android.jar"/>
+	<classpathentry kind="var" path="AndroidLibs/powermock-mockito-1.4.11-full.jar"/>
+	<classpathentry kind="var" path="AndroidLibs/mockito-all-1.9.0.jar"/>
+	<classpathentry kind="con" path="com.android.ide.eclipse.adt.ANDROID_FRAMEWORK"/>
+	<classpathentry kind="var" path="AndroidPlatform"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>
