@@ -72,4 +72,6 @@
 	<string name="general_ok">Ok</string>
 	<string name="toodledo_syncsettings_title">Toodledo Settings</string>
 	<string name="toodledo_sync_user_label">User</string>
+	<string name="toodledo_app_id_label">App Id</string>
+	<string name="toodledo_app_token_label">App Token</string>
 </resources>

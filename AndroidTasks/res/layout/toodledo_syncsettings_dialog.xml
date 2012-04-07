@@ -7,7 +7,7 @@
         android:id="@+id/user_label"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_margin="5dp"
+        android:layout_margin="3dp"
         android:text="@string/toodledo_sync_user_label" />
 
     <EditText
@@ -24,7 +24,7 @@
         android:id="@+id/password_label"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_margin="5dp"
+        android:layout_margin="3dp"
         android:layout_below="@id/user_textbox"
         android:text="@string/toodledo_sync_password_label" />
 
@@ -37,11 +37,51 @@
 
         <requestFocus />
     </EditText>
-    <Button
+
+    <TextView
+        android:id="@+id/app_id_label"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignLeft="@+id/password_label"
+        android:layout_below="@+id/password_textbox"
+        android:layout_margin="3dp"
+        android:text="@string/toodledo_app_id_label"
+        android:textAppearance="?android:attr/textAppearanceSmall" />
+
+    <EditText
+        android:id="@+id/app_id_textbox"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentRight="true"
+        android:layout_below="@+id/app_id_label" />
+
+    <TextView
+        android:id="@+id/app_token_label"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignLeft="@+id/app_id_label"
+        android:layout_below="@+id/app_id_textbox"
+        android:layout_margin="3dp"
+        android:text="@string/toodledo_app_token_label"
+        android:textAppearance="?android:attr/textAppearanceSmall" />
+
+    <EditText
+        android:id="@+id/app_token_textbox"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentRight="true"
+        android:layout_below="@+id/app_token_label" />
+
+    <Button
         android:id="@+id/ok_button"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_below="@+id/password_textbox"
+        android:layout_alignParentRight="true"
+        android:layout_alignParentLeft="true"
+        android:layout_below="@+id/app_token_textbox"
+        android:layout_marginTop="10dp"
         android:text="@string/general_ok" />
 
 </RelativeLayout>

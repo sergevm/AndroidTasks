@@ -108,6 +108,8 @@ public class Preferences extends RoboActivity {
 		
 		final EditText pwdTextBox = (EditText)dialog.findViewById(R.id.password_textbox);
 		final EditText userTextBox = (EditText)dialog.findViewById(R.id.user_textbox);
+		final EditText appIdTextBox = (EditText)dialog.findViewById(R.id.app_id_textbox);
+		final EditText appTokenTextBox = (EditText)dialog.findViewById(R.id.app_token_textbox);
 		Button okButton = (Button)dialog.findViewById(R.id.ok_button);
 		
 		okButton.setOnClickListener(new OnClickListener(){
@@ -118,6 +120,8 @@ public class Preferences extends RoboActivity {
 				
 				String user = userTextBox.getText().toString();
 				String pwd = pwdTextBox.getText().toString();
+				String appId = appIdTextBox.getText().toString();
+				String appToken = appTokenTextBox.getText().toString();
 				
 				if(user == null || user.length() == 0 || pwd == null || pwd.length() == 0) {
 					editor.putBoolean(Constants.PREFS_SYNC_WITH_TOODLEDO, false);
@@ -128,6 +132,8 @@ public class Preferences extends RoboActivity {
 				else {
 					editor.putString(Constants.PREFS_TOODLEDO_USER, user);
 					editor.putString(Constants.PREFS_TOODLEDO_PWD, pwd);
+					editor.putString(Constants.PREFS_TOODLEDO_APP_ID, appId);
+					editor.putString(Constants.PREFS_TOODLEDO_APP_TOKEN, appToken);
 					editor.putBoolean(Constants.PREFS_SYNC_WITH_TOODLEDO, true);
 				}
 				
@@ -141,6 +147,16 @@ public class Preferences extends RoboActivity {
 		String user;
 		if((user = preferences.getString(Constants.PREFS_TOODLEDO_USER, null)) != null) {
 			userTextBox.setText(user);
+		}
+		
+		String appId;
+		if((appId = preferences.getString(Constants.PREFS_TOODLEDO_APP_ID, null)) != null) {
+			appIdTextBox.setText(appId);
+		}
+		
+		String appToken;
+		if((appToken = preferences.getString(Constants.PREFS_TOODLEDO_APP_TOKEN, null)) != null) {
+			appTokenTextBox.setText(appToken);
 		}
 				
 		dialog.show();

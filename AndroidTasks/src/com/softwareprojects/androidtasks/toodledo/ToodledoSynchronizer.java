@@ -54,9 +54,9 @@ public class ToodledoSynchronizer implements TaskSynchronizer {
 	}
 
 	@Override
-	public void init(final String user, final String password) {
+	public void init(final String user, final String password, final String appId, final String appToken) {
 
-		session = ToodledoSession.create(user, password, new ToodledoSession.Log(){
+		session = ToodledoSession.create(user, password, appId, appToken, new ToodledoSession.Log(){
 			@Override public void log(String tag, String message) {
 				Log.d(tag, message);
 			}},factory);

@@ -46,7 +46,9 @@ public class ToodledoSyncService extends RoboService {
 		protected Long doInBackground(Object... params) {
 			String user = preferences.getString(Constants.PREFS_TOODLEDO_USER, null);
 			String pwd = preferences.getString(Constants.PREFS_TOODLEDO_PWD, null);
-			synchronizer.init(user, pwd);
+			String appId = preferences.getString(Constants.PREFS_TOODLEDO_APP_ID, null);
+			String appToken = preferences.getString(Constants.PREFS_TOODLEDO_APP_TOKEN, null);
+			synchronizer.init(user, pwd, appId, appToken);
 			manager.sync();
 			return 0L;
 		}

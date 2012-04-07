@@ -27,4 +27,6 @@ public final class Constants {
 	public static final String PREFS_TOODLEDO_PWD = "Prefs_toodledo_sync_pwd";
 	public static final String PREFS_SYNC_WITH_TOODLEDO = "Prefs_sync_with_toodledo";
 	public static final String PREFS_TOODLEDO_USER = "Prefs_toodledo_sync_user";
+	public static final String PREFS_TOODLEDO_APP_ID = "Prefs_toodledo_app_id";
+	public static final String PREFS_TOODLEDO_APP_TOKEN = "Prefs_toodledo_app_token";
 }
