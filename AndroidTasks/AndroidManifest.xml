@@ -5,6 +5,7 @@
       android:versionName="1.0">
     <uses-permission android:name="android.permission.VIBRATE"/>
 	<uses-permission android:name="android.permission.INTERNET" /> 
+	<uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
     <application android:icon="@drawable/tasks" android:label="@string/app_name" android:debuggable="true" 
     	android:name="com.softwareprojects.androidtasks.AndroidTasksApplication">
         <activity android:name=".TaskList" android:label="@string/app_name">

@@ -108,12 +108,12 @@ public class ToodledoSynchronizer implements TaskSynchronizer {
 			for(com.domaindriven.toodledo.Task task : remoteTasks) {
 				repository.insert(localTasks.get(index++).getId(), task.getId(), task.getModified());
 			}
+			
+			return new Success();
 		} 
 		catch(JSONException ex) {
 			return new Failure(ex.getMessage());
 		}
-
-		return new Success();
 	}
 
 	@Override
@@ -152,6 +152,9 @@ public class ToodledoSynchronizer implements TaskSynchronizer {
 			return new Success();
 		} 
 		catch(JSONException ex) {
+			return new Failure(ex.getMessage());
+		}
+		catch(Exception ex) {
 			return new Failure(ex.getMessage());
 		}
 	}
@@ -211,9 +214,8 @@ public class ToodledoSynchronizer implements TaskSynchronizer {
 			
 		} catch (Exception e) {
 			e.printStackTrace();
+			return new Failure(e.getMessage());
 		}
-		
-		return new Success();
 	}
 
 	@Override
