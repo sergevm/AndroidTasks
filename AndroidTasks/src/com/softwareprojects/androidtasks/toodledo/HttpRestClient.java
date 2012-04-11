@@ -22,6 +22,7 @@ import org.apache.http.protocol.HTTP;
 
 import com.domaindriven.toodledo.RequestMethod;
 import com.domaindriven.toodledo.RestClient;
+import com.domaindriven.toodledo.SyncException;
 
 
 /*
@@ -74,7 +75,7 @@ public class HttpRestClient implements RestClient {
     }
  
     @Override
-	public void Execute(RequestMethod method) throws Exception
+	public void Execute(RequestMethod method) throws IOException, SyncException
     {
         switch(method) {
             case GET:

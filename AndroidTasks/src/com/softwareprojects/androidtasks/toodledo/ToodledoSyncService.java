@@ -1,5 +1,6 @@
 package com.softwareprojects.androidtasks.toodledo;
 
+import java.io.IOException;
 import java.util.Calendar;
 
 import roboguice.service.RoboService;
@@ -10,12 +11,12 @@ import android.os.IBinder;
 import android.util.Log;
 import android.widget.Toast;
 
+import com.domaindriven.androidtools.AsyncTaskResult;
 import com.domaindriven.androidtools.Connectivity;
+import com.domaindriven.toodledo.SyncException;
 import com.google.inject.Inject;
 import com.softwareprojects.androidtasks.Constants;
 import com.softwareprojects.androidtasks.domain.TaskAlarmManager;
-import com.softwareprojects.androidtasks.domain.sync.Failure;
-import com.softwareprojects.androidtasks.domain.sync.Success;
 import com.softwareprojects.androidtasks.domain.sync.SynchronizationManager;
 import com.softwareprojects.androidtasks.domain.sync.SynchronizationResult;
 import com.softwareprojects.androidtasks.domain.sync.TaskSynchronizer;
@@ -52,10 +53,10 @@ public class ToodledoSyncService extends RoboService {
 
 	}
 
-	private class SychronizeTask extends AsyncTask<Object, Integer, Long> {
+	private class SychronizeTask extends AsyncTask<Object, Integer, AsyncTaskResult<SynchronizationResult>> {
 
 		@Override
-		protected Long doInBackground(Object... params) {
+		protected AsyncTaskResult<SynchronizationResult> doInBackground(Object... params) {
 			try {
 				
 				String user = preferences.getString(Constants.PREFS_TOODLEDO_USER, null);
@@ -64,44 +65,42 @@ public class ToodledoSyncService extends RoboService {
 				String appToken = preferences.getString(Constants.PREFS_TOODLEDO_APP_TOKEN, null);
 
 				synchronizer.init(user, pwd, appId, appToken);
-			
-			} catch (Exception ex) {
-				Log.e(TAG, ex.getMessage(), ex);
-				return 1L;
-			}
 
-			SynchronizationResult result = manager.sync();
-			Log(result);
-			return 0L;
-		}
+				SynchronizationResult result = manager.sync();
+				return new AsyncTaskResult<SynchronizationResult>(result);
 
-		private void Log(SynchronizationResult result) {
-			if (result.getClass() == Success.class) {
-				Log.i(TAG, "Success");
-			} else if (result.getClass() == Failure.class) {
-				Log.e(TAG, result.toString());
+			} catch (IOException e) {
+				return new AsyncTaskResult<SynchronizationResult>(e, "Exception occurred while initializing synchronization with Toodledo.");
+			} catch (SyncException e) {
+				return new AsyncTaskResult<SynchronizationResult>(e, e.getMessage());
+			} catch(Exception e) {
+				return new AsyncTaskResult<SynchronizationResult>(e, "Catch-all exception reached");
 			}
 		}
 
 		@Override
-		protected void onPostExecute(Long result) {
+		protected void onPostExecute(AsyncTaskResult<SynchronizationResult> result) {
 
-			Intent intent = new Intent(
-					"com.softwareprojects.androidtasks.TASKLISTCHANGE");
-			sendBroadcast(intent);
+			Exception e = result.getError();
+
+			if(e != null) {
+				Log.e(TAG, e.getMessage(), e);
+				Toast toast = Toast.makeText(getApplicationContext(), result.getMessage(), Toast.LENGTH_SHORT);
+				toast.show();				
+			}
+			else {
+				Toast toast = Toast.makeText(getApplicationContext(), result.getResult().toString(), Toast.LENGTH_SHORT);
+				toast.show();
+
+				Intent intent = new Intent("com.softwareprojects.androidtasks.TASKLISTCHANGE");
+				sendBroadcast(intent);
+			}
 
 			Calendar nextSync = Calendar.getInstance();
 			nextSync.add(Calendar.HOUR, 1);
 
 			alarms.setSynchronizationAlarm(nextSync);
 
-			if (result == 0L) {
-				Toast toast = Toast.makeText(getApplicationContext(), "Synchronization completed.", Toast.LENGTH_SHORT);
-				toast.show();
-			} else if (result == 1L) {
-				Toast toast = Toast.makeText(getApplicationContext(), "Synchronization failed. Please check the log.", Toast.LENGTH_SHORT);
-				toast.show();
-			}
 			super.onPostExecute(result);
 		}
 	}

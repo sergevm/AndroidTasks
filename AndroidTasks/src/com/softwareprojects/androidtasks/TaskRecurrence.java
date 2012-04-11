@@ -2,10 +2,6 @@ package com.softwareprojects.androidtasks;
 
 import roboguice.activity.RoboActivity;
 import roboguice.inject.InjectView;
-
-import com.softwareprojects.androidtasks.domain.Task;
-
-import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
@@ -16,6 +12,8 @@ import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Spinner;
+
+import com.softwareprojects.androidtasks.domain.Task;
 
 public class TaskRecurrence extends RoboActivity {
 

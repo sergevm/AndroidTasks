@@ -1,5 +1,7 @@
 package com.softwareprojects.androidtasks.domain.sync;
 
+import java.io.IOException;
+import java.text.ParseException;
 import java.util.Calendar;
 import java.util.HashMap;
 import java.util.List;
@@ -7,6 +9,7 @@ import java.util.Map;
 
 import org.json.JSONException;
 
+import com.domaindriven.toodledo.SyncException;
 import com.google.inject.Inject;
 import com.softwareprojects.androidtasks.domain.ILog;
 import com.softwareprojects.androidtasks.domain.Task;
@@ -34,24 +37,45 @@ public class SynchronizationManager {
 
 		log.v(TAG, "Synchronization starting");
 
-		try {
-			Calendar localSyncTime = Calendar.getInstance();
+		Calendar localSyncTime = Calendar.getInstance();
+		SynchronizationResult result;
+		
+		result = processLocalAdds();
+		if(result.getClass().isAssignableFrom(Failure.class)) {
+			return result;
+		}
+		
+		result = processLocalDeletes();
+		if(result.getClass().isAssignableFrom(Failure.class)) {
+			return result;
+		}
 
-			processLocalAdds();
-			processLocalDeletes();
-			processRemoteUpdates();
-			processRemoteDeletes();
-			processLocalUpdates();
-			
-			synchronizer.updateSyncStatus(localSyncTime);
+		result = processRemoteUpdates();
+		if(result.getClass().isAssignableFrom(Failure.class)) {
+			return result;
+		}
 
-		} catch (JSONException e) {
-			e.printStackTrace();
-		} catch (Exception e) {
-			e.printStackTrace();
+		result = processRemoteDeletes();
+		if(result.getClass().isAssignableFrom(Failure.class)) {
+			return result;
+		}
+		
+		processLocalUpdates();
+		if(result.getClass() != Success.class) {
+			return result;
 		}
 
 		log.v(TAG, "Synchronization completed");
+
+		try {
+			synchronizer.updateSyncStatus(localSyncTime);
+		} catch (SyncException e) {
+			e.printStackTrace();
+			return new Failure(e.getMessage());
+		} catch (IOException e) {
+			e.printStackTrace();
+			return new Failure(e.getMessage());
+		}
 
 		return new Success();
 	}
@@ -67,7 +91,7 @@ public class SynchronizationManager {
 			updateResult = synchronizer.updateTasks(tasksUpdatedLocally);
 		}
 		else {
-			return new NoSync("No local updates to sync");
+			return new NullSynchronizationResult("No local updates to sync");
 		}
 
 		log.d(TAG, updateResult.toString());
@@ -75,7 +99,7 @@ public class SynchronizationManager {
 		return updateResult;
 	}
 
-	private SynchronizationResult processLocalDeletes() throws JSONException, Exception {
+	private SynchronizationResult processLocalDeletes() {
 		SynchronizationResult deleteResult = null;
 
 		List<Task> tasksDeletedLocally = repository.getDeletedSince(synchronizer.getLastDeleteTime());
@@ -86,7 +110,7 @@ public class SynchronizationManager {
 			deleteResult = synchronizer.deleteTasks(tasksDeletedLocally);
 		}
 		else {
-			deleteResult = new NoSync("No local deletes to sync");
+			deleteResult = new NullSynchronizationResult("No local deletes to sync");
 		}
 		
 		log.d(TAG, deleteResult.toString());
@@ -94,7 +118,7 @@ public class SynchronizationManager {
 		return deleteResult;
 	}
 
-	private SynchronizationResult processLocalAdds() throws JSONException, Exception {
+	private SynchronizationResult processLocalAdds() {
 		SynchronizationResult addResult = null;
 
 		List<Task> tasksAddedLocally = repository.getNewSince(synchronizer.getLastEditTime());
@@ -105,7 +129,7 @@ public class SynchronizationManager {
 			addResult = synchronizer.addTasks(tasksAddedLocally);
 		}
 		else {
-			addResult = new NoSync("No local adds to sync");
+			addResult = new NullSynchronizationResult("No local adds to sync");
 		}
 		
 		log.d(TAG, addResult.toString());
@@ -113,52 +137,70 @@ public class SynchronizationManager {
 		return addResult;
 	}
 
-	private void processRemoteUpdates() throws JSONException, Exception {
+	private SynchronizationResult processRemoteUpdates() {
 
+		Map<String, Task> remoteUpdatedTasks;
 		try {
-			Map<String,Task> remoteUpdatedTasks = synchronizer.getUpdated();
-			Map<String,Task> unregisteredTasks = new HashMap<String,Task>();
+			remoteUpdatedTasks = synchronizer.getUpdated();
+		} catch (SyncException e) {
+			e.printStackTrace();
+			return new Failure(e.getMessage());
+		} catch (IOException e) {
+			e.printStackTrace();
+			return new Failure(e.getMessage());
+		}
+		
+		Map<String,Task> unregisteredTasks = new HashMap<String,Task>();
 
-			if(remoteUpdatedTasks == null || remoteUpdatedTasks.size() == 0)
-				return;
+		if(remoteUpdatedTasks == null || remoteUpdatedTasks.size() == 0) {
+			return new NullSynchronizationResult("No updated remote tasks found");
+		}
 
-			for(String remoteKey : remoteUpdatedTasks.keySet()) {
-				Task task = remoteUpdatedTasks.get(remoteKey);
-				boolean isNew = task.getId() == 0;
-				scheduler.schedule(task);
-				
-				if(isNew) unregisteredTasks.put(remoteKey, task);
-			}
+		for(String remoteKey : remoteUpdatedTasks.keySet()) {
+			Task task = remoteUpdatedTasks.get(remoteKey);
+			boolean isNew = task.getId() == 0;
+			scheduler.schedule(task);
 			
+			if(isNew) unregisteredTasks.put(remoteKey, task);
+		}
+		
+		try {
 			synchronizer.register(unregisteredTasks);
+		} catch (ParseException e) {
+			log.e(TAG, "An exception occurred while registering a Toodledo mapping");
+			return new Failure("An exception occurred trying to parse the modification date");
 		}
-		catch(JSONException ex) {
-			log.d(TAG, ex.getMessage());
-		}
+		
+		return new Success("Remotely updated tasks synced successfully");
 	}
 
-	private void processRemoteDeletes() throws JSONException, Exception {
+	private SynchronizationResult processRemoteDeletes() {
 
+		List<Long> remoteDeletedTasks;
 		try {
-			List<Long> remoteDeletedTasks = synchronizer.getDeleted();
-
-			if(remoteDeletedTasks == null || remoteDeletedTasks.size() == 0)
-				return;
-
-			for(long id : remoteDeletedTasks) {
-
-				Task task = repository.find(id);
-
-				if(task != null) {
-					scheduler.delete(task);
-				}
-			}		
-			
-			synchronizer.unregister(remoteDeletedTasks);
-		}
-		catch(JSONException ex) {
-			log.d(TAG, ex.getMessage());
+			remoteDeletedTasks = synchronizer.getDeleted();
+		} catch (SyncException e) {
+			e.printStackTrace();
+			return new Failure(e.getMessage());
+		} catch (IOException e) {
+			e.printStackTrace();
+			return new Failure(e.getMessage());
 		}
 
+		if(remoteDeletedTasks == null || remoteDeletedTasks.size() == 0)
+			return new NullSynchronizationResult("No deleted remote tasks found");
+
+		for(long id : remoteDeletedTasks) {
+
+			Task task = repository.find(id);
+
+			if(task != null) {
+				scheduler.delete(task);
+			}
+		}		
+		
+		synchronizer.unregister(remoteDeletedTasks);
+		
+		return new Success("Remotely deleted tasks synced successfully");
 	}
 }
