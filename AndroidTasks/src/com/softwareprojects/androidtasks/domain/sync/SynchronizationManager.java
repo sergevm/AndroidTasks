@@ -7,8 +7,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.json.JSONException;
-
 import com.domaindriven.toodledo.SyncException;
 import com.google.inject.Inject;
 import com.softwareprojects.androidtasks.domain.ILog;
@@ -61,7 +59,7 @@ public class SynchronizationManager {
 		}
 		
 		processLocalUpdates();
-		if(result.getClass() != Success.class) {
+		if(result.getClass().isAssignableFrom(Failure.class)) {
 			return result;
 		}
 
