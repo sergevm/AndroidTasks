@@ -44,13 +44,13 @@ public class ToodledoSynchronizer implements TaskSynchronizer {
 	private Session session;
 	private final RestClientFactory factory;
 	private final ToodledoRepository repository;
-	private final ToodledoSyncState synchronizationState;
+	private final ToodledoSyncTime synchronizationState;
 
 	@Inject
 	public ToodledoSynchronizer(SharedPreferences preferences, ToodledoRepository repository, RestClientFactory factory) throws ParseException {
 		this.factory = factory;
 		this.repository = repository;
-		this.synchronizationState = new ToodledoSyncState(preferences);
+		this.synchronizationState = new ToodledoSyncTime(preferences);
 	}
 
 	@Override
