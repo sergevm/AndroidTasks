@@ -12,7 +12,7 @@ gen
 *.log
 *.sql
 *.sqlite
-
+.DS_Store
 .DS_Store?
 ehthumbs.db
 Icon?
