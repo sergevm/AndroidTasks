@@ -1,0 +1,11 @@
+Remarks on the setup of the project:
+
+2012/08/17:
+-----------
+After upgrading to ADT 20.x, the app crashed on the emulator, because appartently the tools changed the way that it chooses what dependencies to include in the deployment package. 
+
+Basically I removed the dependencies from the build path configuration (guice etc), and added a libs folder where I put the dependencies. The name of the folder mathers, as the dependencies included in the folder are automatically added to the "Android dependencies" folder.
+
+Actually, I simply followed the issue resolution described here:
+
+http://android.foxykeep.com/dev/how-to-fix-the-classdefnotfounderror-with-adt-17
