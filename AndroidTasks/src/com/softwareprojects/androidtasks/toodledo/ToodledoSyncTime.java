@@ -12,9 +12,9 @@ import android.util.Log;
 import com.domaindriven.toodledo.ToodledoTimestamp;
 import com.softwareprojects.androidtasks.Constants;
 
-public class ToodledoSyncState {
+public class ToodledoSyncTime {
 	
-	private static final String TAG = ToodledoSyncState.class.getSimpleName();
+	private static final String TAG = ToodledoSyncTime.class.getSimpleName();
 
 	private static final String LAST_LOCAL_SYNC_TIME = "LastLocalSyncTime";
 
@@ -28,7 +28,7 @@ public class ToodledoSyncState {
 	private long lastEditTimestamp;
 	private long lastDeleteTimestamp;
 
-	public ToodledoSyncState(final SharedPreferences sharedPreferences) throws ParseException {
+	public ToodledoSyncTime(final SharedPreferences sharedPreferences) throws ParseException {
 		this.sharedPreferences = sharedPreferences;
 		init();
 	}
@@ -70,8 +70,6 @@ public class ToodledoSyncState {
 	public void save() {
 		Editor editor = sharedPreferences.edit();
 		
-		// Note the subtraction of 1, to force picking up items edited at about the same time 
-		// as the sync
 		editor.putLong(LAST_EDIT_TIMESTAMP, getLastEditTimestamp());
 		editor.putLong(LAST_DELETE_TIMESTAMP, getLastDeleteTimestamp());
 		editor.putLong(LAST_LOCAL_SYNC_TIME, getLastSyncTime().getTimeInMillis());
