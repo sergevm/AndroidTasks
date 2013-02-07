@@ -18,4 +18,12 @@ So what does this app do? Basically, it offers the following features:
 - Integrates with the Android system, delivering notifications for the todo's that have a target date specified
 - For each todo item, a reminder can be configured, e.g.: as long as the task is not completed, remind me every 2 hours
 - Optional synchronisation with Toodledo. To perform the synchronization, it uses the API offered by Toodledo (http://api.toodledo.com/2/tasks/index.php)
+- When syncing with Toodledo, it happens two-ways. Conflict resolution is very poor at the moment, but hey, it _is_ a learning project :-)
+
+I used Eclipse for development. Besides the Android SDK, I used some other tools, mainly to try and find the "cleanest" way to develop Android applications. 
+These are the tools that are used in the project:
+- Google-guice (http://code.google.com/p/google-guice/): a dependency framework. I used the 2.0 version without AOP (suitable for Android development)
+- Roboguice (https://github.com/roboguice/roboguice): Injection of views etc., specifically for Android development (I think). Removes the need for the ugly findViewById() calls etc.
+- gson 2.1(http://code.google.com/p/google-gson/): translate Java objects to json etc.. Used in the syncing with Toodledo
+- mockito (http://code.google.com/p/mockito/): mocking library
 
